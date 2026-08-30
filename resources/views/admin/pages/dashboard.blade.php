@@ -13,7 +13,7 @@
             </div>
             <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">Admin Control Center</h1>
             <p class="text-slate-400 text-sm mt-1">
-                Centralized management for roles, permissions, users, and administrative security.
+                Centralized staff management with multi-auth database isolation.
             </p>
         </div>
         <div class="flex items-center gap-3">
@@ -25,10 +25,10 @@
 
     <!-- Statistics Cards Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <!-- Total Users Card -->
+        <!-- Total Customers Card -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Users</span>
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Customers</span>
                 <span class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
@@ -37,14 +37,14 @@
             </div>
             <div class="mt-4">
                 <span class="text-3xl font-black text-white">{{ $stats['total_users'] }}</span>
-                <p class="text-xs text-slate-400 mt-1">Registered in database</p>
+                <p class="text-xs text-slate-400 mt-1">Storefront customers</p>
             </div>
         </div>
 
-        <!-- Active Users Card -->
+        <!-- Staff / Admins Card -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Users</span>
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Staff / Admins</span>
                 <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -52,15 +52,15 @@
                 </span>
             </div>
             <div class="mt-4">
-                <span class="text-3xl font-black text-white">{{ $stats['active_users'] }}</span>
-                <p class="text-xs text-emerald-400/80 mt-1">Eligible to authenticate</p>
+                <span class="text-3xl font-black text-white">{{ $stats['total_admins'] }}</span>
+                <p class="text-xs text-emerald-400/80 mt-1">Authorized staff accounts</p>
             </div>
         </div>
 
         <!-- System Roles Card -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Defined Roles</span>
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Staff Roles</span>
                 <span class="p-2 rounded-xl bg-amber-500/10 text-amber-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -69,7 +69,7 @@
             </div>
             <div class="mt-4">
                 <span class="text-3xl font-black text-white">{{ $stats['total_roles'] }}</span>
-                <p class="text-xs text-slate-400 mt-1">Super Admin, Admin, Manager, Customer</p>
+                <p class="text-xs text-slate-400 mt-1">Super Admin, Admin, Manager</p>
             </div>
         </div>
 
@@ -90,14 +90,14 @@
         </div>
     </div>
 
-    <!-- Users & Role Foundation Table -->
+    <!-- Administrators Foundation Table -->
     <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
         <div class="flex items-center justify-between border-b border-slate-800 pb-4">
             <div>
-                <h2 class="text-base font-bold text-white">Seeded Foundation Accounts</h2>
-                <p class="text-xs text-slate-400">Verified system test records</p>
+                <h2 class="text-base font-bold text-white">Administrator Staff Accounts</h2>
+                <p class="text-xs text-slate-400">Isolated staff records in dedicated admins table</p>
             </div>
-            <span class="text-xs font-mono text-indigo-400">Step 1 Ready</span>
+            <span class="text-xs font-mono text-indigo-400">Multi-Auth Ready</span>
         </div>
 
         <div class="overflow-x-auto">
@@ -112,29 +112,29 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-800/60 text-slate-300">
-                    @foreach ($recentUsers as $user)
+                    @foreach ($recentAdmins as $item)
                         <tr class="hover:bg-slate-800/30 transition">
                             <td class="py-3 px-4 font-medium text-white flex items-center gap-2">
                                 <span class="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] font-bold">
-                                    {{ substr($user->name, 0, 1) }}
+                                    {{ substr($item->name, 0, 1) }}
                                 </span>
-                                <span>{{ $user->name }}</span>
+                                <span>{{ $item->name }}</span>
                             </td>
-                            <td class="py-3 px-4 font-mono text-slate-400">{{ $user->email }}</td>
+                            <td class="py-3 px-4 font-mono text-slate-400">{{ $item->email }}</td>
                             <td class="py-3 px-4">
-                                @foreach ($user->roles as $role)
+                                @foreach ($item->roles as $role)
                                     <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium {{ $role->slug === 'super-admin' ? 'bg-purple-950 text-purple-300 border border-purple-800' : ($role->slug === 'admin' ? 'bg-indigo-950 text-indigo-300 border border-indigo-800' : 'bg-slate-800 text-slate-300 border border-slate-700') }}">
                                         {{ $role->name }}
                                     </span>
                                 @endforeach
                             </td>
                             <td class="py-3 px-4">
-                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold {{ $user->status === 'active' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/60' : 'bg-rose-950 text-rose-400 border border-rose-800/60' }}">
-                                    <span class="w-1.5 h-1.5 rounded-full {{ $user->status === 'active' ? 'bg-emerald-400' : 'bg-rose-400' }}"></span>
-                                    {{ ucfirst($user->status) }}
+                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold {{ $item->status === 'active' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/60' : 'bg-rose-950 text-rose-400 border border-rose-800/60' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $item->status === 'active' ? 'bg-emerald-400' : 'bg-rose-400' }}"></span>
+                                    {{ ucfirst($item->status) }}
                                 </span>
                             </td>
-                            <td class="py-3 px-4 text-right text-slate-400">{{ $user->created_at->format('Y-m-d') }}</td>
+                            <td class="py-3 px-4 text-right text-slate-400">{{ $item->created_at->format('Y-m-d') }}</td>
                         </tr>
                     @endforeach
                 </tbody>

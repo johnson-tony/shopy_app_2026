@@ -5,12 +5,10 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\LoginRequest;
 use App\Http\Requests\User\RegisterRequest;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -20,7 +18,7 @@ class AuthController extends Controller
      */
     public function showLoginForm(): View|RedirectResponse
     {
-        if (Auth::check()) {
+        if (Auth::guard('web')->check()) {
             return redirect()->route('dashboard');
         }
 
@@ -35,17 +33,17 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
         $remember = $request->boolean('remember');
 
-        if (!Auth::attempt($credentials, $remember)) {
+        if (!Auth::guard('web')->attempt($credentials, $remember)) {
             return back()
                 ->withInput($request->only('email', 'remember'))
                 ->withErrors(['email' => 'These credentials do not match our records.']);
         }
 
-        $user = Auth::user();
+        $user = Auth::guard('web')->user();
 
         // Verify account status
         if (!$user->isActive()) {
-            Auth::logout();
+            Auth::guard('web')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
@@ -63,7 +61,7 @@ class AuthController extends Controller
      */
     public function showRegisterForm(): View|RedirectResponse
     {
-        if (Auth::check()) {
+        if (Auth::guard('web')->check()) {
             return redirect()->route('dashboard');
         }
 
@@ -85,13 +83,7 @@ class AuthController extends Controller
             'status' => User::STATUS_ACTIVE,
         ]);
 
-        // Assign default customer role
-        $customerRole = Role::where('slug', 'customer')->first();
-        if ($customerRole) {
-            $user->roles()->attach($customerRole->id);
-        }
-
-        Auth::login($user);
+        Auth::guard('web')->login($user);
         $request->session()->regenerate();
 
         return redirect()->route('dashboard')
@@ -103,7 +95,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request): RedirectResponse
     {
-        Auth::logout();
+        Auth::guard('web')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

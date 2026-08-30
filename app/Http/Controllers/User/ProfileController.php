@@ -16,7 +16,7 @@ class ProfileController extends Controller
      */
     public function show(Request $request): View
     {
-        $user = $request->user()->load('roles');
+        $user = $request->user();
 
         return view('user.pages.profile', compact('user'));
     }

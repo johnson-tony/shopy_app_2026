@@ -29,7 +29,7 @@
                     <div class="flex items-center gap-3">
                         <div class="hidden sm:flex flex-col text-right">
                             <span class="text-xs font-semibold text-slate-800">{{ auth()->user()->name }}</span>
-                            <span class="text-[11px] text-slate-500 capitalize">{{ auth()->user()->roles->pluck('name')->join(', ') ?: 'Customer' }}</span>
+                            <span class="text-[11px] text-slate-500">Customer Account</span>
                         </div>
                         <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-700 text-xs font-bold ring-2 ring-indigo-500/20">
                             {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}

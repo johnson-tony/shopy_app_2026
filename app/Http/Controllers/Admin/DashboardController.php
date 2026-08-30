@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
@@ -16,17 +17,18 @@ class DashboardController extends Controller
      */
     public function index(Request $request): View
     {
-        $admin = $request->user()->load(['roles.permissions']);
+        $admin = $request->user('admin')->load(['roles.permissions']);
 
         $stats = [
             'total_users' => User::count(),
             'active_users' => User::where('status', User::STATUS_ACTIVE)->count(),
+            'total_admins' => Admin::count(),
             'total_roles' => Role::count(),
             'total_permissions' => Permission::count(),
         ];
 
-        $recentUsers = User::with('roles')->latest()->take(5)->get();
+        $recentAdmins = Admin::with('roles')->latest()->take(5)->get();
 
-        return view('admin.pages.dashboard', compact('admin', 'stats', 'recentUsers'));
+        return view('admin.pages.dashboard', compact('admin', 'stats', 'recentAdmins'));
     }
 }

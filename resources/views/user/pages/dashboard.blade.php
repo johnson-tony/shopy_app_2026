@@ -10,11 +10,11 @@
             <div class="space-y-2">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold backdrop-blur-xs">
                     <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    <span>Status: {{ ucfirst($user->status) }}</span>
+                    <span>Account: {{ ucfirst($user->status) }}</span>
                 </div>
                 <h1 class="text-3xl font-extrabold tracking-tight">Customer Dashboard</h1>
                 <p class="text-indigo-100 text-sm max-w-xl">
-                    Welcome to your personal account hub. This verifies that user authentication, roles, and session foundations are functioning smoothly.
+                    Welcome to your personal Shopy store account. Manage your profile and security from here.
                 </p>
             </div>
             <div class="flex items-center gap-3 shrink-0">
@@ -55,60 +55,54 @@
             </div>
         </div>
 
-        <!-- Role & Permissions Foundation Card -->
+        <!-- Storefront Access Card -->
         <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
             <div class="border-b border-slate-100 pb-3">
-                <h2 class="font-bold text-slate-900 text-base">Role & Access</h2>
+                <h2 class="font-bold text-slate-900 text-base">Store Profile</h2>
             </div>
             <div class="space-y-3 text-sm">
                 <div>
-                    <span class="text-xs text-slate-400 uppercase font-semibold block mb-1.5">Assigned Roles</span>
-                    <div class="flex flex-wrap gap-1.5">
-                        @forelse ($user->roles as $role)
-                            <span class="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold">
-                                {{ $role->name }}
-                            </span>
-                        @empty
-                            <span class="text-xs text-slate-400">No roles assigned</span>
-                        @endforelse
-                    </div>
+                    <span class="text-xs text-slate-400 uppercase font-semibold block mb-1">Account Type</span>
+                    <span class="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold">
+                        Verified Store Customer
+                    </span>
                 </div>
 
                 <div class="pt-2">
-                    <span class="text-xs text-slate-400 uppercase font-semibold block mb-1">Access Level</span>
+                    <span class="text-xs text-slate-400 uppercase font-semibold block mb-1">Security Status</span>
                     <p class="text-xs text-slate-600">
-                        {{ $user->isAdmin() ? 'Administrator Access Granted' : 'Standard Customer Access' }}
+                        Isolated customer authentication session active.
                     </p>
                 </div>
             </div>
         </div>
 
-        <!-- Foundation Verification Card -->
+        <!-- Ready for Commerce Card -->
         <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
             <div class="border-b border-slate-100 pb-3">
-                <h2 class="font-bold text-slate-900 text-base">Step 1 Verification</h2>
+                <h2 class="font-bold text-slate-900 text-base">Customer Security</h2>
             </div>
             <div class="space-y-2.5 text-xs text-slate-600">
                 <div class="flex items-center gap-2 text-emerald-700 font-medium">
                     <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
-                    <span>User Authentication Working</span>
+                    <span>Customer Multi-Auth Verified</span>
                 </div>
                 <div class="flex items-center gap-2 text-emerald-700 font-medium">
                     <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
-                    <span>Role & Status Checked</span>
+                    <span>Independent Customer Table</span>
                 </div>
                 <div class="flex items-center gap-2 text-emerald-700 font-medium">
                     <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
-                    <span>Admin Isolation Protected</span>
+                    <span>Toastr Flash Notifications Enabled</span>
                 </div>
                 <p class="text-slate-400 text-[11px] pt-2">
-                    E-commerce modules (products, cart, checkout) are purposely reserved for subsequent steps.
+                    E-commerce features (products, cart, orders) will connect directly to your customer account.
                 </p>
             </div>
         </div>

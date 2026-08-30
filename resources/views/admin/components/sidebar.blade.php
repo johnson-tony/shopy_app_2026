@@ -46,8 +46,8 @@
     <div class="p-4 border-t border-slate-800 bg-slate-950/40">
         <div class="flex items-center justify-between">
             <div class="flex flex-col">
-                <span class="text-xs font-semibold text-slate-200 truncate max-w-[130px]">{{ auth()->user()?->name }}</span>
-                <span class="text-[10px] text-indigo-400 font-mono">{{ auth()->user()?->roles->pluck('name')->join(', ') }}</span>
+                <span class="text-xs font-semibold text-slate-200 truncate max-w-[130px]">{{ auth('admin')->user()?->name }}</span>
+                <span class="text-[10px] text-indigo-400 font-mono">{{ auth('admin')->user()?->roles->pluck('name')->join(', ') }}</span>
             </div>
             <form method="POST" action="{{ route('admin.logout') }}">
                 @csrf

@@ -59,11 +59,6 @@
             Don't have an account yet?
             <a href="{{ route('register') }}" class="font-semibold text-indigo-600 hover:text-indigo-700">Create one now</a>
         </div>
-
-        <div class="mt-4 text-center">
-            <span class="text-xs text-slate-400">Are you an administrator?</span>
-            <a href="{{ route('admin.login') }}" class="text-xs font-medium text-slate-600 hover:text-slate-900 underline ml-1">Admin Portal</a>
-        </div>
     </div>
 </div>
 @endsection

@@ -16,7 +16,7 @@ class AuthController extends Controller
      */
     public function showLoginForm(): View|RedirectResponse
     {
-        if (Auth::check() && Auth::user()->hasAnyRole(['admin', 'super-admin', 'order-manager'])) {
+        if (Auth::guard('admin')->check()) {
             return redirect()->route('admin.dashboard');
         }
 
@@ -31,38 +31,28 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
         $remember = $request->boolean('remember');
 
-        if (!Auth::attempt($credentials, $remember)) {
+        if (!Auth::guard('admin')->attempt($credentials, $remember)) {
             return back()
                 ->withInput($request->only('email', 'remember'))
                 ->withErrors(['email' => 'These credentials do not match our administrator records.']);
         }
 
-        $user = Auth::user();
-
-        // Ensure user has administrative access
-        if (!$user->hasAnyRole(['admin', 'super-admin', 'order-manager'])) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return redirect()->route('admin.login')
-                ->with('error', 'Access denied. You do not have administrator permissions.');
-        }
+        $admin = Auth::guard('admin')->user();
 
         // Verify active status
-        if (!$user->isActive()) {
-            Auth::logout();
+        if (!$admin->isActive()) {
+            Auth::guard('admin')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
             return redirect()->route('admin.login')
-                ->with('error', "Your administrator account is {$user->status}. Please contact the Super Admin.");
+                ->with('error', "Your administrator account is {$admin->status}. Please contact the Super Admin.");
         }
 
         $request->session()->regenerate();
 
         return redirect()->intended(route('admin.dashboard'))
-            ->with('success', "Welcome to the Admin Portal, {$user->name}!");
+            ->with('success', "Welcome to the Admin Portal, {$admin->name}!");
     }
 
     /**
@@ -70,7 +60,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request): RedirectResponse
     {
-        Auth::logout();
+        Auth::guard('admin')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

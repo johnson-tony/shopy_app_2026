@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
@@ -16,28 +17,25 @@ class RoleMiddleware
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
-        $user = $request->user();
+        $admin = Auth::guard('admin')->user();
 
-        if (!$user) {
-            if ($request->is('admin*')) {
-                return redirect()->route('admin.login')->with('error', 'Please log in with an administrator account.');
-            }
-            return redirect()->route('login')->with('error', 'Please log in to continue.');
+        if (!$admin) {
+            return redirect()->route('admin.login')->with('error', 'Please log in with an administrator account.');
         }
 
-        if (!$user->isActive()) {
-            auth()->logout();
+        if (!$admin->isActive()) {
+            Auth::guard('admin')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect()->route('login')->with('error', 'Your account is not active. Please contact support.');
+            return redirect()->route('admin.login')->with('error', 'Your administrator account is not active. Please contact support.');
         }
 
         if (empty($roles)) {
             return $next($request);
         }
 
-        if (!$user->hasRole($roles)) {
+        if (!$admin->hasRole($roles)) {
             abort(403, 'Unauthorized. You do not have the required role to access this resource.');
         }
 

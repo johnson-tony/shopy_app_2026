@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureUserIsActive
@@ -13,16 +14,17 @@ class EnsureUserIsActive
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, ?string $guard = null): Response
     {
-        $user = $request->user();
+        $guard = $guard ?? ($request->is('admin*') ? 'admin' : 'web');
+        $user = Auth::guard($guard)->user();
 
         if ($user && !$user->isActive()) {
-            auth()->logout();
+            Auth::guard($guard)->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            $route = $request->is('admin*') ? 'admin.login' : 'login';
+            $route = $guard === 'admin' ? 'admin.login' : 'login';
             return redirect()->route($route)->with('error', "Your account is {$user->status}. Please contact support.");
         }
 

@@ -22,11 +22,11 @@ class Role extends Model
     ];
 
     /**
-     * The users that belong to the role.
+     * The administrators that belong to the role.
      */
-    public function users(): BelongsToMany
+    public function admins(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'user_roles')->withTimestamps();
+        return $this->belongsToMany(Admin::class, 'admin_roles')->withTimestamps();
     }
 
     /**

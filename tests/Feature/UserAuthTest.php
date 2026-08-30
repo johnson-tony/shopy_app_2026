@@ -23,6 +23,11 @@ class UserAuthTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Welcome Back');
+        $response->assertDontSee('Admin Portal');
+        $response->assertDontSee('Are you an administrator?');
+        $response->assertSee('toastr.min.js');
+        $response->assertSee('toastr.min.css');
+        $response->assertSee('toastr.options');
     }
 
     public function test_register_screen_can_be_rendered(): void
@@ -33,7 +38,7 @@ class UserAuthTest extends TestCase
         $response->assertSee('Create Account');
     }
 
-    public function test_users_can_register_and_are_assigned_customer_role(): void
+    public function test_users_can_register_as_store_customers(): void
     {
         $response = $this->post('/register', [
             'name' => 'Test Customer',
@@ -43,12 +48,11 @@ class UserAuthTest extends TestCase
             'password_confirmation' => 'password123',
         ]);
 
-        $this->assertAuthenticated();
+        $this->assertAuthenticated('web');
         $response->assertRedirect('/dashboard');
 
         $user = User::where('email', 'newcustomer@example.com')->first();
         $this->assertNotNull($user);
-        $this->assertTrue($user->hasRole('customer'));
         $this->assertEquals(User::STATUS_ACTIVE, $user->status);
     }
 
@@ -59,7 +63,7 @@ class UserAuthTest extends TestCase
             'password' => 'password',
         ]);
 
-        $this->assertAuthenticated();
+        $this->assertAuthenticated('web');
         $response->assertRedirect('/dashboard');
     }
 
@@ -70,7 +74,7 @@ class UserAuthTest extends TestCase
             'password' => 'wrong-password',
         ]);
 
-        $this->assertGuest();
+        $this->assertGuest('web');
     }
 
     public function test_inactive_users_cannot_authenticate(): void
@@ -80,7 +84,7 @@ class UserAuthTest extends TestCase
             'password' => 'password',
         ]);
 
-        $this->assertGuest();
+        $this->assertGuest('web');
         $response->assertRedirect('/login');
         $response->assertSessionHas('error');
     }
@@ -92,7 +96,7 @@ class UserAuthTest extends TestCase
             'password' => 'password',
         ]);
 
-        $this->assertGuest();
+        $this->assertGuest('web');
         $response->assertRedirect('/login');
         $response->assertSessionHas('error');
     }
@@ -109,7 +113,7 @@ class UserAuthTest extends TestCase
         $user = User::where('email', 'customer@shopy.test')->first();
         $this->assertNotNull($user);
 
-        $response = $this->actingAs($user)->get('/dashboard');
+        $response = $this->actingAs($user, 'web')->get('/dashboard');
 
         $response->assertStatus(200);
         $response->assertSee('Customer Dashboard');
@@ -121,7 +125,7 @@ class UserAuthTest extends TestCase
         $user = User::where('email', 'customer@shopy.test')->first();
         $this->assertNotNull($user);
 
-        $response = $this->actingAs($user)->put('/profile', [
+        $response = $this->actingAs($user, 'web')->put('/profile', [
             'name' => 'Alice Customer Updated',
             'email' => 'customer@shopy.test',
             'phone' => '+1999999999',
@@ -140,9 +144,9 @@ class UserAuthTest extends TestCase
         $user = User::where('email', 'customer@shopy.test')->first();
         $this->assertNotNull($user);
 
-        $response = $this->actingAs($user)->post('/logout');
+        $response = $this->actingAs($user, 'web')->post('/logout');
 
-        $this->assertGuest();
+        $this->assertGuest('web');
         $response->assertRedirect('/login');
     }
 }

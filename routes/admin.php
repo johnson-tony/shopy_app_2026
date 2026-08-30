@@ -10,14 +10,12 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Admin Guest Routes
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
-});
+// Admin Auth / Guest Routes
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->middleware('guest:admin')->name('login.submit');
 
 // Admin Protected Routes
-Route::middleware(['auth', 'active', 'role:admin,super-admin,order-manager'])->group(function () {
+Route::middleware(['auth:admin', 'active:admin', 'role:admin,super-admin,order-manager'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
