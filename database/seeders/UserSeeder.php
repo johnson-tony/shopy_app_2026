@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
@@ -19,7 +18,7 @@ class UserSeeder extends Seeder
                 'name' => 'Super Administrator',
                 'email' => 'superadmin@shopy.test',
                 'phone' => '+1000000001',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'status' => User::STATUS_ACTIVE,
                 'email_verified_at' => now(),
                 'role' => 'super-admin',
@@ -28,7 +27,7 @@ class UserSeeder extends Seeder
                 'name' => 'Store Admin',
                 'email' => 'admin@shopy.test',
                 'phone' => '+1000000002',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'status' => User::STATUS_ACTIVE,
                 'email_verified_at' => now(),
                 'role' => 'admin',
@@ -37,7 +36,7 @@ class UserSeeder extends Seeder
                 'name' => 'Order Manager',
                 'email' => 'manager@shopy.test',
                 'phone' => '+1000000003',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'status' => User::STATUS_ACTIVE,
                 'email_verified_at' => now(),
                 'role' => 'order-manager',
@@ -46,7 +45,7 @@ class UserSeeder extends Seeder
                 'name' => 'Alice Customer',
                 'email' => 'customer@shopy.test',
                 'phone' => '+1234567890',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'status' => User::STATUS_ACTIVE,
                 'email_verified_at' => now(),
                 'role' => 'customer',
@@ -55,7 +54,7 @@ class UserSeeder extends Seeder
                 'name' => 'John Doe',
                 'email' => 'john@shopy.test',
                 'phone' => '+1987654321',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'status' => User::STATUS_ACTIVE,
                 'email_verified_at' => now(),
                 'role' => 'customer',
@@ -64,7 +63,7 @@ class UserSeeder extends Seeder
                 'name' => 'Inactive User',
                 'email' => 'inactive@shopy.test',
                 'phone' => '+1111111111',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'status' => User::STATUS_INACTIVE,
                 'email_verified_at' => now(),
                 'role' => 'customer',
@@ -73,7 +72,7 @@ class UserSeeder extends Seeder
                 'name' => 'Blocked User',
                 'email' => 'blocked@shopy.test',
                 'phone' => '+1222222222',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'status' => User::STATUS_BLOCKED,
                 'email_verified_at' => now(),
                 'role' => 'customer',
@@ -82,7 +81,7 @@ class UserSeeder extends Seeder
                 'name' => 'Pending User',
                 'email' => 'pending@shopy.test',
                 'phone' => '+1333333333',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'status' => User::STATUS_PENDING,
                 'email_verified_at' => null,
                 'role' => 'customer',
