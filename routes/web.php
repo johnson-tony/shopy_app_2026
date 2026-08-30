@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\User\AddressController;
 use App\Http\Controllers\User\AuthController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ProfileController;
@@ -30,4 +31,15 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // Address Management Routes
+    Route::prefix('addresses')->name('user.addresses.')->group(function () {
+        Route::get('/', [AddressController::class, 'index'])->name('index');
+        Route::get('/create', [AddressController::class, 'create'])->name('create');
+        Route::post('/', [AddressController::class, 'store'])->name('store');
+        Route::get('/{address}/edit', [AddressController::class, 'edit'])->name('edit');
+        Route::put('/{address}', [AddressController::class, 'update'])->name('update');
+        Route::delete('/{address}', [AddressController::class, 'destroy'])->name('destroy');
+        Route::patch('/{address}/default', [AddressController::class, 'setDefault'])->name('default');
+    });
 });
