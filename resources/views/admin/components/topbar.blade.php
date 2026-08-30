@@ -1,4 +1,4 @@
-<header class="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between text-slate-300">
+<header class="sticky top-0 z-30 shrink-0 h-16 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-6 flex items-center justify-between text-slate-300">
     <div class="flex items-center gap-3">
         <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -18,7 +18,7 @@
 
         <form method="POST" action="{{ route('admin.logout') }}" class="inline">
             @csrf
-            <button type="submit" class="text-xs font-semibold text-rose-400 hover:text-rose-300 transition">
+            <button type="submit" class="text-xs font-semibold text-rose-400 hover:text-rose-300 transition cursor-pointer">
                 Logout
             </button>
         </form>

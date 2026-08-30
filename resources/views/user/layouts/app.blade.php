@@ -18,6 +18,11 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-full flex flex-col font-sans antialiased text-slate-900 bg-slate-50">
+    {{-- Impersonation banner --}}
+    @if (session()->get('impersonating'))
+        @include('user.components.impersonation-banner')
+    @endif
+
     <!-- Main Customer Header -->
     @include('user.components.header')
 

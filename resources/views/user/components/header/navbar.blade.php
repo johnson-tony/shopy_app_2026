@@ -11,6 +11,11 @@
                style="{{ request()->routeIs('dashboard') ? 'color:#2962ff;' : '' }}">
                 Dashboard
             </a>
+            <a href="{{ route('user.addresses.index') }}"
+               class="text-sm font-medium {{ request()->routeIs('user.addresses.*') ? 'font-semibold' : 'text-slate-600 hover:text-slate-900' }} transition"
+               style="{{ request()->routeIs('user.addresses.*') ? 'color:#2962ff;' : '' }}">
+                My Addresses
+            </a>
             <a href="{{ route('profile') }}"
                class="text-sm font-medium {{ request()->routeIs('profile') ? 'font-semibold' : 'text-slate-600 hover:text-slate-900' }} transition"
                style="{{ request()->routeIs('profile') ? 'color:#2962ff;' : '' }}">

@@ -244,4 +244,23 @@ class UserAddressTest extends TestCase
         $response = $this->actingAs($user, 'web')->patch(route('user.addresses.default', $otherAddress));
         $response->assertStatus(403);
     }
+
+    public function test_reverse_geocode_validation(): void
+    {
+        $user = User::where('email', 'customer@shopy.test')->first();
+
+        // Guest cannot reverse geocode
+        $guestResponse = $this->postJson(route('user.addresses.reverseGeocode'), [
+            'latitude' => 12.9716,
+            'longitude' => 77.5946,
+        ]);
+        $guestResponse->assertStatus(401);
+
+        // Invalid lat/lng validation
+        $invalidResponse = $this->actingAs($user, 'web')->postJson(route('user.addresses.reverseGeocode'), [
+            'latitude' => 999,
+            'longitude' => 999,
+        ]);
+        $invalidResponse->assertStatus(422);
+    }
 }

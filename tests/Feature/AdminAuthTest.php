@@ -124,4 +124,21 @@ class AdminAuthTest extends TestCase
         $this->assertGuest('admin');
         $response->assertRedirect('/admin/login');
     }
+
+    public function test_admin_can_login_as_user_directly(): void
+    {
+        $admin = Admin::where('email', 'admin@shopy.test')->first();
+        $user = \App\Models\User::where('email', 'customer@shopy.test')->first();
+
+        $response = $this->actingAs($admin, 'admin')->post(route('admin.users.login-as', $user));
+
+        $response->assertRedirect();
+        $redirectUrl = $response->headers->get('Location');
+        $this->assertStringContainsString('/impersonate/' . $user->id, $redirectUrl);
+
+        // Follow the redirect to verify customer authentication
+        $impersonateResponse = $this->get($redirectUrl);
+        $impersonateResponse->assertRedirect(route('dashboard'));
+        $this->assertAuthenticatedAs($user, 'web');
+    }
 }

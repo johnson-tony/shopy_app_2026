@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-slate-950">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="bg-slate-950">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,16 +17,18 @@
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-full flex bg-slate-950 text-slate-100 font-sans antialiased">
-    <!-- Admin Sidebar -->
+<body class="min-h-screen flex bg-slate-950 text-slate-100 font-sans antialiased">
+    <!-- Sticky Admin Sidebar -->
     @include('admin.components.sidebar')
 
     <!-- Right Side Content -->
-    <div class="flex-1 flex flex-col min-w-0">
+    <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+        <!-- Sticky Topbar -->
         @include('admin.components.topbar')
 
-        <main class="flex-1 p-8 overflow-y-auto bg-slate-950">
-            <div class="max-w-7xl mx-auto space-y-6">
+        <!-- Main Page Content -->
+        <main class="flex-1 p-6 sm:p-8 bg-slate-950">
+            <div class="max-w-7xl mx-auto space-y-6 pb-12">
                 @include('admin.components.alert')
                 @yield('content')
             </div>
