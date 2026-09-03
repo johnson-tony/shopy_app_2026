@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ---------------------------------------------------------
     const mobileCatDropdown = document.getElementById('mobileCategoriesDropdown');
     if (mobileCatDropdown) {
-        const trigger = mobileCatDropdown.querySelector('> a');
+        const trigger = mobileCatDropdown.querySelector(':scope > a') || mobileCatDropdown.querySelector('a');
         if (trigger) {
             trigger.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -85,11 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const placeholder = document.getElementById('animated-placeholder');
 
     if (searchInput && placeholder) {
-        const suggestions = [
-            @foreach($searchSuggestions ?? ['Fashion', 'Electronics', 'Mobiles', 'Home & Kitchen', 'Beauty', 'Sports'] as $s)
-                "Search \"{{ $s }}\"",
-            @endforeach
-        ];
+        const suggestions = {!! json_encode(array_values(array_map(fn($s) => "Search \"$s\"", $searchSuggestions ?? ['Fashion', 'Electronics', 'Mobiles', 'Home & Kitchen', 'Beauty', 'Sports']))) !!};
 
         let index = 0;
         let animInterval = null;
@@ -195,54 +191,64 @@ document.addEventListener('DOMContentLoaded', function () {
     // ---------------------------------------------------------
     // 8. User Storefront Theme Toggle (Available when Admin enables Dark Theme)
     // ---------------------------------------------------------
-    const userThemeToggle = document.getElementById('userThemeToggle');
-    const userThemeIcon = document.getElementById('userThemeIcon');
-    const mobileThemeToggles = document.querySelectorAll('.theme-toggle-btn-mobile');
-    const dropdownThemeToggles = document.querySelectorAll('.theme-toggle-btn-dropdown');
-    const mobileThemeLabels = document.querySelectorAll('.mobileThemeLabel');
-    const dropdownThemeLabels = document.querySelectorAll('.dropdownThemeLabel');
-    const htmlEl = document.documentElement;
+    try {
+        const htmlEl = document.documentElement;
+        const userThemeToggle = document.getElementById('userThemeToggle');
+        const userThemeIcon = document.getElementById('userThemeIcon');
+        const mobileThemeLabels = document.querySelectorAll('.mobileThemeLabel');
+        const dropdownThemeLabels = document.querySelectorAll('.dropdownThemeLabel');
 
-    function applyStoreTheme(theme) {
-        htmlEl.setAttribute('data-theme', theme);
-        document.body.setAttribute('data-theme', theme);
+        function applyStoreTheme(theme) {
+            htmlEl.setAttribute('data-theme', theme);
+            if (document.body) {
+                document.body.setAttribute('data-theme', theme);
+            }
 
-        if (theme === 'dark') {
-            htmlEl.classList.add('dark');
-            document.body.classList.add('dark');
-            if (userThemeIcon) userThemeIcon.innerHTML = '<i class="fas fa-sun text-amber-400"></i>';
-            mobileThemeLabels.forEach(el => { el.textContent = 'Dark'; });
-            dropdownThemeLabels.forEach(el => { el.textContent = 'Dark'; });
-        } else {
-            htmlEl.classList.remove('dark');
-            document.body.classList.remove('dark');
-            if (userThemeIcon) userThemeIcon.innerHTML = '<i class="fas fa-moon"></i>';
-            mobileThemeLabels.forEach(el => { el.textContent = 'Light'; });
-            dropdownThemeLabels.forEach(el => { el.textContent = 'Light'; });
+            if (theme === 'dark') {
+                htmlEl.classList.add('dark');
+                if (document.body) document.body.classList.add('dark');
+                if (userThemeIcon) userThemeIcon.innerHTML = '<i class="fas fa-sun text-amber-400"></i>';
+                mobileThemeLabels.forEach(el => { el.textContent = 'Dark'; });
+                dropdownThemeLabels.forEach(el => { el.textContent = 'Dark'; });
+            } else {
+                htmlEl.classList.remove('dark');
+                if (document.body) document.body.classList.remove('dark');
+                if (userThemeIcon) userThemeIcon.innerHTML = '<i class="fas fa-moon text-slate-700"></i>';
+                mobileThemeLabels.forEach(el => { el.textContent = 'Light'; });
+                dropdownThemeLabels.forEach(el => { el.textContent = 'Light'; });
+            }
         }
+
+        function toggleThemeAction(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const current = htmlEl.getAttribute('data-theme') || 'light';
+            const next = current === 'dark' ? 'light' : 'dark';
+            applyStoreTheme(next);
+            try {
+                localStorage.setItem('user_theme', next);
+            } catch (err) {}
+        }
+
+        // Initialize state on load
+        const currentActiveTheme = htmlEl.getAttribute('data-theme') || (htmlEl.classList.contains('dark') ? 'dark' : 'light');
+        applyStoreTheme(currentActiveTheme);
+
+        // Bind all theme toggles (Desktop top-bar, mobile menu drawer, account dropdown)
+        if (userThemeToggle) {
+            userThemeToggle.addEventListener('click', toggleThemeAction);
+        }
+
+        document.querySelectorAll('.theme-toggle-btn, .theme-toggle-btn-mobile, .theme-toggle-btn-dropdown').forEach(btn => {
+            if (btn !== userThemeToggle) {
+                btn.addEventListener('click', toggleThemeAction);
+            }
+        });
+    } catch (themeInitErr) {
+        console.warn('Theme toggle initialization error:', themeInitErr);
     }
-
-    function toggleThemeAction() {
-        const current = htmlEl.getAttribute('data-theme') || 'light';
-        const next = current === 'dark' ? 'light' : 'dark';
-        applyStoreTheme(next);
-        localStorage.setItem('user_theme', next);
-    }
-
-    const currentActiveTheme = htmlEl.getAttribute('data-theme') || 'light';
-    applyStoreTheme(currentActiveTheme);
-
-    if (userThemeToggle) {
-        userThemeToggle.addEventListener('click', toggleThemeAction);
-    }
-
-    mobileThemeToggles.forEach(btn => {
-        btn.addEventListener('click', toggleThemeAction);
-    });
-
-    dropdownThemeToggles.forEach(btn => {
-        btn.addEventListener('click', toggleThemeAction);
-    });
     @endif
 });
 </script>

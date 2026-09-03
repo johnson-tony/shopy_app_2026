@@ -9,20 +9,28 @@
 
     <link rel="icon" type="image/png" href="{{ asset('images/icon.png') }}">
 
-    <!-- Inline Theme Synchronization Script: Default is ALWAYS Light; user can toggle Dark only when admin approved -->
+    <!-- Inline Theme Synchronization Script: When Admin enables dark theme, users can toggle both themes freely -->
     <script>
         (function () {
             const darkAllowed = {{ ($isDarkMode ?? false) ? 'true' : 'false' }};
             let effectiveTheme = 'light';
 
             if (darkAllowed) {
-                // Dark theme approved by admin: default is Light, but user can change/toggle to Dark
+                // Dark theme approved by admin: check user's saved preference; default to dark if not set yet
                 const userTheme = localStorage.getItem('user_theme');
-                effectiveTheme = (userTheme === 'dark') ? 'dark' : 'light';
+                if (userTheme === 'light') {
+                    effectiveTheme = 'light';
+                } else if (userTheme === 'dark') {
+                    effectiveTheme = 'dark';
+                } else {
+                    effectiveTheme = 'dark'; // Admin enabled Dark Theme, so open with dark theme active
+                }
             } else {
-                // Dark theme NOT approved: strictly Light theme only, user cannot change
+                // Dark theme NOT approved by admin: strictly Light theme only, user cannot change
                 effectiveTheme = 'light';
-                localStorage.removeItem('user_theme');
+                try {
+                    localStorage.removeItem('user_theme');
+                } catch (e) {}
             }
 
             document.documentElement.setAttribute('data-theme', effectiveTheme);
