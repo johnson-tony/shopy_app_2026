@@ -42,6 +42,7 @@ class CategoryRequest extends FormRequest
         $categoryId = $category?->id;
 
         return [
+            'mode_id' => ['nullable', 'integer', Rule::exists('modes', 'id')],
             'name' => ['required', 'string', 'max:150'],
             'slug' => [
                 'nullable',

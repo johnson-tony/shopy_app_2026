@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Admin;
 use App\Models\Category;
+use App\Models\Mode;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -326,5 +327,88 @@ class AdminCategoryTest extends TestCase
             return str_contains($request->url(), 'image/destroy')
                 && $request['public_id'] === 'shopy_so/category/to_delete';
         });
+    }
+
+    public function test_category_create_form_renders_shopping_mode_options(): void
+    {
+        $response = $this->actingAs($this->admin, 'admin')
+            ->get(route('admin.categories.create'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Shopping Mode');
+        $response->assertSee('Shopy');
+        $response->assertSee('Food');
+        $response->assertSee('Minutes');
+    }
+
+    public function test_admin_can_store_category_with_selected_mode(): void
+    {
+        $foodMode = Mode::where('slug', 'food')->firstOrFail();
+
+        $payload = [
+            'mode_id' => $foodMode->id,
+            'name' => 'Fast Food & Burgers',
+            'slug' => 'fast-food-burgers',
+            'description' => 'Delicious burgers, wraps, and meals.',
+            'status' => '1',
+        ];
+
+        $response = $this->actingAs($this->admin, 'admin')
+            ->post(route('admin.categories.store'), $payload);
+
+        $response->assertRedirect(route('admin.categories.index'));
+
+        $category = Category::where('slug', 'fast-food-burgers')->firstOrFail();
+        $this->assertEquals($foodMode->id, $category->mode_id);
+        $this->assertEquals('Food', $category->mode->name);
+    }
+
+    public function test_subcategory_inherits_parent_mode_if_omitted(): void
+    {
+        $minutesMode = Mode::where('slug', 'minutes')->firstOrFail();
+        $parent = Category::where('slug', 'grocery')->firstOrFail();
+        $this->assertEquals($minutesMode->id, $parent->mode_id);
+
+        $payload = [
+            'parent_id' => $parent->id,
+            'name' => 'Organic Vegetables',
+            'slug' => 'organic-vegetables',
+            'status' => '1',
+            // mode_id omitted intentionally
+        ];
+
+        $response = $this->actingAs($this->admin, 'admin')
+            ->post(route('admin.categories.store'), $payload);
+
+        $response->assertRedirect(route('admin.categories.index'));
+
+        $child = Category::where('slug', 'organic-vegetables')->firstOrFail();
+        $this->assertEquals($minutesMode->id, $child->mode_id);
+    }
+
+    public function test_admin_can_filter_categories_by_mode(): void
+    {
+        $minutesMode = Mode::where('slug', 'minutes')->firstOrFail();
+
+        $response = $this->actingAs($this->admin, 'admin')
+            ->get(route('admin.categories.index', ['mode' => $minutesMode->id]));
+
+        $response->assertStatus(200);
+        $categories = $response->viewData('categories');
+        $this->assertTrue($categories->contains('slug', 'grocery'));
+        $this->assertFalse($categories->contains('slug', 'fashion'));
+    }
+
+    public function test_mode_with_categories_cannot_be_deleted(): void
+    {
+        $shopyMode = Mode::where('slug', 'shopy')->firstOrFail();
+
+        $this->assertTrue($shopyMode->hasRelatedRecords());
+
+        $response = $this->actingAs($this->admin, 'admin')
+            ->delete(route('admin.modes.destroy', $shopyMode));
+
+        $response->assertSessionHas('error');
+        $this->assertDatabaseHas('modes', ['slug' => 'shopy']);
     }
 }

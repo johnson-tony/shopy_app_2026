@@ -57,7 +57,7 @@
 
     <!-- Filters & Search Form -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
-        <form method="GET" action="{{ route('admin.categories.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-center">
+        <form method="GET" action="{{ route('admin.categories.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 items-center">
             <!-- Search Keyword -->
             <div class="relative lg:col-span-2">
                 <input type="text" name="search" value="{{ $search }}" placeholder="Search by name, slug or description..."
@@ -65,6 +65,18 @@
                 <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
+            </div>
+
+            <!-- Mode Filter -->
+            <div>
+                <select name="mode" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                    <option value="">All Modes</option>
+                    @foreach ($modes as $m)
+                        <option value="{{ $m->id }}" {{ (string) $modeFilter === (string) $m->id ? 'selected' : '' }}>
+                            {{ $m->name }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
             <!-- Parent Filter -->
@@ -97,7 +109,7 @@
                 <button type="submit" class="flex-1 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition cursor-pointer">
                     Apply
                 </button>
-                @if ($search !== '' || $parentFilter !== null || $statusFilter !== null || $featuredFilter !== null)
+                @if ($search !== '' || $parentFilter !== null || $statusFilter !== null || $featuredFilter !== null || $modeFilter !== null)
                     <a href="{{ route('admin.categories.index') }}" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition" title="Clear Filters">
                         Clear
                     </a>
@@ -112,6 +124,7 @@
             <table class="w-full text-left text-xs">
                 <thead>
                     <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
+                        <th class="py-3.5 px-4">Mode</th>
                         <th class="py-3.5 px-4">Category</th>
                         <th class="py-3.5 px-4">Hierarchy</th>
                         <th class="py-3.5 px-4">Order</th>
@@ -123,6 +136,34 @@
                 <tbody class="divide-y divide-slate-800/60 text-slate-300">
                     @forelse ($categories as $category)
                         <tr class="hover:bg-slate-800/30 transition">
+                            <!-- Mode Badge -->
+                            <td class="py-3.5 px-4">
+                                @if ($category->mode)
+                                    @php
+                                        $modeSlug = $category->mode->slug;
+                                        $badgeClasses = match($modeSlug) {
+                                            'shopy' => 'bg-indigo-950/70 text-indigo-300 border-indigo-500/40',
+                                            'food' => 'bg-amber-950/70 text-amber-300 border-amber-500/40',
+                                            'minutes' => 'bg-emerald-950/70 text-emerald-300 border-emerald-500/40',
+                                            default => 'bg-slate-800 text-slate-300 border-slate-700'
+                                        };
+                                    @endphp
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border {{ $badgeClasses }}">
+                                        @if ($category->mode->image_url)
+                                            <img src="{{ $category->mode->image_url }}" alt="" class="w-3.5 h-3.5 object-contain">
+                                        @elseif ($category->mode->icon)
+                                            <i class="{{ $category->mode->icon }} text-[10px]"></i>
+                                        @else
+                                            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                        @endif
+                                        {{ $category->mode->name }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] text-slate-500 bg-slate-950 border border-slate-800">
+                                        Unassigned
+                                    </span>
+                                @endif
+                            </td>
                             <!-- Category Image & Info -->
                             <td class="py-3.5 px-4">
                                 <div class="flex items-center gap-3">
@@ -218,7 +259,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-12 text-center">
+                            <td colspan="7" class="py-12 text-center">
                                 <div class="flex flex-col items-center justify-center">
                                     <div class="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-500 mb-3">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

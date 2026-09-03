@@ -33,6 +33,25 @@
                         General Information
                     </h2>
 
+                    <!-- Shopping Mode Selector -->
+                    <div>
+                        <label for="mode_id" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                            Shopping Mode <span class="text-rose-400">*</span>
+                        </label>
+                        <select id="mode_id" name="mode_id" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition @error('mode_id') border-rose-500 @enderror">
+                            <option value="">Select Mode (e.g. Shopy, Food, Minutes)</option>
+                            @foreach ($modes as $mode)
+                                <option value="{{ $mode->id }}" {{ old('mode_id', $modes->firstWhere('slug', 'shopy')?->id) == $mode->id ? 'selected' : '' }}>
+                                    {{ $mode->name }} ({{ $mode->slug }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="text-[11px] text-slate-500 mt-1">Select the storefront channel this category belongs to. Subcategories inherit their parent's mode if left blank.</p>
+                        @error('mode_id')
+                            <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- Category Name -->
                     <div>
                         <label for="name" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">

@@ -20,6 +20,7 @@ class Category extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'mode_id',
         'parent_id',
         'name',
         'slug',
@@ -39,11 +40,20 @@ class Category extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'mode_id' => 'integer',
         'parent_id' => 'integer',
         'sort_order' => 'integer',
         'status' => 'boolean',
         'is_featured' => 'boolean',
     ];
+
+    /**
+     * Shopping mode relationship.
+     */
+    public function mode(): BelongsTo
+    {
+        return $this->belongsTo(Mode::class);
+    }
 
     /**
      * Parent category relationship.
@@ -91,6 +101,17 @@ class Category extends Model
     public function scopeFeatured(Builder $query): Builder
     {
         return $query->where('is_featured', true);
+    }
+
+    /**
+     * Scope query to categories belonging to a specific mode (by mode ID or mode slug).
+     */
+    public function scopeForMode(Builder $query, int|string $mode): Builder
+    {
+        if (is_numeric($mode)) {
+            return $query->where('mode_id', (int) $mode);
+        }
+        return $query->whereHas('mode', fn (Builder $q) => $q->where('slug', $mode));
     }
 
     /**

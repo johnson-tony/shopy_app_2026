@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
+use App\Models\Mode;
 use Illuminate\Database\Seeder;
 
 class CategorySeeder extends Seeder
@@ -137,9 +138,18 @@ class CategorySeeder extends Seeder
             ],
         ];
 
+        $shopyMode = Mode::where('slug', 'shopy')->first();
+        $minutesMode = Mode::where('slug', 'minutes')->first();
+
         foreach ($catalog as $rootData) {
             $children = $rootData['children'] ?? [];
             unset($rootData['children']);
+
+            $modeId = ($rootData['slug'] === 'grocery')
+                ? ($minutesMode?->id ?? $shopyMode?->id)
+                : ($shopyMode?->id);
+
+            $rootData['mode_id'] = $modeId;
 
             $root = Category::updateOrCreate(
                 ['slug' => $rootData['slug']],
@@ -148,6 +158,7 @@ class CategorySeeder extends Seeder
 
             foreach ($children as $childData) {
                 $childData['parent_id'] = $root->id;
+                $childData['mode_id'] = $modeId;
                 Category::updateOrCreate(
                     ['slug' => $childData['slug']],
                     $childData

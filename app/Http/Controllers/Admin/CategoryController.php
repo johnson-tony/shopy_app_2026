@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CategoryRequest;
 use App\Models\Category;
+use App\Models\Mode;
 use App\Services\CloudinaryService;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -32,8 +33,9 @@ class CategoryController extends Controller
         $parentFilter = $request->input('parent');
         $statusFilter = $request->input('status');
         $featuredFilter = $request->input('featured');
+        $modeFilter = $request->input('mode');
 
-        $query = Category::with('parent', 'children');
+        $query = Category::with('parent', 'children', 'mode');
 
         // Search Filter
         if ($search !== '') {
@@ -42,6 +44,11 @@ class CategoryController extends Controller
                     ->orWhere('slug', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%");
             });
+        }
+
+        // Mode Filter
+        if ($modeFilter !== null && $modeFilter !== '') {
+            $query->where('mode_id', (int) $modeFilter);
         }
 
         // Parent / Hierarchy Filter
@@ -83,6 +90,7 @@ class CategoryController extends Controller
 
         // List of all root categories for filter dropdown
         $rootCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
+        $modes = Mode::active()->ordered()->get();
 
         return view('admin.categories.index', compact(
             'categories',
@@ -91,7 +99,9 @@ class CategoryController extends Controller
             'parentFilter',
             'statusFilter',
             'featuredFilter',
-            'rootCategories'
+            'modeFilter',
+            'rootCategories',
+            'modes'
         ));
     }
 
@@ -101,8 +111,9 @@ class CategoryController extends Controller
     public function create(): View
     {
         $parentCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
+        $modes = Mode::active()->ordered()->get();
 
-        return view('admin.categories.create', compact('parentCategories'));
+        return view('admin.categories.create', compact('parentCategories', 'modes'));
     }
 
     /**
@@ -129,6 +140,17 @@ class CategoryController extends Controller
             }
         }
 
+        // Auto-inherit mode from parent category if mode is omitted
+        if (empty($data['mode_id']) && !empty($data['parent_id'])) {
+            $parent = Category::find($data['parent_id']);
+            $data['mode_id'] = $parent?->mode_id;
+        }
+
+        // Default to Shopy mode if still empty
+        if (empty($data['mode_id'])) {
+            $data['mode_id'] = Mode::where('slug', 'shopy')->value('id');
+        }
+
         $category = Category::create($data);
 
         return redirect()->route('admin.categories.index')
@@ -146,8 +168,9 @@ class CategoryController extends Controller
             ->whereNull('parent_id')
             ->orderBy('name', 'asc')
             ->get();
+        $modes = Mode::active()->ordered()->get();
 
-        return view('admin.categories.edit', compact('category', 'parentCategories'));
+        return view('admin.categories.edit', compact('category', 'parentCategories', 'modes'));
     }
 
     /**
@@ -156,6 +179,12 @@ class CategoryController extends Controller
     public function update(CategoryRequest $request, Category $category): RedirectResponse
     {
         $data = $request->validated();
+
+        // Auto-inherit mode from parent category if mode is omitted
+        if (empty($data['mode_id']) && !empty($data['parent_id'])) {
+            $parent = Category::find($data['parent_id']);
+            $data['mode_id'] = $parent?->mode_id;
+        }
 
         // Auto generate unique slug if empty
         if (empty($data['slug'])) {
