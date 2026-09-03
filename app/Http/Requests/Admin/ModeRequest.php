@@ -50,6 +50,7 @@ class ModeRequest extends FormRequest
             ],
             'description' => ['nullable', 'string', 'max:1000'],
             'icon' => ['nullable', 'string', 'max:100'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp,svg', 'max:3072'],
             'status' => ['boolean'],
             'sort_order' => ['integer', 'min:0'],
         ];

@@ -20,7 +20,7 @@
     </div>
 
     <!-- Mode Form -->
-    <form method="POST" action="{{ route('admin.modes.store') }}" class="space-y-6">
+    <form method="POST" action="{{ route('admin.modes.store') }}" enctype="multipart/form-data" class="space-y-6">
         @csrf
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -79,9 +79,61 @@
                         @enderror
                     </div>
                 </div>
+
+                <!-- Media & Visuals Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                    <h2 class="text-sm font-bold text-white uppercase tracking-wider border-b border-slate-800 pb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Mode Visuals &amp; Cloudinary Image
+                    </h2>
+
+                    <!-- Cloudinary Mode Image Upload -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                                Mode Banner / Badge Image
+                            </label>
+                            <span class="text-[10px] text-cyan-400 font-mono">Stored in Cloudinary /mode/ folder</span>
+                        </div>
+
+                        <div class="relative border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-2xl p-4 text-center cursor-pointer transition bg-slate-950" id="dropZone">
+                            <input id="imageInput" type="file" name="image" accept="image/jpeg,image/png,image/jpg,image/webp,image/svg+xml" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            <div id="uploadPlaceholder" class="space-y-2">
+                                <svg class="w-8 h-8 mx-auto text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                </svg>
+                                <p class="text-xs text-slate-400 font-medium">Click or drag image to upload to Cloudinary</p>
+                                <p class="text-[10px] text-slate-500">PNG, JPG, SVG, WebP up to 3MB</p>
+                            </div>
+                            <div id="imagePreviewContainer" class="hidden">
+                                <img id="imagePreview" src="#" alt="Preview" class="w-full h-36 object-contain rounded-xl border border-slate-700 bg-slate-900/60 p-2">
+                                <p class="text-[11px] text-indigo-400 font-medium mt-2">Click to replace image</p>
+                            </div>
+                        </div>
+                        @error('image')
+                            <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Icon Class Fallback -->
+                    <div>
+                        <label for="icon" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                            Fallback FontAwesome Icon Class <span class="text-slate-500 font-normal">(Optional)</span>
+                        </label>
+                        <input id="icon" type="text" name="icon" value="{{ old('icon') }}"
+                            placeholder="e.g. fa-solid fa-bag-shopping"
+                            class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 @error('icon') border-rose-500 @enderror">
+                        <p class="text-[11px] text-slate-500 mt-1">Used if no custom image is uploaded: <span class="text-slate-400 font-mono">fa-solid fa-bag-shopping</span>, <span class="text-slate-400 font-mono">fa-solid fa-utensils</span>, <span class="text-slate-400 font-mono">fa-solid fa-bolt</span></p>
+                        @error('icon')
+                            <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
             </div>
 
-            <!-- Right Column: Settings & Icon (1 col) -->
+            <!-- Right Column: Settings (1 col) -->
             <div class="space-y-6">
                 <!-- Status & Display Settings -->
                 <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-5">
@@ -115,20 +167,6 @@
                             class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 @error('sort_order') border-rose-500 @enderror">
                         <p class="text-[11px] text-slate-500 mt-1">Lower numbers appear first in the header switcher.</p>
                         @error('sort_order')
-                            <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Icon Class -->
-                    <div>
-                        <label for="icon" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                            Icon Class <span class="text-slate-500 font-normal">(FontAwesome or custom)</span>
-                        </label>
-                        <input id="icon" type="text" name="icon" value="{{ old('icon') }}"
-                            placeholder="e.g. fa-solid fa-bag-shopping"
-                            class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 @error('icon') border-rose-500 @enderror">
-                        <p class="text-[11px] text-slate-500 mt-1">Examples: <span class="text-slate-400 font-mono">fa-solid fa-bag-shopping</span>, <span class="text-slate-400 font-mono">fa-solid fa-utensils</span>, <span class="text-slate-400 font-mono">fa-solid fa-bolt</span></p>
-                        @error('icon')
                             <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
                         @enderror
                     </div>
@@ -179,6 +217,27 @@
             return text.toString().toLowerCase().trim()
                 .replace(/[\s\W-]+/g, '-')
                 .replace(/^-+|-+$/g, '');
+        }
+
+        // Image file preview
+        const imageInput = document.getElementById('imageInput');
+        const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+
+        if (imageInput) {
+            imageInput.addEventListener('change', function () {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        imagePreview.src = e.target.result;
+                        uploadPlaceholder.classList.add('hidden');
+                        imagePreviewContainer.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
         }
     });
 </script>

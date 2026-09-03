@@ -32,5 +32,8 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="CLOUDINARY_CLOUD_NAME" value="dudhfvy5f"/>
+        <env name="CLOUDINARY_API_KEY" value="mock_api_key"/>
+        <env name="CLOUDINARY_API_SECRET" value="mock_api_secret"/>
     </php>
 </phpunit>

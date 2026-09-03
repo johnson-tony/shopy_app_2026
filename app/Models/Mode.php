@@ -20,6 +20,7 @@ class Mode extends Model
         'slug',
         'description',
         'icon',
+        'image',
         'status',
         'sort_order',
     ];
@@ -49,6 +50,22 @@ class Mode extends Model
     public function scopeOrdered(Builder $query): Builder
     {
         return $query->orderBy('sort_order', 'asc')->orderBy('id', 'asc');
+    }
+
+    /**
+     * Get image URL (Cloudinary absolute URL or local storage URL).
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        if (empty($this->image)) {
+            return null;
+        }
+
+        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
+            return $this->image;
+        }
+
+        return asset('storage/' . $this->image);
     }
 
     /**

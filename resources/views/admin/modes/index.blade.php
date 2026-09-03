@@ -105,8 +105,10 @@
                             <!-- Icon & Name -->
                             <td class="py-3.5 px-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0">
-                                        @if ($mode->icon)
+                                    <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0 overflow-hidden">
+                                        @if ($mode->image_url)
+                                            <img src="{{ $mode->image_url }}" alt="{{ $mode->name }}" class="w-full h-full object-contain p-1">
+                                        @elseif ($mode->icon)
                                             <i class="{{ $mode->icon }} text-base text-indigo-400"></i>
                                         @else
                                             <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

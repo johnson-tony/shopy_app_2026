@@ -13,6 +13,7 @@ class CloudinaryService
     protected ?string $apiKey;
     protected ?string $apiSecret;
     protected string $categoryFolder;
+    protected string $modeFolder;
 
     public function __construct()
     {
@@ -20,6 +21,7 @@ class CloudinaryService
         $this->apiKey = trim((string) config('services.cloudinary.api_key'));
         $this->apiSecret = trim((string) config('services.cloudinary.api_secret'));
         $this->categoryFolder = trim((string) config('services.cloudinary.category_folder', 'category'));
+        $this->modeFolder = trim((string) config('services.cloudinary.mode_folder', 'mode'));
     }
 
     /**
@@ -31,7 +33,7 @@ class CloudinaryService
     }
 
     /**
-     * .
+     * Upload an image for a category into the category folder.
      *
      * @param UploadedFile|string $file
      * @return string Secure URL of uploaded image
@@ -39,12 +41,36 @@ class CloudinaryService
      */
     public function uploadCategoryImage(UploadedFile|string $file): string
     {
+        return $this->uploadImage($file, $this->categoryFolder);
+    }
+
+    /**
+     * Upload an image for a mode into the separate mode folder.
+     *
+     * @param UploadedFile|string $file
+     * @return string Secure URL of uploaded image
+     * @throws Exception
+     */
+    public function uploadModeImage(UploadedFile|string $file): string
+    {
+        return $this->uploadImage($file, $this->modeFolder);
+    }
+
+    /**
+     * Upload an image to a specific Cloudinary folder.
+     *
+     * @param UploadedFile|string $file
+     * @param string $folder
+     * @return string Secure URL of uploaded image
+     * @throws Exception
+     */
+    public function uploadImage(UploadedFile|string $file, string $folder): string
+    {
         if (!$this->isConfigured()) {
             throw new Exception('Cloudinary credentials are not properly configured.');
         }
 
         $timestamp = time();
-        $folder = $this->categoryFolder;
 
         // Cloudinary requires signed parameters in alphabetical order
         // Signature string: folder={folder}&timestamp={timestamp}{api_secret}

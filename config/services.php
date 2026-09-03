@@ -43,7 +43,8 @@ return [
         'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
         'api_key' => env('CLOUDINARY_API_KEY'),
         'api_secret' => env('CLOUDINARY_API_SECRET'),
-        'category_folder' => 'category',
+        'category_folder' => env('CLOUDINARY_CATEGORY_FOLDER', 'shopy_so/category'),
+        'mode_folder' => env('CLOUDINARY_MODE_FOLDER', 'shopy_so/mode'),
     ],
 
 ];

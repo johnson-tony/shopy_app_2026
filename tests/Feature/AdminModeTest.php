@@ -8,6 +8,8 @@ use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\ModeSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class AdminModeTest extends TestCase
@@ -277,4 +279,84 @@ class AdminModeTest extends TestCase
         $response->assertSee(route('admin.modes.index'));
         $response->assertSee('Modes');
     }
+
+    public function test_admin_can_upload_mode_image_to_cloudinary_mode_folder(): void
+    {
+        config([
+            'services.cloudinary.cloud_name' => 'test_cloud',
+            'services.cloudinary.api_key' => 'test_key',
+            'services.cloudinary.api_secret' => 'test_secret',
+            'services.cloudinary.mode_folder' => 'mode',
+        ]);
+
+        $mockCloudinaryUrl = 'https://res.cloudinary.com/test_cloud/image/upload/v1234567890/mode/grocery_icon.png';
+
+        Http::fake([
+            'https://api.cloudinary.com/v1_1/test_cloud/image/upload' => function ($request) use ($mockCloudinaryUrl) {
+                // Ensure request uploads to the 'mode' folder
+                return Http::response([
+                    'secure_url' => $mockCloudinaryUrl,
+                    'public_id' => 'mode/grocery_icon',
+                    'format' => 'png',
+                ], 200);
+            },
+        ]);
+
+        $file = UploadedFile::fake()->image('grocery_icon.png', 200, 200);
+
+        $payload = [
+            'name' => 'Hyperlocal Express',
+            'slug' => 'hyperlocal-express',
+            'description' => 'Fast delivery mode',
+            'image' => $file,
+            'status' => '1',
+            'sort_order' => 4,
+        ];
+
+        $response = $this->actingAs($this->admin, 'admin')->post(route('admin.modes.store'), $payload);
+
+        $response->assertRedirect(route('admin.modes.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('modes', [
+            'slug' => 'hyperlocal-express',
+            'image' => $mockCloudinaryUrl,
+        ]);
+    }
+
+    public function test_mode_image_validation_rejects_non_image_files(): void
+    {
+        $file = UploadedFile::fake()->create('document.pdf', 500, 'application/pdf');
+
+        $response = $this->actingAs($this->admin, 'admin')->post(route('admin.modes.store'), [
+            'name' => 'Invalid Image Mode',
+            'image' => $file,
+        ]);
+
+        $response->assertSessionHasErrors('image');
+    }
+
+    public function test_mode_image_url_accessor(): void
+    {
+        $modeWithUrl = Mode::create([
+            'name' => 'Mode URL Test',
+            'slug' => 'mode-url-test',
+            'image' => 'https://res.cloudinary.com/test_cloud/image/upload/sample.png',
+            'status' => true,
+            'sort_order' => 1,
+        ]);
+
+        $this->assertEquals('https://res.cloudinary.com/test_cloud/image/upload/sample.png', $modeWithUrl->image_url);
+
+        $modeWithoutImage = Mode::create([
+            'name' => 'No Image Mode',
+            'slug' => 'no-image-mode',
+            'image' => null,
+            'status' => true,
+            'sort_order' => 2,
+        ]);
+
+        $this->assertNull($modeWithoutImage->image_url);
+    }
 }
+
