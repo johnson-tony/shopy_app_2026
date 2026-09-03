@@ -1,59 +1,132 @@
-<div class="fixed inset-0 z-50 hidden" id="mobileMenu">
-    <div class="absolute inset-0 bg-black/40" data-close-mobile></div>
-    <aside class="absolute left-0 top-0 h-full w-72 max-w-[85%] bg-white shadow-xl flex flex-col">
-        <div class="flex items-center justify-between px-4 py-4 border-b border-slate-100">
-            <span class="font-black text-lg" style="color:#2962ff;">Shopy 2026</span>
-            <button type="button" class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100" data-close-mobile>
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
+<!-- Backdrop Overlay for Mobile Drawer -->
+<div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
 
-        @auth
-            <div class="px-4 py-3 border-b border-slate-100 bg-slate-50">
-                <span class="inline-flex items-center justify-center w-9 h-9 rounded-full font-bold text-sm text-white" style="background:#2962ff;">
-                    {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
-                </span>
-                <p class="mt-2 text-sm font-semibold text-slate-800">{{ auth()->user()->name }}</p>
-                <p class="text-xs text-slate-500">{{ auth()->user()->email }}</p>
-            </div>
-        @endauth
+<!-- Mobile Sidebar Drawer -->
+<nav class="mobile-menu" id="mobileMenu" aria-label="Mobile Navigation">
+    <div class="mobile-menu-header">
+        <span class="mobile-menu-brand">{{ $homepageTitle ?? config('app.name', 'Shopy') }}</span>
+        <button id="mobileMenuClose" class="mobile-menu-close" type="button" aria-label="Close menu">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
 
-        <nav class="flex-1 overflow-y-auto py-2">
-            <a href="{{ route('home') }}" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 {{ request()->routeIs('home') ? 'font-semibold' : '' }}">
-                <i class="fas fa-house w-5 text-slate-400"></i> Home
-            </a>
-            @auth
-                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 {{ request()->routeIs('dashboard') ? 'font-semibold' : '' }}">
-                    <i class="fas fa-gauge-high w-5 text-slate-400"></i> Dashboard
-                </a>
-                <a href="{{ route('profile') }}" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 {{ request()->routeIs('profile') ? 'font-semibold' : '' }}">
-                    <i class="fas fa-user w-5 text-slate-400"></i> Profile
-                </a>
-                <a href="{{ route('user.addresses.index') }}" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 {{ request()->routeIs('user.addresses.*') ? 'font-semibold' : '' }}">
-                    <i class="fas fa-location-dot w-5 text-slate-400"></i> My Addresses
-                </a>
-            @endauth
-            @guest
-                <a href="{{ route('login') }}" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50">
-                    <i class="fas fa-right-to-bracket w-5 text-slate-400"></i> Sign In
-                </a>
-                @if (Route::has('register'))
-                    <a href="{{ route('register') }}" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50">
-                        <i class="fas fa-user-plus w-5 text-slate-400"></i> Create Account
-                    </a>
+    <!-- User Info (Mobile) -->
+    @auth
+        <div class="mobile-user-info">
+            @if(Auth::user()->avatar)
+                @if(Str::startsWith(Auth::user()->avatar, ['http://', 'https://']))
+                    <img src="{{ Auth::user()->avatar }}" class="mobile-avatar-img" alt="{{ Auth::user()->name }}">
+                @else
+                    <img src="{{ asset('storage/' . Auth::user()->avatar) }}" class="mobile-avatar-img" alt="{{ Auth::user()->name }}">
                 @endif
-            @endguest
-        </nav>
-
-        @auth
-            <div class="border-t border-slate-100 p-4">
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition">
-                        <i class="fas fa-right-from-bracket"></i> Logout
-                    </button>
-                </form>
+            @else
+                <div class="mobile-avatar-placeholder">
+                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                </div>
+            @endif
+            <div style="min-width:0; overflow:hidden;">
+                <div class="mobile-user-name" style="text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">{{ Auth::user()->name }}</div>
+                <div style="font-size:0.78rem; color:var(--text-muted); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">{{ Auth::user()->email }}</div>
             </div>
-        @endauth
-    </aside>
-</div>
+        </div>
+    @endauth
+
+    <ul>
+        <li>
+            <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">
+                <span><i class="fas fa-house mr-2 text-slate-400"></i> Home</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ Route::has('shop.index') ? route('shop.index') : url('/shop') }}" class="{{ request()->routeIs('shop.*') ? 'active' : '' }}">
+                <span><i class="fas fa-bag-shopping mr-2 text-slate-400"></i> Shop</span>
+            </a>
+        </li>
+
+        @if(!empty($navcategories) && count($navcategories) > 0)
+            <li class="dropdown" id="mobileCategoriesDropdown">
+                <a href="#">
+                    <span><i class="fas fa-layer-group mr-2 text-slate-400"></i> Categories</span>
+                </a>
+                <ul class="dropdown-menu">
+                    @foreach($navcategories as $category)
+                        <li>
+                            <a href="{{ Route::has('shop.category.show') ? route('shop.category.show', $category->slug) : url('/category/' . $category->slug) }}">
+                                {{ $category->name }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </li>
+        @endif
+
+        <li>
+            <a href="{{ url('/cart') }}" class="{{ request()->is('cart*') ? 'active' : '' }}">
+                <span><i class="fas fa-shopping-cart mr-2 text-slate-400"></i> Cart</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ Route::has('wishlist.index') ? route('wishlist.index') : url('/wishlist') }}" class="{{ request()->is('wishlist*') ? 'active' : '' }}">
+                <span><i class="fas fa-heart mr-2 text-slate-400"></i> Wishlist</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ Route::has('orders.history') ? route('orders.history') : url('/orders') }}" class="{{ request()->is('orders*') ? 'active' : '' }}">
+                <span><i class="fas fa-box mr-2 text-slate-400"></i> Orders</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url('/coupons') }}" class="{{ request()->is('coupons*') ? 'active' : '' }}">
+                <span><i class="fas fa-ticket mr-2 text-slate-400"></i> Coupons</span>
+            </a>
+        </li>
+        <li>
+            <a href="{{ url('/contact') }}" class="{{ request()->is('contact*') ? 'active' : '' }}">
+                <span><i class="fas fa-envelope mr-2 text-slate-400"></i> Contact</span>
+            </a>
+        </li>
+
+        @guest
+            <li style="border-top: 1px solid var(--hover-bg); margin-top: 0.5rem; padding-top: 0.5rem;">
+                <a href="{{ route('login') }}" class="{{ request()->routeIs('login') ? 'active' : '' }}">
+                    <span><i class="fas fa-right-to-bracket mr-2 text-slate-400"></i> Sign In</span>
+                </a>
+            </li>
+            @if (Route::has('register'))
+                <li>
+                    <a href="{{ route('register') }}" class="{{ request()->routeIs('register') ? 'active' : '' }}">
+                        <span><i class="fas fa-user-plus mr-2 text-slate-400"></i> Register</span>
+                    </a>
+                </li>
+            @endif
+        @else
+            <li style="border-top: 1px solid var(--hover-bg); margin-top: 0.5rem; padding-top: 0.5rem;">
+                <a href="{{ Route::has('dashboard') ? route('dashboard') : url('/dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                    <span><i class="fas fa-gauge-high mr-2 text-slate-400"></i> Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ Route::has('profile') ? route('profile') : url('/profile') }}" class="{{ request()->routeIs('profile') ? 'active' : '' }}">
+                    <span><i class="fas fa-user mr-2 text-slate-400"></i> Profile</span>
+                </a>
+            </li>
+            @if (Route::has('user.addresses.index'))
+                <li>
+                    <a href="{{ route('user.addresses.index') }}" class="{{ request()->routeIs('user.addresses.*') ? 'active' : '' }}">
+                        <span><i class="fas fa-location-dot mr-2 text-slate-400"></i> My Addresses</span>
+                    </a>
+                </li>
+            @endif
+            <li>
+                <a href="{{ route('logout') }}"
+                   onclick="event.preventDefault(); document.getElementById('logout-form-mobile').submit();"
+                   class="mobile-logout">
+                    <span>Logout</span> <i class="fas fa-sign-out-alt"></i>
+                </a>
+                <form id="logout-form-mobile" action="{{ route('logout') }}" method="POST" style="display:none;">
+                    @csrf
+                </form>
+            </li>
+        @endguest
+    </ul>
+</nav>

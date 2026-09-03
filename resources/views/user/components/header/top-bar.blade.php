@@ -1,24 +1,59 @@
-<div class="border-b border-slate-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        {{-- Brand Logo --}}
-        <div class="flex items-center">
-            <a href="{{ route('home') }}" class="flex items-center gap-2 font-black text-2xl tracking-tight" style="color: #2962ff;">
-                <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl text-white font-bold shadow-md" style="background:#2962ff;">
-                    S
-                </span>
-                <span class="text-slate-900 font-extrabold">Shopy</span>
-                <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded" style="background:#2962ff1a;color:#2962ff;">2026</span>
-            </a>
-        </div>
+<div class="container header-top">
+    <!-- Logo -->
+    <div class="logo">
+        <a href="{{ $homepageLogoLink ?? route('home') }}" class="logo-link">
+            <div class="logo-row">
+                <img 
+                    src="{{ asset($logoMedia?->file_path ?? 'images/logo/logo.png') }}" 
+                    alt="{{ $homepageTitle ?? config('app.name', 'Shopy') }}" 
+                    class="logo-img"
+                    onerror="this.onerror=null;this.src='{{ asset('images/default-logo.svg') }}';"
+                >
+            </div>
+            @if(!empty($homepageSubtitle))
+                <div class="logo-subtitle">{{ $homepageSubtitle }}</div>
+            @endif
+        </a>
+    </div>
 
-        {{-- Right Icons / Actions --}}
-        <div class="flex items-center gap-2">
-            @include('user.components.header.user-trigger')
+    <!-- Desktop Search Bar -->
+    @include('user.components.header.search-bar')
 
-            {{-- Mobile Toggle --}}
-            <button type="button" class="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg text-slate-600 hover:bg-slate-100 transition" id="mobileMenuToggle">
-                <i class="fas fa-bars text-lg"></i>
-            </button>
-        </div>
+    <!-- Right Icons & Actions -->
+    <div class="right-icons">
+        <!-- Wishlist -->
+        <a href="{{ Route::has('wishlist.index') ? route('wishlist.index') : url('/wishlist') }}"
+           class="icon-btn wishlist-wrapper {{ request()->routeIs('wishlist.*') ? 'active' : '' }}"
+           id="wishlistBtn"
+           title="Wishlist">
+            <img src="{{ asset('images/navbar/wishlist.svg') }}" alt="Wishlist" class="nav-icon" />
+            <span class="count-badge" id="wishlistCount" style="display:none;">0</span>
+        </a>
+
+        <!-- Notifications -->
+        <a href="{{ Route::has('notifications.index') ? route('notifications.index') : url('/notifications') }}"
+           class="icon-btn notification-wrapper {{ request()->routeIs('notifications.*') ? 'active' : '' }}"
+           id="notificationBtn"
+           title="Notifications">
+            <img src="{{ asset('images/navbar/notification.svg') }}" alt="Notifications" class="nav-icon" />
+            <span class="count-badge" id="notificationCount" style="display:none;">0</span>
+        </a>
+
+        <!-- Cart -->
+        <a href="{{ url('/cart') }}"
+           class="icon-btn cart-wrapper {{ request()->is('cart') ? 'active' : '' }}"
+           id="cartBtn"
+           title="Cart">
+            <img src="{{ asset('images/navbar/cart.svg') }}" alt="Cart" class="nav-icon" />
+            <span class="count-badge" id="cartCount" style="display:none;">0</span>
+        </a>
+
+        <!-- User Dropdown Menu -->
+        @include('user.components.header.user-menu')
+
+        <!-- Mobile Hamburger Toggle -->
+        <button class="mobile-toggle" id="mobileToggle" type="button" aria-label="Open navigation menu">
+            <i class="fas fa-bars"></i>
+        </button>
     </div>
 </div>

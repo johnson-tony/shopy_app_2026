@@ -53,3 +53,22 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/reverse-geocode', [AddressController::class, 'reverseGeocode'])->name('reverseGeocode');
     });
 });
+
+// Footer & Navbar utility endpoints
+Route::get('/footer/fetch-counts', function () {
+    return response()->json([
+        'wishlist_count' => 0,
+        'cart_count' => 0,
+        'notification_count' => 0,
+    ]);
+})->name('footer.fetch-counts');
+
+Route::post('/newsletter/subscribe', function (\Illuminate\Http\Request $request) {
+    $request->validate([
+        'email' => 'required|email',
+    ]);
+
+    return response()->json([
+        'message' => 'Thank you for subscribing to our newsletter!',
+    ]);
+})->name('newsletter.subscribe');

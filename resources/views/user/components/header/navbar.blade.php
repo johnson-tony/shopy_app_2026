@@ -1,26 +1,43 @@
-<nav class="hidden lg:block border-b border-slate-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center gap-8 py-3">
-        <a href="{{ route('home') }}"
-           class="text-sm font-medium {{ request()->routeIs('home') ? 'font-semibold' : 'text-slate-600 hover:text-slate-900' }} transition"
-           style="{{ request()->routeIs('home') ? 'color:#2962ff;' : '' }}">
-            Home
-        </a>
-        @auth
-            <a href="{{ route('dashboard') }}"
-               class="text-sm font-medium {{ request()->routeIs('dashboard') ? 'font-semibold' : 'text-slate-600 hover:text-slate-900' }} transition"
-               style="{{ request()->routeIs('dashboard') ? 'color:#2962ff;' : '' }}">
-                Dashboard
+<div>
+    <div class="container header-bottom">
+        <nav class="nav-links" aria-label="Main Navigation">
+            <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">
+                Home
             </a>
-            <a href="{{ route('user.addresses.index') }}"
-               class="text-sm font-medium {{ request()->routeIs('user.addresses.*') ? 'font-semibold' : 'text-slate-600 hover:text-slate-900' }} transition"
-               style="{{ request()->routeIs('user.addresses.*') ? 'color:#2962ff;' : '' }}">
-                My Addresses
+
+            <div class="nav-link dropdown {{ request()->is('category*') ? 'active' : '' }}" id="categoriesDropdown">
+                <span>Categories</span>
+                <span class="dropdown-icon" id="categoriesDropdownIcon">▾</span>
+
+                <div class="dropdown-menu mega-dropdown">
+                    @include('user.components.header.categories-mega-menu')
+                </div>
+            </div>
+
+            <a href="{{ Route::has('shop.index') ? route('shop.index') : url('/shop') }}"
+               class="nav-link {{ request()->routeIs('shop.*') ? 'active' : '' }}">
+                Shop
             </a>
-            <a href="{{ route('profile') }}"
-               class="text-sm font-medium {{ request()->routeIs('profile') ? 'font-semibold' : 'text-slate-600 hover:text-slate-900' }} transition"
-               style="{{ request()->routeIs('profile') ? 'color:#2962ff;' : '' }}">
-                Profile
+
+            <a href="{{ url('/cart') }}"
+               class="nav-link {{ request()->is('cart*') ? 'active' : '' }}">
+                My Cart
             </a>
-        @endauth
+
+            <a href="{{ Route::has('orders.history') ? route('orders.history') : url('/orders') }}"
+               class="nav-link {{ request()->is('orders*') ? 'active' : '' }}">
+                Orders
+            </a>
+
+            <a href="{{ url('/coupons') }}"
+               class="nav-link {{ request()->is('coupons*') ? 'active' : '' }}">
+                Coupons
+            </a>
+
+            <a href="{{ url('/contact') }}"
+               class="nav-link {{ request()->is('contact*') ? 'active' : '' }}">
+                Contact
+            </a>
+        </nav>
     </div>
-</nav>
+</div>
