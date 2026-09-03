@@ -128,5 +128,17 @@
                 </form>
             </li>
         @endguest
+
+        @if(!empty($isDarkMode))
+            <li style="border-top: 1px solid var(--border-light); margin-top: 0.5rem; padding-top: 0.5rem;">
+                <button type="button" class="theme-toggle-btn-mobile w-full flex items-center justify-between px-5 py-3 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-indigo-600 bg-transparent border-none cursor-pointer">
+                    <span class="flex items-center gap-2">
+                        <i class="fas fa-circle-half-stroke text-slate-400"></i>
+                        <span>Theme Mode</span>
+                    </span>
+                    <span class="mobileThemeLabel text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold">Light</span>
+                </button>
+            </li>
+        @endif
     </ul>
 </nav>

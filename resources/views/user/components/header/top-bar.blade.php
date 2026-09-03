@@ -68,6 +68,19 @@
             </a>
         @endauth
 
+        @if(!empty($isDarkMode))
+            <!-- Theme Switcher (Available when Admin enables Dark Theme: User can switch both Dark & Light) -->
+            <button type="button"
+                    class="icon-btn theme-toggle-btn"
+                    id="userThemeToggle"
+                    title="Toggle Light / Dark Theme"
+                    aria-label="Toggle Theme">
+                <span id="userThemeIcon">
+                    <i class="fas fa-moon"></i>
+                </span>
+            </button>
+        @endif
+
         <!-- Mobile Hamburger Toggle -->
         <button class="mobile-toggle" id="mobileToggle" type="button" aria-label="Open navigation menu">
             <i class="fas fa-bars"></i>

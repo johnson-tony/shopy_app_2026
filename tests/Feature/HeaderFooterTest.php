@@ -47,6 +47,9 @@ class HeaderFooterTest extends TestCase
         $response->assertSee('images/navbar/profile.svg', false);
         $response->assertDontSee('id="wishlistBtn"', false);
         $response->assertDontSee('id="notificationBtn"', false);
+        $response->assertDontSee('My Profile', false);
+        $response->assertDontSee('My Orders', false);
+        $response->assertSee('Sign In / Login', false);
 
         // Category mega menu and mobile menu category
         $response->assertSee('Fashion');
@@ -78,6 +81,8 @@ class HeaderFooterTest extends TestCase
         $response->assertSee('images/navbar/wishlist.svg', false);
         $response->assertSee('images/navbar/notification.svg', false);
         $response->assertSee('images/navbar/cart.svg', false);
+        $response->assertSee('My Profile', false);
+        $response->assertSee('My Orders', false);
         $response->assertSee(route('logout'));
     }
 
@@ -113,5 +118,27 @@ class HeaderFooterTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_user_storefront_allows_changing_both_themes_when_admin_enables_dark_mode(): void
+    {
+        \App\Models\AdminSetting::setDarkMode(true);
+
+        $response = $this->get(route('login'));
+
+        $response->assertStatus(200);
+        $response->assertSee('data-theme="light"', false);
+        $response->assertSee('userThemeToggle', false);
+    }
+
+    public function test_user_storefront_forces_only_light_theme_when_admin_disables_dark_mode(): void
+    {
+        \App\Models\AdminSetting::setDarkMode(false);
+
+        $response = $this->get(route('login'));
+
+        $response->assertStatus(200);
+        $response->assertSee('data-theme="light"', false);
+        $response->assertDontSee('userThemeToggle', false);
     }
 }

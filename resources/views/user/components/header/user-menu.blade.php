@@ -27,30 +27,17 @@
 
     <div class="dropdown" id="userDropdown">
         @guest
-            <!-- Flipkart-Style New Customer Sign Up Row -->
-            <div class="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-100 text-xs">
-                <span class="text-slate-600 font-medium">New customer?</span>
-                @if (Route::has('register'))
-                    <a href="{{ route('register') }}" class="font-bold text-indigo-600 hover:text-indigo-700 !p-0 !w-auto !inline" style="color:var(--brand-blue); padding:0 !important; width:auto !important; display:inline !important;">Sign Up</a>
-                @endif
-            </div>
-
+            <!-- Guest: Only Sign In and Register (No Profile, No Orders, No Wishlist) -->
             <a href="{{ route('login') }}">
-                <i class="fas fa-circle-user mr-2 text-slate-400"></i> My Profile
+                <i class="fas fa-right-to-bracket mr-2 text-slate-400"></i> Sign In / Login
             </a>
-            <a href="{{ Route::has('orders.history') ? route('orders.history') : url('/orders') }}">
-                <i class="fas fa-box mr-2 text-slate-400"></i> Orders
-            </a>
-            <a href="{{ Route::has('wishlist.index') ? route('wishlist.index') : url('/wishlist') }}">
-                <i class="fas fa-heart mr-2 text-slate-400"></i> Wishlist
-            </a>
-            <a href="{{ Route::has('coupons') ? route('coupons') : url('/coupons') }}">
-                <i class="fas fa-ticket mr-2 text-slate-400"></i> Rewards &amp; Coupons
-            </a>
-            <a href="{{ Route::has('faqs') ? route('faqs') : url('/faqs') }}">
-                <i class="fas fa-headset mr-2 text-slate-400"></i> 24x7 Customer Care
-            </a>
+            @if (Route::has('register'))
+                <a href="{{ route('register') }}">
+                    <i class="fas fa-user-plus mr-2 text-slate-400"></i> New Customer? Sign Up
+                </a>
+            @endif
         @else
+            <!-- Authenticated: Shows Profile, Orders, Wishlist, Addresses, Dashboard, Logout -->
             <div style="padding: 0.65rem 1rem; border-bottom: 1px solid #f0f0f0;">
                 <div style="font-weight:600; font-size: 0.88rem; color: var(--text-default);">{{ Auth::user()->name }}</div>
                 <div style="font-size: 0.78rem; color: var(--text-muted); text-overflow: ellipsis; overflow: hidden;">{{ Auth::user()->email }}</div>
@@ -59,16 +46,17 @@
                 <i class="fas fa-gauge-high mr-2 text-slate-400"></i> Dashboard
             </a>
             <a href="{{ Route::has('profile') ? route('profile') : url('/profile') }}">
-                <i class="fas fa-user mr-2 text-slate-400"></i> Profile
+                <i class="fas fa-circle-user mr-2 text-slate-400"></i> My Profile
+            </a>
+            <a href="{{ Route::has('orders.history') ? route('orders.history') : url('/orders') }}">
+                <i class="fas fa-box mr-2 text-slate-400"></i> My Orders
+            </a>
+            <a href="{{ Route::has('wishlist.index') ? route('wishlist.index') : url('/wishlist') }}">
+                <i class="fas fa-heart mr-2 text-slate-400"></i> Wishlist
             </a>
             @if (Route::has('user.addresses.index'))
                 <a href="{{ route('user.addresses.index') }}">
                     <i class="fas fa-location-dot mr-2 text-slate-400"></i> My Addresses
-                </a>
-            @endif
-            @if (Route::has('orders.history'))
-                <a href="{{ route('orders.history') }}">
-                    <i class="fas fa-box mr-2 text-slate-400"></i> My Orders
                 </a>
             @endif
             <a href="{{ route('logout') }}"
@@ -80,5 +68,14 @@
                 @csrf
             </form>
         @endguest
+
+        @if(!empty($isDarkMode))
+            <div style="border-top: 1px solid var(--border-light); padding: 0.25rem 0;">
+                <button type="button" class="theme-toggle-btn-dropdown" style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:0.65rem 1rem; color:var(--text-default); font-size:0.88rem; background:transparent; border:none; cursor:pointer;">
+                    <span><i class="fas fa-circle-half-stroke mr-2 text-slate-400"></i> Theme Mode</span>
+                    <span class="dropdownThemeLabel" style="font-size:0.75rem; padding:2px 8px; border-radius:12px; background:var(--brand-blue-light); color:var(--brand-blue); font-weight:700;">Light</span>
+                </button>
+            </div>
+        @endif
     </div>
 </div>

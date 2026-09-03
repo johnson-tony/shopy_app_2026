@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\AdminSetting;
 use App\Models\Category;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -41,6 +42,9 @@ class AppServiceProvider extends ServiceProvider
                 'Sports',
             ];
 
+            $isDarkMode = AdminSetting::isDarkMode();
+            $currentTheme = AdminSetting::currentTheme();
+
             $view->with([
                 'navcategories' => $navcategories,
                 'searchSuggestions' => $searchSuggestions,
@@ -48,6 +52,8 @@ class AppServiceProvider extends ServiceProvider
                 'homepageSubtitle' => null,
                 'homepageLogoLink' => route('home'),
                 'logoMedia' => null,
+                'isDarkMode' => $isDarkMode,
+                'currentTheme' => $currentTheme,
             ]);
         });
     }

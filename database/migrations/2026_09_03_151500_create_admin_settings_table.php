@@ -14,42 +14,17 @@ return new class extends Migration
     {
         Schema::create('admin_settings', function (Blueprint $table) {
             $table->id();
-            $table->string('key')->unique()->index();
-            $table->text('value')->nullable();
-            $table->string('group')->default('general')->index();
+            // Single boolean column: false (No) = Light Theme (default), true (Yes) = Dark Theme
+            $table->boolean('is_dark_mode')->default(false);
             $table->timestamps();
         });
 
-        // Insert initial default settings
+        // Insert default single setting row: default Light theme (No / false)
         DB::table('admin_settings')->insert([
-            [
-                'key' => 'theme',
-                'value' => 'light',
-                'group' => 'appearance',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'key' => 'site_name',
-                'value' => 'Shopy 2026',
-                'group' => 'general',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'key' => 'support_email',
-                'value' => 'support@shopy.test',
-                'group' => 'general',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'key' => 'support_phone',
-                'value' => '+91 63796 44145',
-                'group' => 'general',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
+            'id' => 1,
+            'is_dark_mode' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 

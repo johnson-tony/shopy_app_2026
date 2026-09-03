@@ -4,9 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Admin;
 use App\Models\AdminSetting;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class AdminSettingTest extends TestCase
@@ -21,18 +21,25 @@ class AdminSettingTest extends TestCase
 
     protected function getSuperAdmin(): Admin
     {
-        $admin = Admin::where('email', 'superadmin@shopy.test')->first()
+        return Admin::where('email', 'superadmin@shopy.test')->first()
             ?? Admin::where('email', 'admin@shopy.test')->first();
-
-        return $admin;
     }
 
-    public function test_admin_settings_table_seeded_with_defaults(): void
+    public function test_admin_settings_table_has_single_boolean_column(): void
     {
-        $this->artisan('migrate');
+        $columns = Schema::getColumnListing('admin_settings');
 
-        $theme = AdminSetting::get('theme', 'light');
-        $this->assertContains($theme, ['light', 'dark']);
+        // Verify key, value, group are NOT present
+        $this->assertNotContains('key', $columns);
+        $this->assertNotContains('value', $columns);
+        $this->assertNotContains('group', $columns);
+
+        // Verify is_dark_mode boolean column IS present
+        $this->assertContains('is_dark_mode', $columns);
+
+        // Verify default is false (Light Theme / No)
+        $this->assertFalse(AdminSetting::isDarkMode());
+        $this->assertEquals('light', AdminSetting::currentTheme());
     }
 
     public function test_guest_cannot_access_admin_settings(): void
@@ -58,32 +65,48 @@ class AdminSettingTest extends TestCase
         $response = $this->actingAs($admin, 'admin')->get(route('admin.settings.index'));
 
         $response->assertStatus(200);
-        $response->assertSee('System &amp; Theme Settings', false);
-        $response->assertSee('Light (White) Theme', false);
-        $response->assertSee('Dark (Midnight) Theme', false);
+        $response->assertSee('Theme Settings', false);
+        $response->assertSee('Dark Theme Permission', false);
+        $response->assertSee('No &mdash; Only Light Theme', false);
+        $response->assertSee('Yes &mdash; Enable Dark Theme (User Can Change Both)', false);
     }
 
-    public function test_admin_can_update_theme_setting(): void
+    public function test_admin_can_enable_dark_mode_boolean(): void
     {
         $admin = $this->getSuperAdmin();
 
         $response = $this->actingAs($admin, 'admin')->put(route('admin.settings.update'), [
-            'theme' => 'dark',
-            'site_name' => 'Shopy Modern 2026',
-            'support_email' => 'admin@shopy.test',
-            'support_phone' => '+91 99999 88888',
+            'is_dark_mode' => '1',
         ]);
 
         $response->assertRedirect(route('admin.settings.index'));
         $response->assertSessionHas('success');
 
-        $this->assertEquals('dark', AdminSetting::get('theme'));
-        $this->assertEquals('Shopy Modern 2026', AdminSetting::get('site_name'));
+        $this->assertTrue(AdminSetting::isDarkMode());
+        $this->assertEquals('dark', AdminSetting::currentTheme());
     }
 
-    public function test_admin_login_page_renders_with_theme_and_interactive_controls(): void
+    public function test_admin_can_disable_dark_mode_boolean(): void
     {
-        AdminSetting::set('theme', 'light');
+        $admin = $this->getSuperAdmin();
+
+        AdminSetting::setDarkMode(true);
+        $this->assertTrue(AdminSetting::isDarkMode());
+
+        $response = $this->actingAs($admin, 'admin')->put(route('admin.settings.update'), [
+            'is_dark_mode' => '0',
+        ]);
+
+        $response->assertRedirect(route('admin.settings.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertFalse(AdminSetting::isDarkMode());
+        $this->assertEquals('light', AdminSetting::currentTheme());
+    }
+
+    public function test_admin_login_page_renders_with_default_light_theme(): void
+    {
+        AdminSetting::setDarkMode(false);
 
         $response = $this->get(route('admin.login'));
 
@@ -94,9 +117,9 @@ class AdminSettingTest extends TestCase
         $response->assertSee('Administrator Portal', false);
     }
 
-    public function test_admin_login_page_reflects_dark_theme_from_database(): void
+    public function test_admin_login_page_reflects_dark_theme_when_enabled(): void
     {
-        AdminSetting::set('theme', 'dark');
+        AdminSetting::setDarkMode(true);
 
         $response = $this->get(route('admin.login'));
 

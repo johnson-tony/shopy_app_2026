@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-slate-50">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full" data-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -8,6 +8,42 @@
     <title>@yield('title', 'Welcome') | Shopy 2026</title>
 
     <link rel="icon" type="image/png" href="{{ asset('images/icon.png') }}">
+
+    <!-- Inline Theme Synchronization Script: Default is ALWAYS Light; user can toggle Dark only when admin approved -->
+    <script>
+        (function () {
+            const darkAllowed = {{ ($isDarkMode ?? false) ? 'true' : 'false' }};
+            let effectiveTheme = 'light';
+
+            if (darkAllowed) {
+                // Dark theme approved by admin: default is Light, but user can change/toggle to Dark
+                const userTheme = localStorage.getItem('user_theme');
+                effectiveTheme = (userTheme === 'dark') ? 'dark' : 'light';
+            } else {
+                // Dark theme NOT approved: strictly Light theme only, user cannot change
+                effectiveTheme = 'light';
+                localStorage.removeItem('user_theme');
+            }
+
+            document.documentElement.setAttribute('data-theme', effectiveTheme);
+            if (effectiveTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                if (document.body) {
+                    document.body.setAttribute('data-theme', effectiveTheme);
+                    if (effectiveTheme === 'dark') {
+                        document.body.classList.add('dark');
+                    } else {
+                        document.body.classList.remove('dark');
+                    }
+                }
+            });
+        })();
+    </script>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -29,7 +65,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
-<body class="min-h-full flex flex-col font-sans antialiased text-slate-900 bg-slate-50">
+<body class="min-h-full flex flex-col font-sans antialiased text-slate-900 bg-slate-50 transition-colors">
     {{-- Impersonation banner --}}
     @if (session()->get('impersonating'))
         @include('user.components.impersonation-banner')

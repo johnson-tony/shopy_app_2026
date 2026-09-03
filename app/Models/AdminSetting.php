@@ -13,53 +13,91 @@ class AdminSetting extends Model
     protected $table = 'admin_settings';
 
     protected $fillable = [
-        'key',
-        'value',
-        'group',
+        'is_dark_mode',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'is_dark_mode' => 'boolean',
+        ];
+    }
+
     /**
-     * Get a setting by key with optional default fallback.
+     * Get or create the singleton setting record.
      */
-    public static function get(string $key, mixed $default = null): mixed
+    public static function instance(): self
+    {
+        return static::firstOrCreate(['id' => 1], ['is_dark_mode' => false]);
+    }
+
+    /**
+     * Check if dark mode is enabled (Yes = dark, No = light).
+     */
+    public static function isDarkMode(): bool
     {
         try {
-            return Cache::remember("admin_setting_{$key}", 3600, function () use ($key, $default) {
-                $setting = static::where('key', $key)->first();
-                return $setting ? $setting->value : $default;
+            return (bool) Cache::remember('admin_setting_is_dark_mode', 3600, function () {
+                $setting = static::first();
+                return $setting ? (bool) $setting->is_dark_mode : false;
             });
         } catch (\Throwable $e) {
-            return $default;
+            return false;
         }
     }
 
     /**
-     * Set/update a setting by key.
+     * Get the current theme string: 'dark' or 'light'.
      */
-    public static function set(string $key, mixed $value, string $group = 'general'): self
+    public static function currentTheme(): string
+    {
+        return static::isDarkMode() ? 'dark' : 'light';
+    }
+
+    /**
+     * Save the dark mode boolean setting (Yes = true, No = false).
+     */
+    public static function setDarkMode(bool $isDark): self
     {
         $setting = static::updateOrCreate(
-            ['key' => $key],
-            ['value' => $value, 'group' => $group]
+            ['id' => 1],
+            ['is_dark_mode' => $isDark]
         );
 
-        Cache::forget("admin_setting_{$key}");
+        Cache::forget('admin_setting_is_dark_mode');
+        Cache::forget('admin_setting_theme');
 
         return $setting;
     }
 
     /**
-     * Clear all cached settings.
+     * Backward-compatible get method.
      */
-    public static function clearCache(): void
+    public static function get(string $key = 'theme', mixed $default = 'light'): mixed
     {
-        try {
-            $keys = static::pluck('key');
-            foreach ($keys as $key) {
-                Cache::forget("admin_setting_{$key}");
-            }
-        } catch (\Throwable $e) {
-            // silent catch
+        if ($key === 'theme') {
+            return static::currentTheme();
         }
+        if ($key === 'is_dark_mode') {
+            return static::isDarkMode();
+        }
+        return $default;
+    }
+
+    /**
+     * Backward-compatible set method.
+     */
+    public static function set(string $key, mixed $value, string $group = 'general'): self
+    {
+        if ($key === 'theme') {
+            $isDark = ($value === 'dark' || $value === true || $value === 1 || $value === '1');
+            return static::setDarkMode($isDark);
+        }
+
+        if ($key === 'is_dark_mode') {
+            return static::setDarkMode((bool) $value);
+        }
+
+        return static::instance();
     }
 }

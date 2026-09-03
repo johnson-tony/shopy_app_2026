@@ -190,5 +190,59 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    @if(!empty($isDarkMode))
+    // ---------------------------------------------------------
+    // 8. User Storefront Theme Toggle (Available when Admin enables Dark Theme)
+    // ---------------------------------------------------------
+    const userThemeToggle = document.getElementById('userThemeToggle');
+    const userThemeIcon = document.getElementById('userThemeIcon');
+    const mobileThemeToggles = document.querySelectorAll('.theme-toggle-btn-mobile');
+    const dropdownThemeToggles = document.querySelectorAll('.theme-toggle-btn-dropdown');
+    const mobileThemeLabels = document.querySelectorAll('.mobileThemeLabel');
+    const dropdownThemeLabels = document.querySelectorAll('.dropdownThemeLabel');
+    const htmlEl = document.documentElement;
+
+    function applyStoreTheme(theme) {
+        htmlEl.setAttribute('data-theme', theme);
+        document.body.setAttribute('data-theme', theme);
+
+        if (theme === 'dark') {
+            htmlEl.classList.add('dark');
+            document.body.classList.add('dark');
+            if (userThemeIcon) userThemeIcon.innerHTML = '<i class="fas fa-sun text-amber-400"></i>';
+            mobileThemeLabels.forEach(el => { el.textContent = 'Dark'; });
+            dropdownThemeLabels.forEach(el => { el.textContent = 'Dark'; });
+        } else {
+            htmlEl.classList.remove('dark');
+            document.body.classList.remove('dark');
+            if (userThemeIcon) userThemeIcon.innerHTML = '<i class="fas fa-moon"></i>';
+            mobileThemeLabels.forEach(el => { el.textContent = 'Light'; });
+            dropdownThemeLabels.forEach(el => { el.textContent = 'Light'; });
+        }
+    }
+
+    function toggleThemeAction() {
+        const current = htmlEl.getAttribute('data-theme') || 'light';
+        const next = current === 'dark' ? 'light' : 'dark';
+        applyStoreTheme(next);
+        localStorage.setItem('user_theme', next);
+    }
+
+    const currentActiveTheme = htmlEl.getAttribute('data-theme') || 'light';
+    applyStoreTheme(currentActiveTheme);
+
+    if (userThemeToggle) {
+        userThemeToggle.addEventListener('click', toggleThemeAction);
+    }
+
+    mobileThemeToggles.forEach(btn => {
+        btn.addEventListener('click', toggleThemeAction);
+    });
+
+    dropdownThemeToggles.forEach(btn => {
+        btn.addEventListener('click', toggleThemeAction);
+    });
+    @endif
 });
 </script>
