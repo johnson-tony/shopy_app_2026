@@ -136,18 +136,48 @@ class CategorySeeder extends Seeder
                 'status' => true,
                 'is_featured' => false,
             ],
+            [
+                'name' => 'Pizza & Fast Food',
+                'slug' => 'pizza-fast-food',
+                'description' => 'Cheesy pizzas, gourmet burgers, sides, and snacks.',
+                'icon' => 'fas fa-pizza-slice',
+                'sort_order' => 11,
+                'status' => true,
+                'is_featured' => true,
+                'children' => [
+                    ['name' => 'Pizzas', 'slug' => 'food-pizzas', 'icon' => 'fas fa-pizza-slice', 'sort_order' => 1, 'status' => true, 'is_featured' => true],
+                    ['name' => 'Burgers', 'slug' => 'food-burgers', 'icon' => 'fas fa-burger', 'sort_order' => 2, 'status' => true, 'is_featured' => true],
+                ],
+            ],
+            [
+                'name' => 'Biryani & Rice Bowls',
+                'slug' => 'biryani-rice-bowls',
+                'description' => 'Authentic dum biryani, fried rice, and hearty combo meals.',
+                'icon' => 'fas fa-bowl-rice',
+                'sort_order' => 12,
+                'status' => true,
+                'is_featured' => true,
+                'children' => [
+                    ['name' => 'Biryani', 'slug' => 'food-biryani', 'icon' => 'fas fa-bowl-rice', 'sort_order' => 1, 'status' => true, 'is_featured' => true],
+                ],
+            ],
         ];
 
         $shopyMode = Mode::where('slug', 'shopy')->first();
         $minutesMode = Mode::where('slug', 'minutes')->first();
+        $foodMode = Mode::where('slug', 'food')->first();
 
         foreach ($catalog as $rootData) {
             $children = $rootData['children'] ?? [];
             unset($rootData['children']);
 
-            $modeId = ($rootData['slug'] === 'grocery')
-                ? ($minutesMode?->id ?? $shopyMode?->id)
-                : ($shopyMode?->id);
+            if ($rootData['slug'] === 'grocery') {
+                $modeId = $minutesMode?->id ?? $shopyMode?->id;
+            } elseif (in_array($rootData['slug'], ['pizza-fast-food', 'biryani-rice-bowls'], true)) {
+                $modeId = $foodMode?->id ?? $shopyMode?->id;
+            } else {
+                $modeId = $shopyMode?->id;
+            }
 
             $rootData['mode_id'] = $modeId;
 

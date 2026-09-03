@@ -80,6 +80,14 @@ class Category extends Model
     }
 
     /**
+     * Products assigned to this category.
+     */
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    /**
      * Scope query to root (top-level) categories only.
      */
     public function scopeRoot(Builder $query): Builder

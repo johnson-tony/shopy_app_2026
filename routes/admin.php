@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ModeController;
+use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +40,20 @@ Route::middleware(['auth:admin', 'active:admin', 'role:admin,super-admin,order-m
         Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
         Route::patch('/{category}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('toggleStatus');
         Route::patch('/{category}/toggle-featured', [CategoryController::class, 'toggleFeatured'])->name('toggleFeatured');
+    });
+
+    // Product Management
+    Route::prefix('products')->name('products.')->group(function () {
+        Route::get('/', [ProductController::class, 'index'])->name('index');
+        Route::get('/create', [ProductController::class, 'create'])->name('create');
+        Route::post('/', [ProductController::class, 'store'])->name('store');
+        Route::get('/categories-by-mode', [ProductController::class, 'getCategoriesByMode'])->name('categoriesByMode');
+        Route::get('/{product}', [ProductController::class, 'show'])->name('show');
+        Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
+        Route::put('/{product}', [ProductController::class, 'update'])->name('update');
+        Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+        Route::patch('/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('toggleStatus');
+        Route::patch('/{product}/toggle-featured', [ProductController::class, 'toggleFeatured'])->name('toggleFeatured');
     });
 
     // Shopping Mode Management

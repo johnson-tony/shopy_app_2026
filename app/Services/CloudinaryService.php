@@ -14,14 +14,16 @@ class CloudinaryService
     protected ?string $apiSecret;
     protected string $categoryFolder;
     protected string $modeFolder;
+    protected string $productFolder;
 
     public function __construct()
     {
         $this->cloudName = trim((string) config('services.cloudinary.cloud_name'));
         $this->apiKey = trim((string) config('services.cloudinary.api_key'));
         $this->apiSecret = trim((string) config('services.cloudinary.api_secret'));
-        $this->categoryFolder = trim((string) config('services.cloudinary.category_folder', 'category'));
-        $this->modeFolder = trim((string) config('services.cloudinary.mode_folder', 'mode'));
+        $this->categoryFolder = trim((string) config('services.cloudinary.category_folder', 'shopy_so/category'));
+        $this->modeFolder = trim((string) config('services.cloudinary.mode_folder', 'shopy_so/mode'));
+        $this->productFolder = trim((string) config('services.cloudinary.product_folder', 'shopy_so/products'));
     }
 
     /**
@@ -54,6 +56,18 @@ class CloudinaryService
     public function uploadModeImage(UploadedFile|string $file): string
     {
         return $this->uploadImage($file, $this->modeFolder);
+    }
+
+    /**
+     * Upload an image for a product into the separate product folder.
+     *
+     * @param UploadedFile|string $file
+     * @return string Secure URL of uploaded image
+     * @throws Exception
+     */
+    public function uploadProductImage(UploadedFile|string $file): string
+    {
+        return $this->uploadImage($file, $this->productFolder);
     }
 
     /**

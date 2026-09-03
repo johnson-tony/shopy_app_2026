@@ -62,6 +62,14 @@ class Mode extends Model
     }
 
     /**
+     * Products assigned to this mode.
+     */
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    /**
      * Get image URL (Cloudinary absolute URL or local storage URL).
      */
     public function getImageUrlAttribute(): ?string

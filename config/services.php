@@ -45,6 +45,7 @@ return [
         'api_secret' => env('CLOUDINARY_API_SECRET'),
         'category_folder' => env('CLOUDINARY_CATEGORY_FOLDER', 'shopy_so/category'),
         'mode_folder' => env('CLOUDINARY_MODE_FOLDER', 'shopy_so/mode'),
+        'product_folder' => env('CLOUDINARY_PRODUCT_FOLDER', 'shopy_so/products'),
     ],
 
 ];
