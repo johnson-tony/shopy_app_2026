@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ModeController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +39,17 @@ Route::middleware(['auth:admin', 'active:admin', 'role:admin,super-admin,order-m
         Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
         Route::patch('/{category}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('toggleStatus');
         Route::patch('/{category}/toggle-featured', [CategoryController::class, 'toggleFeatured'])->name('toggleFeatured');
+    });
+
+    // Shopping Mode Management
+    Route::prefix('modes')->name('modes.')->group(function () {
+        Route::get('/', [ModeController::class, 'index'])->name('index');
+        Route::get('/create', [ModeController::class, 'create'])->name('create');
+        Route::post('/', [ModeController::class, 'store'])->name('store');
+        Route::get('/{mode}/edit', [ModeController::class, 'edit'])->name('edit');
+        Route::put('/{mode}', [ModeController::class, 'update'])->name('update');
+        Route::delete('/{mode}', [ModeController::class, 'destroy'])->name('destroy');
+        Route::patch('/{mode}/toggle-status', [ModeController::class, 'toggleStatus'])->name('toggleStatus');
     });
 
     // System Settings & Theme Management
