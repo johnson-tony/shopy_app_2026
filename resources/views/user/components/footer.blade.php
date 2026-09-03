@@ -1,13 +1,22 @@
+{{-- 1. Trust & Guarantee Badges Section (Above Footer) --}}
+@include('user.components.footer.trust-badges')
+
+{{-- 2. Master Site Footer --}}
 <footer class="site-footer">
-    {{-- 4-Column Footer Information & Links --}}
-    @include('user.components.footer.top-columns')
+    <div class="max-w-7xl mx-auto">
+        {{-- 4-Column Footer Information & Links (Mobile Accordion-Enabled) --}}
+        @include('user.components.footer.top-columns')
 
-    {{-- Newsletter Subscribe Section --}}
-    @include('user.components.footer.newsletter')
+        {{-- Newsletter Subscribe Section --}}
+        @include('user.components.footer.newsletter')
 
-    {{-- Copyright & Bottom Info --}}
-    @include('user.components.footer.bottom')
+        {{-- Payment Methods & Security Trust Row --}}
+        @include('user.components.footer.payment-methods')
+
+        {{-- Copyright & Legal Links --}}
+        @include('user.components.footer.bottom')
+    </div>
 </footer>
 
-{{-- Footer Scripts (Newsletter Submission) --}}
+{{-- 3. Footer Interactivity Scripts (Accordions & Newsletter AJAX) --}}
 @include('user.components.footer.scripts')

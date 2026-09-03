@@ -20,7 +20,9 @@ class AuthController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
-        return view('admin.pages.auth.login');
+        $theme = \App\Models\AdminSetting::get('theme', 'light');
+
+        return view('admin.pages.auth.login', compact('theme'));
     }
 
     /**

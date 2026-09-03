@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,5 +38,11 @@ Route::middleware(['auth:admin', 'active:admin', 'role:admin,super-admin,order-m
         Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('destroy');
         Route::patch('/{category}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('toggleStatus');
         Route::patch('/{category}/toggle-featured', [CategoryController::class, 'toggleFeatured'])->name('toggleFeatured');
+    });
+
+    // System Settings & Theme Management
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', [SettingController::class, 'index'])->name('index');
+        Route::put('/', [SettingController::class, 'update'])->name('update');
     });
 });

@@ -8,6 +8,9 @@
                 onerror="this.onerror=null;this.src='{{ asset('images/default-logo.svg') }}';"
             >
         </div>
+        <p class="footer-tagline">
+            Your destination for curated premium lifestyle and daily essentials. Built with modern quality and care.
+        </p>
         <div class="footer-social">
             <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
             <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
@@ -16,9 +19,12 @@
         </div>
     </div>
 
-    <!-- Column 2: Information -->
-    <div class="footer-column">
-        <h4>Information</h4>
+    <!-- Column 2: Information (Mobile Collapsible) -->
+    <div class="footer-column" data-accordion>
+        <h4>
+            <span>Information</span>
+            <span class="accordion-icon"><i class="fas fa-chevron-down"></i></span>
+        </h4>
         <ul>
             <li><a href="{{ Route::has('about') ? route('about') : url('/about') }}">About Us</a></li>
             <li><a href="{{ Route::has('contact') ? route('contact') : url('/contact') }}">Contact</a></li>
@@ -27,9 +33,12 @@
         </ul>
     </div>
 
-    <!-- Column 3: Customer Services -->
-    <div class="footer-column">
-        <h4>Customer Services</h4>
+    <!-- Column 3: Customer Services (Mobile Collapsible) -->
+    <div class="footer-column" data-accordion>
+        <h4>
+            <span>Customer Services</span>
+            <span class="accordion-icon"><i class="fas fa-chevron-down"></i></span>
+        </h4>
         <ul>
             <li><a href="{{ Route::has('return_exchange_policy') ? route('return_exchange_policy') : url('/return-policy') }}">Return Policy</a></li>
             <li><a href="{{ Route::has('faqs') ? route('faqs') : url('/faqs') }}">FAQ</a></li>
@@ -38,9 +47,12 @@
         </ul>
     </div>
 
-    <!-- Column 4: Contact / Questions -->
-    <div class="footer-column">
-        <h4>Have Questions?</h4>
+    <!-- Column 4: Contact / Questions (Mobile Collapsible) -->
+    <div class="footer-column" data-accordion>
+        <h4>
+            <span>Have Questions?</span>
+            <span class="accordion-icon"><i class="fas fa-chevron-down"></i></span>
+        </h4>
         <ul class="footer-contact">
             <li>
                 <i class="fa fa-map-marker-alt"></i>

@@ -26,33 +26,39 @@ class HeaderFooterTest extends TestCase
         $response->assertStatus(200);
 
         // Header assets and structure
+        $response->assertSee('announcement-bar', false);
         $response->assertSee('navbar', false);
         $response->assertSee('header-top', false);
         $response->assertSee('search-input', false);
         $response->assertSee('animated-placeholder', false);
         $response->assertSee('mobile-search-wrapper', false);
+        $response->assertSee('mobile-category-chips', false);
         $response->assertSee('mobileToggle', false);
         $response->assertSee('mobileMenu', false);
         $response->assertSee('mobileMenuOverlay', false);
+        $response->assertSee('mobileBottomNav', false);
         $response->assertSee('user-theme.css', false);
 
         // Brand logo
         $response->assertSee('images/logo/logo.png', false);
 
-        // Navbar Icons
-        $response->assertSee('images/navbar/wishlist.svg', false);
-        $response->assertSee('images/navbar/notification.svg', false);
+        // Navbar Icons for Guest (Flipkart-Style: Only Login & Cart)
         $response->assertSee('images/navbar/cart.svg', false);
         $response->assertSee('images/navbar/profile.svg', false);
+        $response->assertDontSee('id="wishlistBtn"', false);
+        $response->assertDontSee('id="notificationBtn"', false);
 
         // Category mega menu and mobile menu category
         $response->assertSee('Fashion');
 
         // Footer elements
+        $response->assertSee('trust-badges-section', false);
         $response->assertSee('site-footer', false);
         $response->assertSee('footer-top', false);
+        $response->assertSee('data-accordion', false);
         $response->assertSee('Subscribe to our Newsletter', false);
         $response->assertSee('newsletterForm', false);
+        $response->assertSee('payment-methods-row', false);
         $response->assertSee('Have Questions?', false);
         $response->assertSee('All Rights Reserved', false);
     }
@@ -68,8 +74,10 @@ class HeaderFooterTest extends TestCase
         $response = $this->actingAs($user)->get(route('dashboard'));
 
         $response->assertStatus(200);
-        $response->assertSee('John Doe');
-        $response->assertSee('My Account');
+        $response->assertSee('John');
+        $response->assertSee('images/navbar/wishlist.svg', false);
+        $response->assertSee('images/navbar/notification.svg', false);
+        $response->assertSee('images/navbar/cart.svg', false);
         $response->assertSee(route('logout'));
     }
 
