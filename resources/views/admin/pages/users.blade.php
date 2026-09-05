@@ -43,7 +43,7 @@
     <!-- Users Table -->
     <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
+            <table class="w-full min-w-full text-left text-xs whitespace-nowrap">
                 <thead>
                     <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
                         <th class="py-3 px-4">User</th>

@@ -111,7 +111,7 @@
     <!-- Coupons Data Table -->
     <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full min-w-full text-left border-collapse text-sm whitespace-nowrap">
                 <thead>
                     <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase tracking-wider font-semibold">
                         <th class="py-3 px-4">Coupon Code &amp; Title</th>
@@ -139,9 +139,9 @@
                                                 <i class="fa-regular fa-copy text-xs"></i>
                                             </button>
                                         </div>
-                                        <p class="font-bold text-slate-200 mt-1 text-xs">{{ $coupon->name }}</p>
+                                        <p class="font-bold text-slate-200 mt-1 text-xs whitespace-nowrap">{{ $coupon->name }}</p>
                                         @if($coupon->description)
-                                            <p class="text-[11px] text-slate-400 line-clamp-1 max-w-[220px]">{{ $coupon->description }}</p>
+                                            <p class="text-[11px] text-slate-400 whitespace-nowrap">{{ $coupon->description }}</p>
                                         @endif
                                     </div>
                                 </div>

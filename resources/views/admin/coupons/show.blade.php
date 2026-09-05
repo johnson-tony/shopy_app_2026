@@ -128,7 +128,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full min-w-full text-left border-collapse text-sm whitespace-nowrap">
                 <thead>
                     <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase tracking-wider font-semibold">
                         <th class="py-3 px-4">Customer</th>
