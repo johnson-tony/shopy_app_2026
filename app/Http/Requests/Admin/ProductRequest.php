@@ -84,6 +84,7 @@ class ProductRequest extends FormRequest
             'sale_price' => ['nullable', 'numeric', 'min:0', 'lte:price'],
             'stock' => ['required', 'integer', 'min:0', 'max:1000000'],
             'delivery_time' => ['nullable', 'string', 'max:50'],
+            'return_policy' => ['nullable', 'string', 'max:50'],
             'image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp,svg', 'max:3072'],
             'status' => ['boolean'],
             'featured' => ['boolean'],

@@ -35,6 +35,7 @@ class Product extends Model
         'sale_price',
         'stock',
         'delivery_time',
+        'return_policy',
         'image',
         'status',
         'featured',
@@ -131,6 +132,50 @@ class Product extends Model
         }
 
         return 'fa-solid fa-truck-fast';
+    }
+
+    /**
+     * Human-friendly return policy description text.
+     */
+    public function returnPolicyText(): string
+    {
+        $policy = $this->return_policy;
+
+        // Smart fallback: If in Food or Minutes mode and not explicitly set to something else, default to non-returnable
+        if (empty($policy)) {
+            $modeSlug = $this->mode?->slug ?? 'shopy';
+            if ($modeSlug === 'food' || $modeSlug === 'minutes') {
+                return 'Non-Returnable';
+            }
+            return '7 Days Returnable';
+        }
+
+        return match ($policy) {
+            'non_returnable'      => 'Non-Returnable',
+            '7_days_replacement'  => '7 Days Replacement',
+            '7_days_return'       => '7 Days Returnable',
+            '10_days_return'      => '10 Days Return & Exchange',
+            '30_days_return'      => '30 Days Returnable',
+            default               => str_replace('_', ' ', ucwords($policy, '_')),
+        };
+    }
+
+    /**
+     * Icon for the return policy badge.
+     */
+    public function returnPolicyIcon(): string
+    {
+        return $this->isReturnable() 
+            ? 'fa-solid fa-arrows-rotate text-emerald-500' 
+            : 'fa-solid fa-ban text-rose-400';
+    }
+
+    /**
+     * Whether this product can be returned/exchanged.
+     */
+    public function isReturnable(): bool
+    {
+        return ($this->return_policy ?? '') !== 'non_returnable';
     }
 
     /**

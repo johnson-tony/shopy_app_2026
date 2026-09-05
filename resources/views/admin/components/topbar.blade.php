@@ -27,6 +27,18 @@
 
         <div class="h-4 w-px bg-slate-800"></div>
 
+        <!-- Admin Theme Toggle (Sun / Moon) -->
+        <button type="button" id="adminThemeToggle"
+                class="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 transition cursor-pointer px-2 py-1 rounded-lg hover:bg-slate-800/60"
+                title="Toggle Light / Dark Mode">
+            <span id="themeToggleIcon" class="flex items-center">
+                <i class="fas fa-moon text-indigo-400 text-xs"></i>
+            </span>
+            <span id="themeToggleText" class="hidden sm:inline font-medium">Dark</span>
+        </button>
+
+        <div class="h-4 w-px bg-slate-800"></div>
+
         <form method="POST" action="{{ route('admin.logout') }}" class="inline">
             @csrf
             <button type="submit" class="text-xs font-semibold text-rose-400 hover:text-rose-300 transition cursor-pointer">

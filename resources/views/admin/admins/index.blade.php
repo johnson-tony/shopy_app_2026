@@ -117,7 +117,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-slate-300">
+            <table class="w-full min-w-full text-left text-sm text-slate-300 whitespace-nowrap">
                 <thead class="bg-slate-950/60 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
                     <tr>
                         <th class="px-6 py-4">Administrator</th>

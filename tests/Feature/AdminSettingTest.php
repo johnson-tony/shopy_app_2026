@@ -112,7 +112,7 @@ class AdminSettingTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('data-theme="light"', false);
-        $response->assertSee('adminThemeToggle', false);
+        $response->assertDontSee('adminThemeToggle', false);
         $response->assertSee('togglePasswordBtn', false);
         $response->assertSee('Administrator Portal', false);
     }
@@ -125,5 +125,17 @@ class AdminSettingTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('data-theme="dark"', false);
+    }
+
+    public function test_admin_portal_has_theme_toggle_inside_topbar(): void
+    {
+        $admin = Admin::firstOrFail();
+
+        $response = $this->actingAs($admin, 'admin')->get(route('admin.dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertSee('adminThemeToggle', false);
+        $response->assertSee('themeToggleIcon', false);
+        $response->assertSee('themeToggleText', false);
     }
 }

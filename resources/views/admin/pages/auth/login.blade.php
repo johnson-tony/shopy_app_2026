@@ -91,32 +91,9 @@
         .theme-footer-border {
             border-color: var(--admin-footer-border);
         }
-
-        .theme-toggle-btn {
-            background-color: var(--admin-toggle-bg);
-            border-color: var(--admin-toggle-border);
-            color: var(--admin-toggle-text);
-            transition: all 0.2s ease;
-        }
-
-        .theme-toggle-btn:hover {
-            transform: scale(1.05);
-        }
     </style>
 </head>
 <body class="min-h-full flex flex-col items-center justify-center p-4 font-sans antialiased relative">
-    <!-- Top-Right Floating Theme Switcher Toggle (Sun / Moon) -->
-    <div class="fixed top-5 right-5 z-50 flex items-center gap-2">
-        <button type="button" id="adminThemeToggle"
-                class="theme-toggle-btn inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-bold shadow-md cursor-pointer"
-                title="Toggle Light / Dark Theme">
-            <span id="themeToggleIcon">
-                <i class="fas fa-sun text-amber-400"></i>
-            </span>
-            <span id="themeToggleText" class="hidden sm:inline">Theme</span>
-        </button>
-    </div>
-
     <div class="w-full max-w-md my-8">
         <!-- Logo & Admin Portal Branding -->
         <div class="text-center mb-8">
@@ -203,34 +180,8 @@
         // 1. Theme Management (Sync with admin_settings & LocalStorage)
         // ------------------------------------------------------------------
         const html = document.documentElement;
-        const themeToggleBtn = document.getElementById('adminThemeToggle');
-        const themeToggleIcon = document.getElementById('themeToggleIcon');
-        const themeToggleText = document.getElementById('themeToggleText');
-
-        // Initial theme from server ($theme) or user's local preference
         const savedTheme = localStorage.getItem('admin_theme') || html.getAttribute('data-theme') || 'light';
-        applyTheme(savedTheme);
-
-        function applyTheme(theme) {
-            html.setAttribute('data-theme', theme);
-            localStorage.setItem('admin_theme', theme);
-
-            if (theme === 'dark') {
-                themeToggleIcon.innerHTML = '<i class="fas fa-moon text-indigo-400"></i>';
-                if (themeToggleText) themeToggleText.textContent = 'Dark';
-            } else {
-                themeToggleIcon.innerHTML = '<i class="fas fa-sun text-amber-500"></i>';
-                if (themeToggleText) themeToggleText.textContent = 'Light';
-            }
-        }
-
-        if (themeToggleBtn) {
-            themeToggleBtn.addEventListener('click', function () {
-                const current = html.getAttribute('data-theme');
-                const next = current === 'dark' ? 'light' : 'dark';
-                applyTheme(next);
-            });
-        }
+        html.setAttribute('data-theme', savedTheme);
 
         // ------------------------------------------------------------------
         // 2. Password Toggle (Show / Hide)

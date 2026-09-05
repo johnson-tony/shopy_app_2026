@@ -100,7 +100,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-slate-300">
+            <table class="w-full min-w-full text-left text-sm text-slate-300 whitespace-nowrap">
                 <thead class="bg-slate-950/60 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
                     <tr>
                         <th class="px-6 py-4">Role Name & Slug</th>
@@ -116,7 +116,7 @@
                         <tr class="hover:bg-slate-800/40 transition-colors">
                             <td class="px-6 py-4">
                                 <div class="font-semibold text-white">{{ $role->name }}</div>
-                                <div class="flex items-center gap-2 mt-1">
+                                <div class="flex items-center gap-2 mt-1 whitespace-nowrap">
                                     <code class="text-xs text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20 font-mono">{{ $role->slug }}</code>
                                     @if($role->slug === 'super-admin')
                                         <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">
@@ -125,7 +125,7 @@
                                     @endif
                                 </div>
                                 @if($role->description)
-                                    <p class="text-xs text-slate-400 mt-1 max-w-sm line-clamp-1">{{ $role->description }}</p>
+                                    <p class="text-xs text-slate-400 mt-1 whitespace-nowrap">{{ $role->description }}</p>
                                 @endif
                             </td>
                             <td class="px-6 py-4">

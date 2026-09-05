@@ -23,7 +23,7 @@
     
     <!-- Image Wrapper with Badges -->
     <div class="product-image-wrapper">
-        <a href="javascript:void(0)" class="product-img-container quick-view-trigger" title="Quick view {{ $product->name }}">
+        <a href="{{ route('product.show', $product->slug) }}" class="product-img-container" title="{{ $product->name }}">
             <img src="{{ $imageUrl }}" 
                  alt="{{ $product->name }}" 
                  loading="lazy"
@@ -64,7 +64,9 @@
         </div>
 
         <div class="product-title">
-            <h3 title="{{ $product->name }}">{{ $product->name }}</h3>
+            <a href="{{ route('product.show', $product->slug) }}">
+                <h3 title="{{ $product->name }}">{{ $product->name }}</h3>
+            </a>
         </div>
 
         <!-- Rating Stars -->

@@ -8,6 +8,7 @@ use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ForgotPasswordController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\ImpersonationController;
+use App\Http\Controllers\User\ProductDetailController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\WishlistController;
 use App\Models\Cart;
@@ -22,6 +23,7 @@ use App\Models\Cart;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/category-products/ajax/{slug?}', [HomeController::class, 'ajaxCategoryProducts'])->name('category.products.ajax');
 Route::get('/coupons', [CouponController::class, 'index'])->name('coupons.index');
+Route::get('/product/{slug}', [ProductDetailController::class, 'show'])->name('product.show');
 
 // Guest Authentication Routes (Login page opens only when user clicks Login)
 Route::middleware('guest')->group(function () {

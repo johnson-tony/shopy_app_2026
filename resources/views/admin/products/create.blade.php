@@ -240,6 +240,25 @@
                             <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
                         @enderror
                     </div>
+
+                    <!-- Return & Replacement Policy -->
+                    <div class="pt-2 border-t border-slate-800/80">
+                        <label for="return_policy" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                            <span>Return &amp; Replacement Policy</span>
+                            <span class="text-indigo-400 font-mono text-[10px] font-normal lowercase">(customer protection terms)</span>
+                        </label>
+                        <select id="return_policy" name="return_policy" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 @error('return_policy') border-rose-500 @enderror">
+                            <option value="7_days_return" {{ old('return_policy', '7_days_return') === '7_days_return' ? 'selected' : '' }}>🔄 7 Days Returnable (Standard E-Commerce Goods)</option>
+                            <option value="non_returnable" {{ old('return_policy') === 'non_returnable' ? 'selected' : '' }}>🚫 Non-Returnable (Perishable, Food, Dairy &amp; Groceries)</option>
+                            <option value="7_days_replacement" {{ old('return_policy') === '7_days_replacement' ? 'selected' : '' }}>🔄 7 Days Replacement Only (Electronics &amp; Mobiles)</option>
+                            <option value="10_days_return" {{ old('return_policy') === '10_days_return' ? 'selected' : '' }}>🔄 10 Days Return &amp; Exchange (Fashion, Shoes &amp; Apparel)</option>
+                            <option value="30_days_return" {{ old('return_policy') === '30_days_return' ? 'selected' : '' }}>🔄 30 Days Returnable (Extended Guarantee Items)</option>
+                        </select>
+                        <p class="text-[11px] text-slate-500 mt-1">Select Non-Returnable for cooked meals/groceries, or choose standard refund/exchange window.</p>
+                        @error('return_policy')
+                            <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
             </div>

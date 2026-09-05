@@ -132,7 +132,7 @@
     <!-- Products Table -->
     <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
+            <table class="w-full min-w-full text-left text-xs whitespace-nowrap">
                 <thead>
                     <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
                         <th class="py-3.5 px-4">Product</th>
@@ -161,16 +161,16 @@
                                         </div>
                                     @endif
                                     <div>
-                                        <a href="{{ route('admin.products.edit', $product) }}" class="font-bold text-white text-sm hover:text-indigo-400 transition">
+                                        <a href="{{ route('admin.products.edit', $product) }}" class="font-bold text-white text-sm hover:text-indigo-400 transition whitespace-nowrap">
                                             {{ $product->name }}
                                         </a>
-                                        <div class="flex items-center gap-2 mt-0.5">
+                                        <div class="flex items-center gap-2 mt-0.5 whitespace-nowrap">
                                             @if ($product->sku)
                                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400 font-mono border border-slate-700">
                                                     {{ $product->sku }}
                                                 </span>
                                             @endif
-                                            <span class="text-[11px] text-slate-500 font-mono truncate max-w-[150px]">
+                                            <span class="text-[11px] text-slate-500 font-mono whitespace-nowrap">
                                                 {{ $product->slug }}
                                             </span>
                                         </div>
