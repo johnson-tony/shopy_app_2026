@@ -36,11 +36,11 @@
         <span class="text-slate-800 dark:text-slate-200 font-semibold truncate max-w-[240px]">{{ $product->name }}</span>
     </nav>
 
-    <!-- Main Product Section: Two Columns -->
+    <!-- Main Product Section: Two Columns (Desktop: Left Image, Right Content) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         <!-- Left 5 Cols: Product Image & Badges -->
         <div class="lg:col-span-5 space-y-4">
-            <div class="relative bg-white dark:bg-slate-800/80 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-700/80 shadow-sm overflow-hidden group">
+            <div class="relative bg-white dark:bg-slate-800/80 rounded-3xl p-4 sm:p-6 shadow-sm overflow-hidden group">
                 <!-- Sale Discount Badge -->
                 @if($hasDiscount || $discountPercent > 0)
                     <div class="absolute top-4 left-4 z-10 px-3 py-1 rounded-full text-xs font-black tracking-wide bg-rose-500 text-white shadow-md shadow-rose-500/25">
@@ -50,37 +50,23 @@
 
                 <!-- Wishlist Floating Button -->
                 <button type="button" 
-                        class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-center transition cursor-pointer hover:scale-105"
+                        class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm flex items-center justify-center transition cursor-pointer hover:scale-105"
                         onclick="toggleWishlist({{ $product->id }}, this);"
                         title="{{ $isWishlisted ? 'Remove from wishlist' : 'Add to wishlist' }}">
                     <i class="{{ $isWishlisted ? 'fa-solid fa-heart text-rose-500' : 'fa-regular fa-heart text-slate-400 dark:text-slate-300' }} text-base"></i>
                 </button>
 
-                <!-- High-Res Product Visual -->
-                <div class="aspect-square flex items-center justify-center overflow-hidden rounded-2xl bg-slate-50 dark:bg-slate-900/40">
+                <!-- High-Res Product Visual (Generous, crisp, not tiny) -->
+                <div class="aspect-square w-full flex items-center justify-center overflow-hidden rounded-2xl bg-slate-50 dark:bg-slate-900/40 p-4">
                     <img src="{{ $imageUrl }}" 
                          alt="{{ $product->name }}" 
                          class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
                 </div>
 
                 <!-- Floating Delivery Pill on Image (Blinkit / Zepto Style) -->
-                <div class="absolute bottom-4 left-4 z-10 inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider bg-white/95 dark:bg-slate-900/95 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 shadow-md backdrop-blur-md">
+                <div class="absolute bottom-4 left-4 z-10 inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider bg-white/95 dark:bg-slate-900/95 text-slate-900 dark:text-white shadow-md backdrop-blur-md">
                     <i class="{{ $product->deliveryIcon() }}"></i>
                     <span>{{ $product->deliveryEstimate() }}</span>
-                </div>
-            </div>
-
-            <!-- Quick Guarantee Highlights Bar -->
-            <div class="grid grid-cols-2 gap-3 text-center">
-                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
-                    <i class="fa-solid fa-shield-halved text-indigo-500 text-sm mb-1 block"></i>
-                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">100% Genuine</span>
-                    <span class="text-[10px] text-slate-400">Direct from verified brand</span>
-                </div>
-                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60">
-                    <i class="fa-solid fa-truck-fast text-emerald-500 text-sm mb-1 block"></i>
-                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">Express Dispatch</span>
-                    <span class="text-[10px] text-slate-400">Packed in hygienic seal</span>
                 </div>
             </div>
         </div>
@@ -90,7 +76,7 @@
             <!-- Channel & Category Pill -->
             <div class="flex items-center gap-2">
                 @if($product->mode)
-                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                         @if($product->mode->icon)<i class="{{ $product->mode->icon }} text-[11px]"></i>@endif
                         {{ $product->mode->name }}
                     </span>
@@ -114,6 +100,18 @@
                 @endif
             </div>
 
+            <!-- Product Details & Overview Section (Positioned under the Name) -->
+            @if($product->description)
+                <div class="space-y-2 py-1">
+                    <h2 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                        Product Details &amp; Overview
+                    </h2>
+                    <div class="prose dark:prose-invert max-w-none text-sm text-slate-600 dark:text-slate-300 leading-relaxed space-y-2">
+                        {!! nl2br(e($product->description)) !!}
+                    </div>
+                </div>
+            @endif
+
             <!-- Rating & Verified Reviews -->
             <div class="flex items-center gap-3">
                 <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-emerald-500 text-white font-bold text-xs">
@@ -135,8 +133,8 @@
                 @endif
             </div>
 
-            <!-- Price Card -->
-            <div class="p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+            <!-- Price Card (No border) -->
+            <div class="p-5 rounded-3xl bg-slate-100/80 dark:bg-slate-800/60 space-y-2">
                 <div class="flex items-baseline gap-3">
                     <span class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
                         ₹{{ number_format($currentPrice, 2) }}
@@ -145,7 +143,7 @@
                         <span class="text-lg text-slate-400 line-through">
                             ₹{{ number_format($product->price, 2) }}
                         </span>
-                        <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800/40">
+                        <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md">
                             Save ₹{{ number_format($product->price - $currentPrice, 2) }} ({{ $discountPercent }}% off)
                         </span>
                     @endif
@@ -153,10 +151,10 @@
                 <p class="text-xs text-slate-400">Inclusive of all applicable taxes</p>
             </div>
 
-            <!-- 4 Flipkart/Amazon Policy Trust Badges Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <!-- 4 Flipkart/Amazon Policy Trust Badges Grid (4 per row on big screen, 2 per row on small screen) -->
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2.5 sm:gap-3">
                 <!-- 1. Return Policy Badge -->
-                <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs space-y-1">
+                <div class="p-3 rounded-2xl bg-slate-100/80 dark:bg-slate-800/60 space-y-1">
                     <i class="{{ $product->returnPolicyIcon() }} text-base mb-1 block"></i>
                     <span class="text-xs font-bold text-slate-900 dark:text-white block leading-tight">
                         {{ $product->returnPolicyText() }}
@@ -167,7 +165,7 @@
                 </div>
 
                 <!-- 2. Delivery ETA -->
-                <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs space-y-1">
+                <div class="p-3 rounded-2xl bg-slate-100/80 dark:bg-slate-800/60 space-y-1">
                     <i class="{{ $product->deliveryIcon() }} text-base mb-1 block"></i>
                     <span class="text-xs font-bold text-slate-900 dark:text-white block leading-tight">
                         {{ $product->deliveryEstimate() }}
@@ -178,7 +176,7 @@
                 </div>
 
                 <!-- 3. Free Delivery Threshold -->
-                <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs space-y-1">
+                <div class="p-3 rounded-2xl bg-slate-100/80 dark:bg-slate-800/60 space-y-1">
                     <i class="fa-solid fa-truck text-indigo-500 text-base mb-1 block"></i>
                     <span class="text-xs font-bold text-slate-900 dark:text-white block leading-tight">
                         Free Delivery
@@ -189,7 +187,7 @@
                 </div>
 
                 <!-- 4. Cash on Delivery -->
-                <div class="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-xs space-y-1">
+                <div class="p-3 rounded-2xl bg-slate-100/80 dark:bg-slate-800/60 space-y-1">
                     <i class="fa-solid fa-wallet text-amber-500 text-base mb-1 block"></i>
                     <span class="text-xs font-bold text-slate-900 dark:text-white block leading-tight">
                         Pay on Delivery
@@ -212,12 +210,12 @@
                                 <i class="fa-solid fa-minus text-xs"></i>
                             </button>
                             <input type="number" 
-                                   id="pdpQuantity" 
-                                   value="1" 
-                                   min="1" 
-                                   max="{{ $product->stock }}" 
-                                   readonly
-                                   class="w-12 text-center bg-transparent font-bold text-sm text-slate-900 dark:text-white focus:outline-none">
+                                    id="pdpQuantity" 
+                                    value="1" 
+                                    min="1" 
+                                    max="{{ $product->stock }}" 
+                                    readonly
+                                    class="w-12 text-center bg-transparent font-bold text-sm text-slate-900 dark:text-white focus:outline-none">
                             <button type="button" 
                                     onclick="let q = document.getElementById('pdpQuantity'); if(parseInt(q.value) < {{ $product->stock }}) q.value = parseInt(q.value) + 1;"
                                     class="w-10 h-11 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition font-bold text-sm cursor-pointer">
@@ -247,18 +245,6 @@
                     @endif
                 </div>
             </div>
-
-            <!-- Full Description Section -->
-            @if($product->description)
-                <div class="pt-6 border-t border-slate-200/80 dark:border-slate-800 space-y-3">
-                    <h2 class="text-base font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                        Product Details &amp; Overview
-                    </h2>
-                    <div class="prose dark:prose-invert max-w-none text-sm text-slate-600 dark:text-slate-300 leading-relaxed space-y-2">
-                        {!! nl2br(e($product->description)) !!}
-                    </div>
-                </div>
-            @endif
         </div>
     </div>
 
@@ -279,7 +265,7 @@
                 @endif
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div class="products-grid">
                 @foreach($relatedProducts as $related)
                     @include('user.components.storefront.product-card', ['product' => $related])
                 @endforeach

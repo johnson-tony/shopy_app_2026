@@ -97,14 +97,18 @@
     <div class="w-full max-w-md my-8">
         <!-- Logo & Admin Portal Branding -->
         <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 text-white font-black text-2xl shadow-xl shadow-indigo-600/30 mb-4 ring-4 ring-indigo-500/20">
-                A
-            </div>
+            @if(\App\Models\AdminSetting::hasCustomLogo())
+                <img src="{{ \App\Models\AdminSetting::siteLogoUrl() }}" alt="{{ \App\Models\AdminSetting::siteName() }}" class="h-12 w-auto mx-auto object-contain mb-4">
+            @else
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 text-white font-black text-2xl shadow-xl shadow-indigo-600/30 mb-4 ring-4 ring-indigo-500/20">
+                    {{ strtoupper(substr(\App\Models\AdminSetting::siteName(), 0, 1)) }}
+                </div>
+            @endif
             <h1 class="text-2xl font-black tracking-tight theme-title transition-colors">
-                Administrator Portal
+                {{ \App\Models\AdminSetting::siteName() }} Administrator Portal
             </h1>
             <p class="text-xs theme-sub mt-1 uppercase tracking-widest font-mono">
-                SHOPY_APP_2026 CONTROL PANEL
+                {{ strtoupper(\App\Models\AdminSetting::siteName()) }} CONTROL PANEL
             </p>
         </div>
 

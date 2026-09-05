@@ -31,7 +31,7 @@ class RoleController extends Controller
             });
         }
 
-        $roles = $query->orderBy('id', 'asc')->paginate(15)->withQueryString();
+        $roles = $query->orderBy('id', 'asc')->paginate(10)->withQueryString();
 
         $stats = [
             'total' => Role::count(),

@@ -86,7 +86,7 @@ class ProductController extends Controller
 
         $products = $query->orderBy('sort_order', 'asc')
             ->orderBy('id', 'desc')
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         // Scoped Top Metrics Cards

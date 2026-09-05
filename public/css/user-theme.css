@@ -2058,6 +2058,7 @@ body {
     flex-direction: column;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
+.grid .product-card,
 .products-grid .product-card {
     width: 100%;
     flex: 1 1 auto;

@@ -51,7 +51,7 @@ class ModeController extends Controller
 
         $modes = $query->orderBy('sort_order', 'asc')
             ->orderBy('id', 'asc')
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         $stats = [

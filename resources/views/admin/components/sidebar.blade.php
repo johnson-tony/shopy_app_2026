@@ -5,11 +5,15 @@
 <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 h-screen sticky top-0 overflow-y-auto text-slate-300">
     <!-- Admin Brand Header -->
     <div class="h-16 px-6 flex items-center gap-3 border-b border-slate-800 shrink-0 sticky top-0 bg-slate-900 z-10">
-        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-500 text-white font-black text-sm shadow-md shadow-indigo-500/20">
-            S
-        </span>
-        <div class="flex flex-col">
-            <span class="text-white font-bold text-sm tracking-wide leading-tight">Shopy Admin</span>
+        @if(\App\Models\AdminSetting::hasCustomLogo())
+            <img src="{{ \App\Models\AdminSetting::siteLogoUrl() }}" alt="{{ \App\Models\AdminSetting::siteName() }}" class="w-8 h-8 rounded-lg object-contain bg-slate-800 p-0.5 border border-slate-700">
+        @else
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-500 text-white font-black text-sm shadow-md shadow-indigo-500/20">
+                {{ strtoupper(substr(\App\Models\AdminSetting::siteName(), 0, 1)) }}
+            </span>
+        @endif
+        <div class="flex flex-col min-w-0">
+            <span class="text-white font-bold text-sm tracking-wide leading-tight truncate">{{ \App\Models\AdminSetting::siteName() }} Admin</span>
             <span class="text-[10px] text-slate-400 font-mono">Control Panel 2026</span>
         </div>
     </div>

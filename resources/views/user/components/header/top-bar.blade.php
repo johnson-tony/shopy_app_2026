@@ -4,8 +4,8 @@
         <a href="{{ $homepageLogoLink ?? route('home') }}" class="logo-link">
             <div class="logo-row">
                 <img 
-                    src="{{ asset($logoMedia?->file_path ?? 'images/logo/logo.png') }}" 
-                    alt="{{ $homepageTitle ?? config('app.name', 'Shopy') }}" 
+                    src="{{ \App\Models\AdminSetting::siteLogoUrl() }}" 
+                    alt="{{ \App\Models\AdminSetting::siteName() }}" 
                     class="logo-img"
                     onerror="this.onerror=null;this.src='{{ asset('images/default-logo.svg') }}';"
                 >

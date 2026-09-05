@@ -27,7 +27,7 @@ class UserController extends Controller
                 });
             })
             ->latest()
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.pages.users', compact('users', 'search'));

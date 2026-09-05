@@ -88,7 +88,7 @@ class CategoryController extends Controller
 
         $categories = $query->orderBy('sort_order', 'asc')
             ->orderBy('name', 'asc')
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         // Statistics for Top Metrics Cards

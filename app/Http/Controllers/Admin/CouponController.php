@@ -71,7 +71,7 @@ class CouponController extends Controller
             $query->whereNotNull('expires_at')->where('expires_at', '<', now());
         }
 
-        $coupons = $query->orderByDesc('id')->paginate(15)->withQueryString();
+        $coupons = $query->orderByDesc('id')->paginate(10)->withQueryString();
 
         // Statistics Cards
         $statsQuery = Coupon::query();
@@ -149,7 +149,7 @@ class CouponController extends Controller
         $usages = $coupon->usages()
             ->with('user')
             ->orderByDesc('used_at')
-            ->paginate(15);
+            ->paginate(10);
 
         $totalSavings = $coupon->usages()->sum('discount_amount');
 

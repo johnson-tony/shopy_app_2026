@@ -3,8 +3,8 @@
     <div class="footer-column">
         <div class="footer-logo">
             <img 
-                src="{{ asset($logoMedia?->file_path ?? 'images/logo/logo.png') }}" 
-                alt="{{ $homepageTitle ?? config('app.name', 'Shopy') }}"
+                src="{{ \App\Models\AdminSetting::siteLogoUrl() }}" 
+                alt="{{ \App\Models\AdminSetting::siteName() }}"
                 onerror="this.onerror=null;this.src='{{ asset('images/default-logo.svg') }}';"
             >
         </div>

@@ -52,7 +52,7 @@ class AdminManagementController extends Controller
             $query->where('status', $statusFilter);
         }
 
-        $admins = $query->orderBy('id', 'asc')->paginate(15)->withQueryString();
+        $admins = $query->orderBy('id', 'asc')->paginate(10)->withQueryString();
 
         $stats = [
             'total' => Admin::count(),

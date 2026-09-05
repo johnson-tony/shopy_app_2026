@@ -71,6 +71,18 @@ class CloudinaryService
     }
 
     /**
+     * Upload an image for the site logo into the site folder.
+     *
+     * @param UploadedFile|string $file
+     * @return string Secure URL of uploaded image
+     * @throws Exception
+     */
+    public function uploadSiteLogo(UploadedFile|string $file): string
+    {
+        return $this->uploadImage($file, 'shopy_so/site');
+    }
+
+    /**
      * Upload an image to a specific Cloudinary folder.
      *
      * @param UploadedFile|string $file
