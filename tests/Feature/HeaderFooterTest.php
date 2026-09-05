@@ -11,7 +11,7 @@ class HeaderFooterTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_login_page_renders_organized_header_and_footer(): void
+    public function test_storefront_home_renders_organized_header_and_footer(): void
     {
         Category::create([
             'name' => 'Fashion',
@@ -21,7 +21,7 @@ class HeaderFooterTest extends TestCase
             'parent_id' => null,
         ]);
 
-        $response = $this->get(route('login'));
+        $response = $this->get(route('home'));
 
         $response->assertStatus(200);
 
@@ -49,6 +49,8 @@ class HeaderFooterTest extends TestCase
         $response->assertDontSee('id="notificationBtn"', false);
         $response->assertDontSee('My Profile', false);
         $response->assertDontSee('My Orders', false);
+        $response->assertDontSee('My Cart', false);
+        $response->assertDontSee('Track Order', false);
         $response->assertSee('Sign In / Login', false);
 
         // Category mega menu and mobile menu category
@@ -64,6 +66,42 @@ class HeaderFooterTest extends TestCase
         $response->assertSee('payment-methods-row', false);
         $response->assertSee('Have Questions?', false);
         $response->assertSee('All Rights Reserved', false);
+    }
+
+    public function test_guest_does_not_see_my_cart_and_orders_in_navigation(): void
+    {
+        $response = $this->get(route('home'));
+
+        $response->assertStatus(200);
+        // Header cart icon remains visible for guest shopping
+        $response->assertSee('id="cartBtn"', false);
+        // Navigation links for personal account are hidden for guest
+        $response->assertDontSee('My Cart', false);
+        $response->assertDontSee('Track Order', false);
+    }
+
+    public function test_authenticated_user_sees_my_cart_and_orders_in_navigation(): void
+    {
+        $user = User::factory()->create([
+            'status' => 'active',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('home'));
+
+        $response->assertStatus(200);
+        $response->assertSee('My Cart', false);
+        $response->assertSee('Orders', false);
+        $response->assertSee('Track Order', false);
+    }
+
+    public function test_auth_pages_do_not_render_storefront_header_and_footer(): void
+    {
+        $response = $this->get(route('login'));
+
+        $response->assertStatus(200);
+        $response->assertDontSee('id="siteHeader"', false);
+        $response->assertDontSee('site-footer', false);
+        $response->assertSee('Welcome Back');
     }
 
     public function test_authenticated_user_sees_account_in_header(): void
@@ -124,7 +162,7 @@ class HeaderFooterTest extends TestCase
     {
         \App\Models\AdminSetting::setDarkMode(true);
 
-        $response = $this->get(route('login'));
+        $response = $this->get(route('home'));
 
         $response->assertStatus(200);
         $response->assertSee('data-theme="light"', false);
@@ -135,7 +173,7 @@ class HeaderFooterTest extends TestCase
     {
         \App\Models\AdminSetting::setDarkMode(false);
 
-        $response = $this->get(route('login'));
+        $response = $this->get(route('home'));
 
         $response->assertStatus(200);
         $response->assertSee('data-theme="light"', false);

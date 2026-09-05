@@ -3,9 +3,10 @@
 use App\Http\Controllers\User\AddressController;
 use App\Http\Controllers\User\AuthController;
 use App\Http\Controllers\User\DashboardController;
+use App\Http\Controllers\User\ForgotPasswordController;
+use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\ImpersonationController;
 use App\Http\Controllers\User\ProfileController;
-use App\Http\Controllers\User\HomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,6 +25,21 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
+
+    // Forgot & Reset Password Routes (Multi-device Email OTP: Step 1 Email -> Step 2 OTP -> Step 3 Password)
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetOtp'])->name('password.email');
+
+    // Step 2: Verify OTP
+    Route::get('/forgot-password/verify', [ForgotPasswordController::class, 'showVerifyOtpForm'])->name('password.otp');
+    Route::post('/forgot-password/verify', [ForgotPasswordController::class, 'verifyResetOtp'])->name('password.verify_otp');
+
+    // Step 3: Set New Password
+    Route::get('/reset-password/new', [ForgotPasswordController::class, 'showNewPasswordForm'])->name('password.reset_new');
+    Route::get('/reset-password', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::get('/reset-password/link/{token}', [ForgotPasswordController::class, 'showResetFormWithToken'])->name('password.reset_link');
+    Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
+    Route::post('/reset-password/resend', [ForgotPasswordController::class, 'resendResetOtp'])->name('password.resend');
 });
 
 // Email OTP Verification Routes (Cross-device accessible)

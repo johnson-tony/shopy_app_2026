@@ -19,15 +19,17 @@
                 Shop
             </a>
 
-            <a href="{{ url('/cart') }}"
-               class="nav-link {{ request()->is('cart*') ? 'active' : '' }}">
-                My Cart
-            </a>
+            @auth
+                <a href="{{ url('/cart') }}"
+                   class="nav-link {{ request()->is('cart*') ? 'active' : '' }}">
+                    My Cart
+                </a>
 
-            <a href="{{ Route::has('orders.history') ? route('orders.history') : url('/orders') }}"
-               class="nav-link {{ request()->is('orders*') ? 'active' : '' }}">
-                Orders
-            </a>
+                <a href="{{ Route::has('orders.history') ? route('orders.history') : url('/orders') }}"
+                   class="nav-link {{ request()->is('orders*') ? 'active' : '' }}">
+                    Orders
+                </a>
+            @endauth
 
             <a href="{{ url('/coupons') }}"
                class="nav-link {{ request()->is('coupons*') ? 'active' : '' }}">

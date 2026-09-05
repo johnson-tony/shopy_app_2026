@@ -6,9 +6,11 @@
         </div>
         <div class="announcement-right">
             <span><i class="fas fa-headset mr-1"></i> Support: +91 63796 44145</span>
-            <a href="{{ Route::has('orders.history') ? route('orders.history') : url('/orders') }}">
-                <i class="fas fa-truck-fast mr-1"></i> Track Order
-            </a>
+            @auth
+                <a href="{{ Route::has('orders.history') ? route('orders.history') : url('/orders') }}">
+                    <i class="fas fa-truck-fast mr-1"></i> Track Order
+                </a>
+            @endauth
             <a href="{{ Route::has('faqs') ? route('faqs') : url('/faqs') }}">
                 <i class="fas fa-circle-question mr-1"></i> Help
             </a>

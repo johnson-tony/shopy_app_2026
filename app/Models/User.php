@@ -118,5 +118,21 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserEmailVerification::class)->latestOfMany();
     }
+
+    /**
+     * Get all password reset OTP records for the user.
+     */
+    public function passwordResetOtps(): HasMany
+    {
+        return $this->hasMany(UserPasswordResetOtp::class);
+    }
+
+    /**
+     * Get the latest password reset OTP record for the user.
+     */
+    public function latestPasswordResetOtp(): HasOne
+    {
+        return $this->hasOne(UserPasswordResetOtp::class)->latestOfMany();
+    }
 }
 

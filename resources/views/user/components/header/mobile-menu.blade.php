@@ -65,16 +65,18 @@
                 <span><i class="fas fa-shopping-cart mr-2 text-slate-400"></i> Cart</span>
             </a>
         </li>
-        <li>
-            <a href="{{ Route::has('wishlist.index') ? route('wishlist.index') : url('/wishlist') }}" class="{{ request()->is('wishlist*') ? 'active' : '' }}">
-                <span><i class="fas fa-heart mr-2 text-slate-400"></i> Wishlist</span>
-            </a>
-        </li>
-        <li>
-            <a href="{{ Route::has('orders.history') ? route('orders.history') : url('/orders') }}" class="{{ request()->is('orders*') ? 'active' : '' }}">
-                <span><i class="fas fa-box mr-2 text-slate-400"></i> Orders</span>
-            </a>
-        </li>
+        @auth
+            <li>
+                <a href="{{ Route::has('wishlist.index') ? route('wishlist.index') : url('/wishlist') }}" class="{{ request()->is('wishlist*') ? 'active' : '' }}">
+                    <span><i class="fas fa-heart mr-2 text-slate-400"></i> Wishlist</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ Route::has('orders.history') ? route('orders.history') : url('/orders') }}" class="{{ request()->is('orders*') ? 'active' : '' }}">
+                    <span><i class="fas fa-box mr-2 text-slate-400"></i> Orders</span>
+                </a>
+            </li>
+        @endauth
         <li>
             <a href="{{ url('/coupons') }}" class="{{ request()->is('coupons*') ? 'active' : '' }}">
                 <span><i class="fas fa-ticket mr-2 text-slate-400"></i> Coupons</span>
