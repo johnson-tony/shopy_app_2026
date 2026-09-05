@@ -28,7 +28,7 @@
         <ul>
             <li><a href="{{ Route::has('about') ? route('about') : url('/about') }}">About Us</a></li>
             <li><a href="{{ Route::has('contact') ? route('contact') : url('/contact') }}">Contact</a></li>
-            <li><a href="{{ Route::has('coupons') ? route('coupons') : url('/coupons') }}">Coupons</a></li>
+            <li><a href="{{ Route::has('coupons.index') ? route('coupons.index') : url('/coupons') }}">Coupons</a></li>
             <li><a href="{{ Route::has('orders.history') ? route('orders.history') : url('/orders') }}">Orders</a></li>
         </ul>
     </div>

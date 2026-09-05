@@ -276,8 +276,9 @@
                                 @csrf
                                 <input type="hidden" name="mode" value="{{ $cart->mode?->slug ?? $selectedMode }}">
                                 <input type="text" 
+                                       id="couponCodeInput"
                                        name="coupon_code" 
-                                       placeholder="Promo code (e.g. SAVE10)" 
+                                       placeholder="Promo code (e.g. WELCOME50)" 
                                        class="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white uppercase focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                                        required>
                                 <button type="submit" 
@@ -285,7 +286,27 @@
                                     Apply
                                 </button>
                             </form>
-                            <p class="text-[10px] text-slate-400 mt-1">Try <strong>SAVE10</strong> for 10% off or <strong>FLAT50</strong> over ₹200</p>
+
+                            @if(isset($availableCoupons) && $availableCoupons->count() > 0)
+                                <div class="mt-2.5 pt-2 border-t border-dashed border-slate-200 dark:border-slate-700/60">
+                                    <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+                                        <span>Available Offers</span>
+                                        <a href="{{ route('coupons.index', ['mode' => $cart->mode?->slug ?? $selectedMode]) }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">
+                                            View all &rarr;
+                                        </a>
+                                    </div>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        @foreach($availableCoupons->take(3) as $c)
+                                            <button type="button" 
+                                                    onclick="document.getElementById('couponCodeInput').value='{{ $c->code }}';"
+                                                    class="px-2 py-0.5 text-[10px] font-mono font-bold rounded-lg border border-slate-200 dark:border-slate-700 hover:border-indigo-500 bg-slate-50 dark:bg-slate-700/50 text-slate-700 dark:text-slate-300 transition cursor-pointer"
+                                                    title="{{ $c->name }} (Min: ₹{{ (int)$c->min_order_amount }})">
+                                                🏷️ {{ $c->code }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
                         @endif
                     </div>
 

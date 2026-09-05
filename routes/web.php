@@ -3,6 +3,7 @@
 use App\Http\Controllers\User\AddressController;
 use App\Http\Controllers\User\AuthController;
 use App\Http\Controllers\User\CartController;
+use App\Http\Controllers\User\CouponController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ForgotPasswordController;
 use App\Http\Controllers\User\HomeController;
@@ -20,6 +21,7 @@ use App\Models\Cart;
 // Public Storefront Routes (Accessible by Guests & Authenticated Users)
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/category-products/ajax/{slug?}', [HomeController::class, 'ajaxCategoryProducts'])->name('category.products.ajax');
+Route::get('/coupons', [CouponController::class, 'index'])->name('coupons.index');
 
 // Guest Authentication Routes (Login page opens only when user clicks Login)
 Route::middleware('guest')->group(function () {

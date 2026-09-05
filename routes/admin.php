@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminManagementController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InvitationController;
 use App\Http\Controllers\Admin\ModeController;
@@ -178,6 +179,34 @@ Route::middleware(['auth:admin', 'active:admin'])->group(function () {
             ->name('destroy');
         Route::patch('/{mode}/toggle-status', [ModeController::class, 'toggleStatus'])
             ->middleware('permission:modes.edit')
+            ->name('toggleStatus');
+    });
+
+    // Coupons & Promotion Management
+    Route::prefix('coupons')->name('coupons.')->group(function () {
+        Route::get('/', [CouponController::class, 'index'])
+            ->middleware('permission:coupons.view')
+            ->name('index');
+        Route::get('/create', [CouponController::class, 'create'])
+            ->middleware('permission:coupons.create')
+            ->name('create');
+        Route::post('/', [CouponController::class, 'store'])
+            ->middleware('permission:coupons.create')
+            ->name('store');
+        Route::get('/{coupon}', [CouponController::class, 'show'])
+            ->middleware('permission:coupons.view')
+            ->name('show');
+        Route::get('/{coupon}/edit', [CouponController::class, 'edit'])
+            ->middleware('permission:coupons.edit')
+            ->name('edit');
+        Route::put('/{coupon}', [CouponController::class, 'update'])
+            ->middleware('permission:coupons.edit')
+            ->name('update');
+        Route::delete('/{coupon}', [CouponController::class, 'destroy'])
+            ->middleware('permission:coupons.delete')
+            ->name('destroy');
+        Route::patch('/{coupon}/toggle-status', [CouponController::class, 'toggleStatus'])
+            ->middleware('permission:coupons.edit')
             ->name('toggleStatus');
     });
 

@@ -61,6 +61,12 @@ class PermissionSeeder extends Seeder
             ['name' => 'View Settings', 'slug' => 'settings.view', 'module' => 'settings', 'description' => 'View system configuration.'],
             ['name' => 'Edit Settings', 'slug' => 'settings.edit', 'module' => 'settings', 'description' => 'Change site configuration and theme.'],
 
+            // Coupons & Promotions
+            ['name' => 'View Coupons', 'slug' => 'coupons.view', 'module' => 'coupons', 'description' => 'Browse and view discount coupons.'],
+            ['name' => 'Create Coupons', 'slug' => 'coupons.create', 'module' => 'coupons', 'description' => 'Create promotional coupons and vouchers.'],
+            ['name' => 'Edit Coupons', 'slug' => 'coupons.edit', 'module' => 'coupons', 'description' => 'Modify existing coupons and toggle status.'],
+            ['name' => 'Delete Coupons', 'slug' => 'coupons.delete', 'module' => 'coupons', 'description' => 'Remove discount coupons.'],
+
             // Orders (placeholder for future orders module)
             ['name' => 'Manage Orders (Legacy)', 'slug' => 'manage-orders', 'module' => 'orders', 'description' => 'Legacy permission for orders.'],
             ['name' => 'View Orders', 'slug' => 'orders.view', 'module' => 'orders', 'description' => 'View customer orders.'],

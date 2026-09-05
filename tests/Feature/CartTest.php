@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Category;
+use App\Models\Coupon;
 use App\Models\Mode;
 use App\Models\Product;
 use App\Models\User;
@@ -297,6 +298,15 @@ class CartTest extends TestCase
 
     public function test_apply_and_remove_coupon_code(): void
     {
+        Coupon::create([
+            'code'             => 'SAVE10',
+            'name'             => '10% Off',
+            'type'             => Coupon::TYPE_PERCENTAGE,
+            'value'            => 10.00,
+            'min_order_amount' => 100.00,
+            'status'           => true,
+        ]);
+
         $cart = Cart::getOrCreate($this->user, 'test-sess', 'shopy');
         $cart->addItem($this->product, 1); // 1500
 

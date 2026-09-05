@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cart;
+use App\Models\Coupon;
 use App\Models\Mode;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
@@ -68,6 +69,12 @@ class CartController extends Controller
         $freeDeliveryThreshold = $cart->freeDeliveryThreshold();
         $amountNeededForFreeDelivery = $cart->amountNeededForFreeDelivery();
 
+        // Fetch valid coupons for this mode to show in cart
+        $availableCoupons = Coupon::active()
+            ->forMode($cart->mode_id)
+            ->orderBy('min_order_amount', 'asc')
+            ->get();
+
         return view('user.pages.cart', compact(
             'cart',
             'modes',
@@ -81,7 +88,8 @@ class CartController extends Controller
             'discountAmount',
             'grandTotal',
             'freeDeliveryThreshold',
-            'amountNeededForFreeDelivery'
+            'amountNeededForFreeDelivery',
+            'availableCoupons'
         ));
     }
 
@@ -251,26 +259,23 @@ class CartController extends Controller
         $cart = Cart::getOrCreate($user, $sessionId, $modeSlug);
         $code = strtoupper(trim($validated['coupon_code']));
 
-        // Simple coupon rules (can be extended with coupon table)
-        if ($code === 'SAVE10') {
-            $discount = round($cart->subtotal() * 0.10, 2);
-            $cart->coupon_code = 'SAVE10';
-            $cart->discount_amount = $discount;
-            $cart->save();
-            return back()->with('success', "Coupon SAVE10 applied! You saved ₹{$discount}.");
+        $coupon = Coupon::where('code', $code)->first();
+
+        if (!$coupon) {
+            return back()->with('error', "Promo code '{$code}' is invalid.");
         }
 
-        if ($code === 'FLAT50') {
-            if ($cart->subtotal() < 200) {
-                return back()->with('error', 'Coupon FLAT50 requires a minimum cart subtotal of ₹200.');
-            }
-            $cart->coupon_code = 'FLAT50';
-            $cart->discount_amount = 50.00;
-            $cart->save();
-            return back()->with('success', 'Coupon FLAT50 applied! ₹50 deducted from your total.');
+        $validation = $coupon->validateForCart($cart, $user);
+        if (!$validation['valid']) {
+            return back()->with('error', $validation['error']);
         }
 
-        return back()->with('error', "Invalid or expired coupon code '{$code}'.");
+        $discount = $coupon->calculateDiscount($cart);
+        $cart->coupon_code = $coupon->code;
+        $cart->discount_amount = $discount;
+        $cart->save();
+
+        return back()->with('success', "Coupon '{$coupon->code}' applied! You saved ₹" . number_format($discount, 2) . ".");
     }
 
     /**
