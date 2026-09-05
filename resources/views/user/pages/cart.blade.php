@@ -178,21 +178,13 @@
                                 </span>
                             </div>
 
-                            <!-- Remove & Wishlist Actions -->
-                            <div class="flex items-center gap-2">
-                                <button type="button" 
-                                        onclick="window.toggleWishlist({{ $p->id }}, this)"
-                                        class="text-xs text-slate-400 hover:text-rose-500 transition p-1 cursor-pointer"
-                                        title="Move to wishlist">
-                                    <i class="fa-regular fa-heart"></i>
-                                </button>
-                                <button type="button" 
-                                        onclick="removeCartItem({{ $p->id }}, '{{ addslashes($p->name) }}')"
-                                        class="text-xs text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
-                                        title="Remove item">
-                                    <i class="fa-regular fa-trash-can"></i>
-                                </button>
-                            </div>
+                            <!-- Remove Action -->
+                            <button type="button" 
+                                    onclick="removeCartItem({{ $p->id }}, '{{ addslashes($p->name) }}')"
+                                    class="text-xs text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
+                                    title="Remove item">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
                         </div>
                     </div>
                 @endforeach
