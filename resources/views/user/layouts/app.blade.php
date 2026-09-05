@@ -158,7 +158,6 @@
     <!-- Main Content Area -->
     <main class="flex-1 {{ $isAuthPage ? 'pb-12' : 'py-8' }}">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            @include('user.components.alert')
             @yield('content')
         </div>
     </main>
