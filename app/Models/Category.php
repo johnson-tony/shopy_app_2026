@@ -187,6 +187,22 @@ class Category extends Model
     }
 
     /**
+     * Check if category has child categories.
+     */
+    public function hasChildren(): bool
+    {
+        return $this->children()->exists();
+    }
+
+    /**
+     * Check if category has products.
+     */
+    public function hasProducts(): bool
+    {
+        return $this->products()->exists();
+    }
+
+    /**
      * Generate a unique slug from category name.
      */
     public static function generateUniqueSlug(string $name, ?int $ignoreId = null): string

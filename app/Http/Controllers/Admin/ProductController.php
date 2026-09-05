@@ -26,10 +26,12 @@ class ProductController extends Controller
     }
 
     /**
-     * Display a listing of products with advanced filters and search.
+     * Display a listing of products with advanced filters and search,
+     * securely scoped to the admin's authorized shopping modes.
      */
     public function index(Request $request): View
     {
+        $admin = auth('admin')->user();
         $search = $request->string('search')->trim()->toString();
         $modeFilter = $request->input('mode');
         $categoryFilter = $request->input('category');
@@ -37,6 +39,12 @@ class ProductController extends Controller
         $featuredFilter = $request->input('featured');
 
         $query = Product::with(['mode', 'category.parent']);
+
+        // Mode Access Restriction for Sub Admins
+        if ($admin && !$admin->isSuperAdmin()) {
+            $allowedModeIds = $admin->getAllowedModeIds();
+            $query->whereIn('mode_id', $allowedModeIds);
+        }
 
         // Search Keyword Filter
         if ($search !== '') {
@@ -51,6 +59,9 @@ class ProductController extends Controller
 
         // Mode Filter
         if ($modeFilter !== null && $modeFilter !== '') {
+            if ($admin && !$admin->hasModeAccess((int) $modeFilter)) {
+                abort(403, 'Unauthorized. You do not have permission to view products in this shopping mode.');
+            }
             $query->where('mode_id', (int) $modeFilter);
         }
 
@@ -78,16 +89,21 @@ class ProductController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        // Top Metrics Cards
+        // Scoped Top Metrics Cards
+        $statsQuery = Product::query();
+        if ($admin && !$admin->isSuperAdmin()) {
+            $statsQuery->whereIn('mode_id', $admin->getAllowedModeIds());
+        }
         $stats = [
-            'total' => Product::count(),
-            'active' => Product::where('status', true)->count(),
-            'out_of_stock' => Product::where('stock', '<=', 0)->count(),
-            'featured' => Product::where('featured', true)->count(),
+            'total' => (clone $statsQuery)->count(),
+            'active' => (clone $statsQuery)->where('status', true)->count(),
+            'out_of_stock' => (clone $statsQuery)->where('stock', '<=', 0)->count(),
+            'featured' => (clone $statsQuery)->where('featured', true)->count(),
         ];
 
-        $modes = Mode::active()->ordered()->get();
+        $modes = $admin ? $admin->getAllowedModes() : Mode::active()->ordered()->get();
         $categories = Category::with('parent')
+            ->when($admin && !$admin->isSuperAdmin(), fn ($q) => $q->whereIn('mode_id', $admin->getAllowedModeIds()))
             ->when($modeFilter, fn ($q) => $q->where('mode_id', (int) $modeFilter))
             ->orderBy('name', 'asc')
             ->get();
@@ -110,18 +126,30 @@ class ProductController extends Controller
      */
     public function create(): View
     {
-        $modes = Mode::active()->ordered()->get();
-        $categories = Category::with('parent')->orderBy('name', 'asc')->get();
+        $admin = auth('admin')->user();
+        $modes = $admin ? $admin->getAllowedModes() : Mode::active()->ordered()->get();
+        $allowedModeIds = $admin ? $admin->getAllowedModeIds() : [];
+
+        $categories = Category::with('parent')
+            ->when($admin && !$admin->isSuperAdmin(), fn ($q) => $q->whereIn('mode_id', $allowedModeIds))
+            ->orderBy('name', 'asc')
+            ->get();
 
         return view('admin.products.create', compact('modes', 'categories'));
     }
 
     /**
-     * Store a newly created product in database.
+     * Store a newly created product in database with strict mode access enforcement.
      */
     public function store(ProductRequest $request): RedirectResponse
     {
+        $admin = auth('admin')->user();
         $data = $request->validated();
+
+        // Enforce mode authorization
+        if ($admin && !$admin->hasModeAccess($data['mode_id'])) {
+            abort(403, 'Unauthorized. You cannot create products in a shopping mode you do not have permission to manage.');
+        }
 
         // Auto generate unique slug if empty
         if (empty($data['slug'])) {
@@ -147,32 +175,57 @@ class ProductController extends Controller
     }
 
     /**
-     * Display the specified product.
+     * Display the specified product with mode access verification.
      */
     public function show(Product $product): View
     {
+        $admin = auth('admin')->user();
+        if ($admin && !$admin->hasModeAccess($product->mode_id)) {
+            abort(403, 'Unauthorized. You do not have permission to access products in this shopping mode.');
+        }
+
         $product->load(['mode', 'category.parent']);
 
         return view('admin.products.show', compact('product'));
     }
 
     /**
-     * Show the form for editing the specified product.
+     * Show the form for editing the specified product with mode access verification.
      */
     public function edit(Product $product): View
     {
-        $modes = Mode::active()->ordered()->get();
-        $categories = Category::with('parent')->orderBy('name', 'asc')->get();
+        $admin = auth('admin')->user();
+        if ($admin && !$admin->hasModeAccess($product->mode_id)) {
+            abort(403, 'Unauthorized. You do not have permission to access products in this shopping mode.');
+        }
+
+        $modes = $admin ? $admin->getAllowedModes() : Mode::active()->ordered()->get();
+        $allowedModeIds = $admin ? $admin->getAllowedModeIds() : [];
+
+        $categories = Category::with('parent')
+            ->when($admin && !$admin->isSuperAdmin(), fn ($q) => $q->whereIn('mode_id', $allowedModeIds))
+            ->orderBy('name', 'asc')
+            ->get();
 
         return view('admin.products.edit', compact('product', 'modes', 'categories'));
     }
 
     /**
-     * Update the specified product in database.
+     * Update the specified product in database with mode access verification.
      */
     public function update(ProductRequest $request, Product $product): RedirectResponse
     {
+        $admin = auth('admin')->user();
+        if ($admin && !$admin->hasModeAccess($product->mode_id)) {
+            abort(403, 'Unauthorized. You do not have permission to access products in this shopping mode.');
+        }
+
         $data = $request->validated();
+
+        // Enforce mode authorization on target mode
+        if ($admin && !$admin->hasModeAccess($data['mode_id'])) {
+            abort(403, 'Unauthorized. You cannot reassign products to a shopping mode you do not have permission to manage.');
+        }
 
         // Auto generate unique slug if empty
         if (empty($data['slug'])) {
@@ -201,10 +254,15 @@ class ProductController extends Controller
     }
 
     /**
-     * Remove the specified product from database safely.
+     * Remove the specified product from database safely with mode access verification.
      */
     public function destroy(Product $product): RedirectResponse
     {
+        $admin = auth('admin')->user();
+        if ($admin && !$admin->hasModeAccess($product->mode_id)) {
+            abort(403, 'Unauthorized. You do not have permission to access products in this shopping mode.');
+        }
+
         if ($product->hasRelatedRecords()) {
             return back()->with('error', "Product '{$product->name}' cannot be deleted because it is referenced by existing orders or shopping carts.");
         }
@@ -227,6 +285,11 @@ class ProductController extends Controller
      */
     public function toggleStatus(Product $product, Request $request): RedirectResponse|JsonResponse
     {
+        $admin = auth('admin')->user();
+        if ($admin && !$admin->hasModeAccess($product->mode_id)) {
+            abort(403, 'Unauthorized. You do not have permission to access products in this shopping mode.');
+        }
+
         $product->status = !$product->status;
         $product->save();
 
@@ -249,6 +312,11 @@ class ProductController extends Controller
      */
     public function toggleFeatured(Product $product, Request $request): RedirectResponse|JsonResponse
     {
+        $admin = auth('admin')->user();
+        if ($admin && !$admin->hasModeAccess($product->mode_id)) {
+            abort(403, 'Unauthorized. You do not have permission to access products in this shopping mode.');
+        }
+
         $product->featured = !$product->featured;
         $product->save();
 
@@ -271,7 +339,16 @@ class ProductController extends Controller
      */
     public function getCategoriesByMode(Request $request): JsonResponse
     {
+        $admin = auth('admin')->user();
         $modeId = $request->input('mode_id');
+
+        if ($admin && !$admin->hasModeAccess($modeId)) {
+            return response()->json([
+                'success' => false,
+                'categories' => [],
+                'message' => 'Unauthorized mode',
+            ], 403);
+        }
 
         $categories = Category::where('mode_id', $modeId)
             ->where('status', true)

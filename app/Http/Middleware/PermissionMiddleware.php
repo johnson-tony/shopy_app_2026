@@ -31,8 +31,21 @@ class PermissionMiddleware
             return redirect()->route('admin.login')->with('error', 'Your administrator account is not active. Please contact support.');
         }
 
-        if (!$admin->hasPermission($permission)) {
-            abort(403, "Unauthorized. You do not have the '{$permission}' permission.");
+        if ($admin->isSuperAdmin()) {
+            return $next($request);
+        }
+
+        $permissions = explode(',', str_replace('|', ',', $permission));
+        $hasAny = false;
+        foreach ($permissions as $perm) {
+            if ($admin->hasPermission(trim($perm))) {
+                $hasAny = true;
+                break;
+            }
+        }
+
+        if (!$hasAny) {
+            abort(403, "Unauthorized. You do not have the required permission ({$permission}).");
         }
 
         return $next($request);

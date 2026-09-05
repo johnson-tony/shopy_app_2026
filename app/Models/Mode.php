@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -67,6 +68,22 @@ class Mode extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    /**
+     * Roles with access to this mode.
+     */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'role_modes')->withTimestamps();
+    }
+
+    /**
+     * Admins directly assigned to this mode.
+     */
+    public function admins(): BelongsToMany
+    {
+        return $this->belongsToMany(Admin::class, 'admin_modes')->withTimestamps();
     }
 
     /**

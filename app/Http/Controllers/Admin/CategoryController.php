@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class CategoryController extends Controller
@@ -25,10 +26,12 @@ class CategoryController extends Controller
     }
 
     /**
-     * Display a listing of categories with search and filtering.
+     * Display a listing of categories with search and filtering,
+     * scoped to the admin's authorized shopping modes.
      */
     public function index(Request $request): View
     {
+        $admin = auth('admin')->user();
         $search = $request->string('search')->trim()->toString();
         $parentFilter = $request->input('parent');
         $statusFilter = $request->input('status');
@@ -36,6 +39,12 @@ class CategoryController extends Controller
         $modeFilter = $request->input('mode');
 
         $query = Category::with('parent', 'children', 'mode');
+
+        // Scoped to admin's allowed modes
+        if ($admin && !$admin->isSuperAdmin()) {
+            $allowedModeIds = $admin->getAllowedModeIds();
+            $query->whereIn('mode_id', $allowedModeIds);
+        }
 
         // Search Filter
         if ($search !== '') {
@@ -48,6 +57,9 @@ class CategoryController extends Controller
 
         // Mode Filter
         if ($modeFilter !== null && $modeFilter !== '') {
+            if ($admin && !$admin->hasModeAccess((int) $modeFilter)) {
+                abort(403, 'Unauthorized. You do not have permission to view categories in this shopping mode.');
+            }
             $query->where('mode_id', (int) $modeFilter);
         }
 
@@ -80,17 +92,25 @@ class CategoryController extends Controller
             ->withQueryString();
 
         // Statistics for Top Metrics Cards
+        $statsQuery = Category::query();
+        if ($admin && !$admin->isSuperAdmin()) {
+            $statsQuery->whereIn('mode_id', $admin->getAllowedModeIds());
+        }
+
         $stats = [
-            'total' => Category::count(),
-            'root' => Category::whereNull('parent_id')->count(),
-            'sub' => Category::whereNotNull('parent_id')->count(),
-            'active' => Category::where('status', true)->count(),
-            'featured' => Category::where('is_featured', true)->count(),
+            'total' => (clone $statsQuery)->count(),
+            'root' => (clone $statsQuery)->whereNull('parent_id')->count(),
+            'sub' => (clone $statsQuery)->whereNotNull('parent_id')->count(),
+            'active' => (clone $statsQuery)->where('status', true)->count(),
+            'featured' => (clone $statsQuery)->where('is_featured', true)->count(),
         ];
 
         // List of all root categories for filter dropdown
-        $rootCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
-        $modes = Mode::active()->ordered()->get();
+        $rootCategories = Category::whereNull('parent_id')
+            ->when($admin && !$admin->isSuperAdmin(), fn ($q) => $q->whereIn('mode_id', $admin->getAllowedModeIds()))
+            ->orderBy('name', 'asc')
+            ->get();
+        $modes = $admin ? $admin->getAllowedModes() : Mode::active()->ordered()->get();
 
         return view('admin.categories.index', compact(
             'categories',
@@ -110,45 +130,51 @@ class CategoryController extends Controller
      */
     public function create(): View
     {
-        $parentCategories = Category::whereNull('parent_id')->orderBy('name', 'asc')->get();
-        $modes = Mode::active()->ordered()->get();
+        $admin = auth('admin')->user();
+        $modes = $admin ? $admin->getAllowedModes() : Mode::active()->ordered()->get();
+        $rootCategories = Category::whereNull('parent_id')
+            ->when($admin && !$admin->isSuperAdmin(), fn ($q) => $q->whereIn('mode_id', $admin->getAllowedModeIds()))
+            ->orderBy('name', 'asc')
+            ->get();
+        $parentCategories = $rootCategories;
 
-        return view('admin.categories.create', compact('parentCategories', 'modes'));
+        return view('admin.categories.create', compact('rootCategories', 'parentCategories', 'modes'));
     }
 
     /**
-     * Store a newly created category in database with Cloudinary image upload.
+     * Store a newly created category in database with mode access validation.
      */
     public function store(CategoryRequest $request): RedirectResponse
     {
+        $admin = auth('admin')->user();
         $data = $request->validated();
 
-        // Auto generate unique slug if not manually provided
-        if (empty($data['slug'])) {
-            $data['slug'] = Category::generateUniqueSlug($data['name']);
+        // Check Mode authorization
+        if ($admin && !empty($data['mode_id']) && !$admin->hasModeAccess($data['mode_id'])) {
+            abort(403, 'Unauthorized. You cannot create categories in a shopping mode you do not have permission to manage.');
         }
 
-        // Handle Cloudinary Image Upload
+        // Auto-generate slug if empty
+        if (empty($data['slug'])) {
+            $data['slug'] = Str::slug($data['name']);
+        }
+
+        // Auto inherit mode_id from parent if subcategory and mode_id wasn't explicitly chosen
+        if (!empty($data['parent_id']) && empty($data['mode_id'])) {
+            $parent = Category::find($data['parent_id']);
+            if ($parent?->mode_id) {
+                $data['mode_id'] = $parent->mode_id;
+            }
+        }
+
+        // Handle Image Upload to Cloudinary
         if ($request->hasFile('image')) {
             try {
                 $data['image'] = $this->cloudinaryService->uploadCategoryImage($request->file('image'));
             } catch (Exception $e) {
                 Log::error('Category Image Upload Failed', ['error' => $e->getMessage()]);
-                return back()
-                    ->withErrors(['image' => 'Image upload to Cloudinary failed: ' . $e->getMessage()])
-                    ->withInput();
+                return back()->withErrors(['image' => 'Image upload to Cloudinary failed: ' . $e->getMessage()])->withInput();
             }
-        }
-
-        // Auto-inherit mode from parent category if mode is omitted
-        if (empty($data['mode_id']) && !empty($data['parent_id'])) {
-            $parent = Category::find($data['parent_id']);
-            $data['mode_id'] = $parent?->mode_id;
-        }
-
-        // Default to Shopy mode if still empty
-        if (empty($data['mode_id'])) {
-            $data['mode_id'] = Mode::where('slug', 'shopy')->value('id');
         }
 
         $category = Category::create($data);
@@ -162,60 +188,54 @@ class CategoryController extends Controller
      */
     public function edit(Category $category): View
     {
-        // Exclude self and all descendants to prevent circular hierarchy
-        $excludedIds = array_merge([$category->id], $category->getDescendantIds());
-        $parentCategories = Category::whereNotIn('id', $excludedIds)
-            ->whereNull('parent_id')
+        $admin = auth('admin')->user();
+        if ($admin && $category->mode_id && !$admin->hasModeAccess($category->mode_id)) {
+            abort(403, 'Unauthorized. You do not have permission to access categories in this shopping mode.');
+        }
+
+        $modes = $admin ? $admin->getAllowedModes() : Mode::active()->ordered()->get();
+        $rootCategories = Category::whereNull('parent_id')
+            ->where('id', '!=', $category->id)
+            ->when($admin && !$admin->isSuperAdmin(), fn ($q) => $q->whereIn('mode_id', $admin->getAllowedModeIds()))
             ->orderBy('name', 'asc')
             ->get();
-        $modes = Mode::active()->ordered()->get();
+        $parentCategories = $rootCategories;
 
-        return view('admin.categories.edit', compact('category', 'parentCategories', 'modes'));
+        return view('admin.categories.edit', compact('category', 'rootCategories', 'parentCategories', 'modes'));
     }
 
     /**
-     * Update the specified category in database with Cloudinary image replacement.
+     * Update the specified category in database.
      */
     public function update(CategoryRequest $request, Category $category): RedirectResponse
     {
-        $data = $request->validated();
-
-        // Auto-inherit mode from parent category if mode is omitted
-        if (empty($data['mode_id']) && !empty($data['parent_id'])) {
-            $parent = Category::find($data['parent_id']);
-            $data['mode_id'] = $parent?->mode_id;
+        $admin = auth('admin')->user();
+        if ($admin && $category->mode_id && !$admin->hasModeAccess($category->mode_id)) {
+            abort(403, 'Unauthorized. You do not have permission to access categories in this shopping mode.');
         }
 
-        // Auto generate unique slug if empty
+        $data = $request->validated();
+
+        if ($admin && !empty($data['mode_id']) && !$admin->hasModeAccess($data['mode_id'])) {
+            abort(403, 'Unauthorized. You cannot assign categories to a shopping mode you do not have permission to manage.');
+        }
+
+        // Auto-generate slug if empty
         if (empty($data['slug'])) {
-            $data['slug'] = Category::generateUniqueSlug($data['name'], $category->id);
+            $data['slug'] = Str::slug($data['name']);
         }
 
         // Handle Image Upload / Replacement in Cloudinary
         if ($request->hasFile('image')) {
             try {
-                $newImageUrl = $this->cloudinaryService->uploadCategoryImage($request->file('image'));
-
-                // Delete old Cloudinary image if exists
                 if ($category->image) {
                     $this->deleteCategoryImage($category->image);
                 }
-
-                $data['image'] = $newImageUrl;
+                $data['image'] = $this->cloudinaryService->uploadCategoryImage($request->file('image'));
             } catch (Exception $e) {
-                Log::error('Category Image Replacement Failed', ['error' => $e->getMessage()]);
-                return back()
-                    ->withErrors(['image' => 'Image upload to Cloudinary failed: ' . $e->getMessage()])
-                    ->withInput();
+                Log::error('Category Image Upload Failed', ['error' => $e->getMessage()]);
+                return back()->withErrors(['image' => 'Image upload to Cloudinary failed: ' . $e->getMessage()])->withInput();
             }
-        }
-
-        // Handle Image Removal Checkbox
-        if ($request->boolean('remove_image')) {
-            if ($category->image) {
-                $this->deleteCategoryImage($category->image);
-            }
-            $data['image'] = null;
         }
 
         $category->update($data);
@@ -225,10 +245,24 @@ class CategoryController extends Controller
     }
 
     /**
-     * Remove the specified category from database and delete its Cloudinary image.
+     * Remove the specified category from database safely.
      */
     public function destroy(Category $category): RedirectResponse
     {
+        $admin = auth('admin')->user();
+        if ($admin && $category->mode_id && !$admin->hasModeAccess($category->mode_id)) {
+            abort(403, 'Unauthorized. You do not have permission to access categories in this shopping mode.');
+        }
+
+        // Check if category has subcategories or products
+        if ($category->hasChildren()) {
+            return back()->with('error', "Category '{$category->name}' cannot be deleted because it contains child categories. Please reassign or delete the subcategories first.");
+        }
+
+        if ($category->hasProducts()) {
+            return back()->with('error', "Category '{$category->name}' cannot be deleted because it has associated products. Please reassign the products first.");
+        }
+
         $name = $category->name;
 
         // Delete associated image from Cloudinary or local storage
@@ -243,22 +277,15 @@ class CategoryController extends Controller
     }
 
     /**
-     * Helper to safely remove category image from Cloudinary or local storage.
-     */
-    protected function deleteCategoryImage(string $imagePath): void
-    {
-        if (str_starts_with($imagePath, 'http://') || str_starts_with($imagePath, 'https://') || str_starts_with($imagePath, 'category')) {
-            $this->cloudinaryService->deleteImage($imagePath);
-        } elseif (Storage::disk('public')->exists($imagePath)) {
-            Storage::disk('public')->delete($imagePath);
-        }
-    }
-
-    /**
-     * Toggle active status via 1-click switch.
+     * Toggle status (Active / Inactive) via 1-click switch.
      */
     public function toggleStatus(Category $category, Request $request): RedirectResponse|JsonResponse
     {
+        $admin = auth('admin')->user();
+        if ($admin && $category->mode_id && !$admin->hasModeAccess($category->mode_id)) {
+            abort(403, 'Unauthorized. You do not have permission to access categories in this shopping mode.');
+        }
+
         $category->status = !$category->status;
         $category->save();
 
@@ -281,6 +308,11 @@ class CategoryController extends Controller
      */
     public function toggleFeatured(Category $category, Request $request): RedirectResponse|JsonResponse
     {
+        $admin = auth('admin')->user();
+        if ($admin && $category->mode_id && !$admin->hasModeAccess($category->mode_id)) {
+            abort(403, 'Unauthorized. You do not have permission to access categories in this shopping mode.');
+        }
+
         $category->is_featured = !$category->is_featured;
         $category->save();
 
@@ -296,5 +328,17 @@ class CategoryController extends Controller
         }
 
         return back()->with('success', $message);
+    }
+
+    /**
+     * Helper to safely remove category image from Cloudinary or local storage.
+     */
+    protected function deleteCategoryImage(string $imagePath): void
+    {
+        if (str_starts_with($imagePath, 'http://') || str_starts_with($imagePath, 'https://') || str_starts_with($imagePath, 'shopy_so/category')) {
+            $this->cloudinaryService->deleteImage($imagePath);
+        } elseif (Storage::disk('public')->exists($imagePath)) {
+            Storage::disk('public')->delete($imagePath);
+        }
     }
 }
