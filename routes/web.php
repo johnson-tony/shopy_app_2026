@@ -5,7 +5,7 @@ use App\Http\Controllers\User\AuthController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ImpersonationController;
 use App\Http\Controllers\User\ProfileController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\User\HomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,12 +13,12 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Guest Routes
-Route::middleware('guest')->group(function () {
-    Route::get('/', function () {
-        return redirect()->route('login');
-    })->name('home');
+// Public Storefront Routes (Accessible by Guests & Authenticated Users)
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/category-products/ajax/{slug?}', [HomeController::class, 'ajaxCategoryProducts'])->name('category.products.ajax');
 
+// Guest Authentication Routes (Login page opens only when user clicks Login)
+Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 

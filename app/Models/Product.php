@@ -135,6 +135,14 @@ class Product extends Model
     }
 
     /**
+     * Alias accessor for featured status.
+     */
+    public function getIsFeaturedAttribute(): bool
+    {
+        return (bool) $this->featured;
+    }
+
+    /**
      * Determine if product currently has a valid discounted sale price.
      */
     public function getIsOnSaleAttribute(): bool
