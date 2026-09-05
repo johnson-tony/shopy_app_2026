@@ -154,9 +154,8 @@ class AuthController extends Controller
 
         // If user already active and verified
         if ($user->isActive() && $user->hasVerifiedEmail()) {
-            Auth::guard('web')->login($user);
-            $request->session()->regenerate();
-            return redirect()->route('dashboard')->with('info', 'Your account is already verified.');
+            return redirect()->route('login', ['email' => $user->email])
+                ->with('info', 'Your account is already verified. Please sign in with your password.');
         }
 
         // Find latest unverified verification record
@@ -184,11 +183,8 @@ class AuthController extends Controller
 
         $request->session()->forget('verify_email');
 
-        Auth::guard('web')->login($user);
-        $request->session()->regenerate();
-
-        return redirect()->route('dashboard')
-            ->with('success', 'Your email has been verified successfully! Welcome to Shopy.');
+        return redirect()->route('login', ['email' => $user->email])
+            ->with('success', 'Your account has been verified successfully! Please sign in with your password.');
     }
 
     /**
@@ -206,9 +202,8 @@ class AuthController extends Controller
 
         // If already verified
         if ($user->isActive() && $user->hasVerifiedEmail()) {
-            Auth::guard('web')->login($user);
-            $request->session()->regenerate();
-            return redirect()->route('dashboard')->with('info', 'Your account is already verified.');
+            return redirect()->route('login', ['email' => $user->email])
+                ->with('info', 'Your account is already verified. Please sign in with your password.');
         }
 
         if ($verification->isExpired()) {
@@ -225,11 +220,8 @@ class AuthController extends Controller
 
         $request->session()->forget('verify_email');
 
-        Auth::guard('web')->login($user);
-        $request->session()->regenerate();
-
-        return redirect()->route('dashboard')
-            ->with('success', 'Your email has been verified successfully! You are now logged in.');
+        return redirect()->route('login', ['email' => $user->email])
+            ->with('success', 'Your account has been verified successfully! Please sign in with your password.');
     }
 
     /**

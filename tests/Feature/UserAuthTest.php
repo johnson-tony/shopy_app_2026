@@ -112,8 +112,9 @@ class UserAuthTest extends TestCase
             'otp' => $verification->otp,
         ]);
 
-        $this->assertAuthenticated('web');
-        $response->assertRedirect('/dashboard');
+        $this->assertGuest('web');
+        $response->assertRedirect('/login?email=pending%40example.com');
+        $response->assertSessionHas('success');
 
         $user->refresh();
         $this->assertEquals(User::STATUS_ACTIVE, $user->status);
@@ -196,8 +197,9 @@ class UserAuthTest extends TestCase
         // Access 1-click verification link from a separate session (e.g. mobile phone)
         $response = $this->get("/verify-otp/link/{$verification->token}");
 
-        $this->assertAuthenticated('web');
-        $response->assertRedirect('/dashboard');
+        $this->assertGuest('web');
+        $response->assertRedirect('/login?email=crossdevice%40example.com');
+        $response->assertSessionHas('success');
 
         $user->refresh();
         $this->assertEquals(User::STATUS_ACTIVE, $user->status);
@@ -223,8 +225,9 @@ class UserAuthTest extends TestCase
             'otp' => $verification->otp,
         ]);
 
-        $this->assertAuthenticated('web');
-        $response->assertRedirect('/dashboard');
+        $this->assertGuest('web');
+        $response->assertRedirect('/login?email=manualdevice%40example.com');
+        $response->assertSessionHas('success');
 
         $user->refresh();
         $this->assertEquals(User::STATUS_ACTIVE, $user->status);
