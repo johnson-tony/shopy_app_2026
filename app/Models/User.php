@@ -188,5 +188,51 @@ class User extends Authenticatable
 
         return (int) $query->sum('quantity');
     }
+
+    /**
+     * Customer orders.
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class)->latest();
+    }
+
+    /**
+     * Customer product reviews.
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    /**
+     * Check whether user has purchased a given product in any confirmed/delivered order.
+     */
+    public function hasPurchasedProduct(Product|int $product): bool
+    {
+        $productId = $product instanceof Product ? $product->id : $product;
+
+        return OrderItem::where('product_id', $productId)
+            ->whereHas('order', function ($q) {
+                $q->where('user_id', $this->id)
+                  ->where('status', '!=', Order::STATUS_CANCELLED);
+            })
+            ->exists();
+    }
+
+    /**
+     * Find user's order ID for a given product (if any).
+     */
+    public function getOrderIdForProduct(Product|int $product): ?int
+    {
+        $productId = $product instanceof Product ? $product->id : $product;
+
+        return OrderItem::where('product_id', $productId)
+            ->whereHas('order', function ($q) {
+                $q->where('user_id', $this->id)
+                  ->where('status', '!=', Order::STATUS_CANCELLED);
+            })
+            ->value('order_id');
+    }
 }
 

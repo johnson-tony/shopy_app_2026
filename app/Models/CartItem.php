@@ -16,6 +16,8 @@ class CartItem extends Model
         'cart_id',
         'product_id',
         'quantity',
+        'color',
+        'size',
         'unit_price',
     ];
 
@@ -23,6 +25,8 @@ class CartItem extends Model
     {
         return [
             'quantity'   => 'integer',
+            'color'      => 'string',
+            'size'       => 'string',
             'unit_price' => 'decimal:2',
         ];
     }

@@ -2028,6 +2028,33 @@ body {
 .top-products-scroll::-webkit-scrollbar {
     display: none;
 }
+.no-scrollbar,
+.scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+    display: none;
+}
+.product-rating-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.25rem !important;
+    padding: 0.2rem 0.6rem !important;
+    border-radius: 0.5rem !important;
+    background-color: #059669 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 0.75rem !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+}
+.product-rating-badge span,
+.product-rating-badge i {
+    color: #ffffff !important;
+}
 .products-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);

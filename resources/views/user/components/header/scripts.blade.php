@@ -347,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ---------------------------------------------------------
     // 9. Global Add To Cart (AJAX)
     // ---------------------------------------------------------
-    window.addToCart = function (productId, quantity, btnEl) {
+    window.addToCart = function (productId, quantity, btnEl, color, size) {
         quantity = quantity || 1;
         
         let originalContent = '';
@@ -366,7 +366,9 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify({
                 product_id: productId,
-                quantity: quantity
+                quantity: quantity,
+                color: color || null,
+                size: size || null
             })
         })
         .then(res => res.json())

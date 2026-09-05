@@ -103,13 +103,15 @@
                     
                     <!-- Image Container -->
                     <div class="relative aspect-square w-full overflow-hidden bg-slate-50 dark:bg-slate-900">
-                        <img src="{{ $imageUrl }}" 
-                             alt="{{ $product->name }}" 
-                             class="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                             loading="lazy">
+                        <a href="{{ route('product.show', $product->slug) }}" class="block w-full h-full" title="{{ $product->name }}">
+                            <img src="{{ $imageUrl }}" 
+                                 alt="{{ $product->name }}" 
+                                 class="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                                 loading="lazy">
+                        </a>
 
                         <!-- Badges -->
-                        <div class="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
+                        <div class="absolute top-2.5 left-2.5 flex flex-col gap-1.5 pointer-events-none">
                             @if($hasDiscount || $discountPercent > 0)
                                 <span class="px-2 py-0.5 rounded-lg bg-emerald-600 text-white text-[11px] font-bold shadow-xs">
                                     {{ $discountPercent }}% OFF
@@ -139,9 +141,11 @@
                             <div class="text-[11px] uppercase tracking-wider font-semibold text-indigo-600 dark:text-indigo-400 mb-1">
                                 {{ $product->category?->name ?? 'Store Item' }}
                             </div>
-                            <h2 class="text-sm font-bold text-slate-900 dark:text-white line-clamp-2 leading-snug">
-                                {{ $product->name }}
-                            </h2>
+                            <a href="{{ route('product.show', $product->slug) }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition">
+                                <h2 class="text-sm font-bold text-slate-900 dark:text-white line-clamp-2 leading-snug">
+                                    {{ $product->name }}
+                                </h2>
+                            </a>
                         </div>
 
                         <!-- Price & Stock -->

@@ -105,20 +105,22 @@
                         $hasDiscount = $p?->is_on_sale;
                     @endphp
                     <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center gap-4 transition" 
-                         id="cart-item-row-{{ $p->id }}">
+                         id="cart-item-row-{{ $item->id }}">
                         
-                        <!-- Thumbnail Image -->
-                        <div class="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600">
+                        <!-- Thumbnail Image (Clickable Link to Product Detail Page) -->
+                        <a href="{{ route('product.show', $p->slug) }}" 
+                           class="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 block group"
+                           title="{{ $p->name }}">
                             <img src="{{ $p->image_url ?? 'https://placehold.co/200x200/e2e8f0/475569?text=' . urlencode(substr($p->name, 0, 6)) }}" 
                                  alt="{{ $p->name }}"
-                                 class="w-full h-full object-cover">
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200">
                             
                             @if($p->mode)
                                 <span class="absolute top-1 left-1 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-slate-900/80 text-white backdrop-blur-xs">
                                     {{ $p->mode->name }}
                                 </span>
                             @endif
-                        </div>
+                        </a>
 
                         <!-- Product Details -->
                         <div class="flex-1 min-w-0">
@@ -137,9 +139,28 @@
                                 @endif
                             </div>
 
-                            <h3 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate">
-                                {{ $p->name }}
-                            </h3>
+                            <a href="{{ route('product.show', $p->slug) }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition">
+                                <h3 class="font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate">
+                                    {{ $p->name }}
+                                </h3>
+                            </a>
+
+                            <!-- Selected Variants (Color & Size) -->
+                            @if($item->color || $item->size)
+                                <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                                    @if($item->color)
+                                        <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/80 text-slate-700 dark:text-slate-200">
+                                            <span class="w-2 h-2 rounded-full border border-slate-300 dark:border-slate-500" style="background-color: {{ match(strtolower($item->color)) { 'black','space black','midnight'=>'#0f172a', 'white','starlight'=>'#ffffff', 'silver','gray','grey'=>'#94a3b8', 'blue','navy','deep blue'=>'#2563eb', 'red','crimson'=>'#dc2626', 'green','emerald'=>'#059669', 'gold','desert titanium'=>'#d97706', 'rose gold','pink'=>'#ec4899', 'purple','violet'=>'#7c3aed', 'yellow'=>'#eab308', 'orange'=>'#f97316', default=>'#64748b' } }};"></span>
+                                            <span>{{ $item->color }}</span>
+                                        </span>
+                                    @endif
+                                    @if($item->size)
+                                        <span class="inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900/40">
+                                            {{ $item->size }}
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
 
                             <div class="flex items-baseline gap-2 mt-1">
                                 <span class="text-base font-bold text-slate-900 dark:text-white">
@@ -158,16 +179,16 @@
                             <!-- Stepper -->
                             <div class="flex items-center border border-slate-200 dark:border-slate-600 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-700/50">
                                 <button type="button" 
-                                        onclick="updateCartItemQty({{ $p->id }}, {{ $item->quantity - 1 }})"
+                                        onclick="updateCartItemQty({{ $p->id }}, {{ $item->quantity - 1 }}, {{ $item->id }})"
                                         class="w-8 h-8 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition cursor-pointer font-bold text-sm">
                                     <i class="fa-solid fa-minus text-xs"></i>
                                 </button>
                                 <span class="w-10 text-center font-bold text-xs text-slate-900 dark:text-white" 
-                                      id="cart-qty-{{ $p->id }}">
+                                      id="cart-qty-{{ $item->id }}">
                                     {{ $item->quantity }}
                                 </span>
                                 <button type="button" 
-                                        onclick="updateCartItemQty({{ $p->id }}, {{ $item->quantity + 1 }})"
+                                        onclick="updateCartItemQty({{ $p->id }}, {{ $item->quantity + 1 }}, {{ $item->id }})"
                                         class="w-8 h-8 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition cursor-pointer font-bold text-sm {{ $item->quantity >= $p->stock ? 'opacity-40 cursor-not-allowed' : '' }}"
                                         {{ $item->quantity >= $p->stock ? 'disabled' : '' }}>
                                     <i class="fa-solid fa-plus text-xs"></i>
@@ -177,14 +198,14 @@
                             <!-- Line Subtotal -->
                             <div class="text-right">
                                 <span class="text-xs text-slate-400 block sm:hidden">Total:</span>
-                                <span class="text-sm font-bold text-slate-900 dark:text-white" id="cart-line-total-{{ $p->id }}">
+                                <span class="text-sm font-bold text-slate-900 dark:text-white" id="cart-line-total-{{ $item->id }}">
                                     ₹{{ number_format($lineTotal, 2) }}
                                 </span>
                             </div>
 
                             <!-- Remove Action -->
                             <button type="button" 
-                                    onclick="removeCartItem({{ $p->id }}, '{{ addslashes($p->name) }}')"
+                                    onclick="removeCartItem({{ $p->id }}, '{{ addslashes($p->name) }}', {{ $item->id }})"
                                     class="text-xs text-slate-400 hover:text-rose-600 transition p-1 cursor-pointer"
                                     title="Remove item">
                                 <i class="fa-regular fa-trash-can"></i>
@@ -368,7 +389,7 @@
 
 @push('scripts')
 <script>
-function updateCartItemQty(productId, newQty) {
+function updateCartItemQty(productId, newQty, cartItemId) {
     fetch('{{ route("cart.update") }}', {
         method: 'POST',
         headers: {
@@ -378,7 +399,8 @@ function updateCartItemQty(productId, newQty) {
         },
         body: JSON.stringify({
             product_id: productId,
-            quantity: newQty
+            quantity: newQty,
+            cart_item_id: cartItemId || null
         })
     })
     .then(res => res.json())
@@ -388,8 +410,9 @@ function updateCartItemQty(productId, newQty) {
             return;
         }
 
+        const targetKey = cartItemId || productId;
         if (data.item_removed) {
-            const row = document.getElementById('cart-item-row-' + productId);
+            const row = document.getElementById('cart-item-row-' + targetKey);
             if (row) {
                 row.style.transition = 'all 0.3s ease';
                 row.style.opacity = '0';
@@ -402,10 +425,10 @@ function updateCartItemQty(productId, newQty) {
                 }, 300);
             }
         } else {
-            const qtyEl = document.getElementById('cart-qty-' + productId);
+            const qtyEl = document.getElementById('cart-qty-' + targetKey);
             if (qtyEl) qtyEl.textContent = data.item_quantity;
 
-            const lineTotalEl = document.getElementById('cart-line-total-' + productId);
+            const lineTotalEl = document.getElementById('cart-line-total-' + targetKey);
             if (lineTotalEl) lineTotalEl.textContent = '₹' + data.line_total;
         }
 
@@ -442,12 +465,14 @@ function updateCartItemQty(productId, newQty) {
     });
 }
 
-function removeCartItem(productId, productName) {
+function removeCartItem(productId, productName, cartItemId) {
     if (!confirm('Remove "' + productName + '" from your cart?')) {
         return;
     }
 
-    fetch('{{ url("/cart/item") }}/' + productId, {
+    const url = '{{ url("/cart/item") }}/' + productId + (cartItemId ? '?cart_item_id=' + cartItemId : '');
+
+    fetch(url, {
         method: 'DELETE',
         headers: {
             'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -457,7 +482,8 @@ function removeCartItem(productId, productName) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            const row = document.getElementById('cart-item-row-' + productId);
+            const targetKey = cartItemId || productId;
+            const row = document.getElementById('cart-item-row-' + targetKey);
             if (row) {
                 row.style.transition = 'all 0.3s ease';
                 row.style.opacity = '0';

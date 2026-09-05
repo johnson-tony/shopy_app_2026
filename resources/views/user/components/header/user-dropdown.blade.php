@@ -7,6 +7,9 @@
         <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition">
             <i class="fas fa-gauge-high w-5 text-slate-400"></i> Dashboard
         </a>
+        <a href="{{ route('orders.index') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition">
+            <i class="fas fa-box w-5 text-slate-400"></i> My Orders
+        </a>
         <a href="{{ route('profile') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition">
             <i class="fas fa-user w-5 text-slate-400"></i> Profile
         </a>

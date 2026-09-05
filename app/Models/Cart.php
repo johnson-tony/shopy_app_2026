@@ -190,7 +190,7 @@ class Cart extends Model
      *
      * @throws \InvalidArgumentException if product is out of stock
      */
-    public function addItem(Product $product, int $quantity = 1): CartItem
+    public function addItem(Product $product, int $quantity = 1, ?string $color = null, ?string $size = null): CartItem
     {
         if ($product->stock <= 0) {
             throw new \InvalidArgumentException("Sorry, {$product->name} is currently out of stock.");
@@ -198,7 +198,11 @@ class Cart extends Model
 
         $effectivePrice = $product->is_on_sale ? (float) $product->sale_price : (float) $product->price;
 
-        $item = $this->items()->where('product_id', $product->id)->first();
+        $item = $this->items()
+            ->where('product_id', $product->id)
+            ->when($color !== null && $color !== '', fn ($q) => $q->where('color', $color), fn ($q) => $q->whereNull('color'))
+            ->when($size !== null && $size !== '', fn ($q) => $q->where('size', $size), fn ($q) => $q->whereNull('size'))
+            ->first();
 
         if ($item) {
             $newQuantity = $item->quantity + $quantity;
@@ -213,6 +217,8 @@ class Cart extends Model
             $item = $this->items()->create([
                 'product_id' => $product->id,
                 'quantity'   => $initialQty,
+                'color'      => ($color !== '' ? $color : null),
+                'size'       => ($size !== '' ? $size : null),
                 'unit_price' => $effectivePrice,
             ]);
         }
@@ -226,9 +232,15 @@ class Cart extends Model
     /**
      * Update quantity of an item in the cart.
      */
-    public function updateItem(int $productId, int $quantity): ?CartItem
+    public function updateItem(int $productId, int $quantity, ?int $cartItemId = null): ?CartItem
     {
-        $item = $this->items()->where('product_id', $productId)->first();
+        $query = $this->items();
+        if ($cartItemId) {
+            $query->where('id', $cartItemId);
+        } else {
+            $query->where('product_id', $productId);
+        }
+        $item = $query->first();
 
         if (!$item) {
             return null;
@@ -256,9 +268,15 @@ class Cart extends Model
     /**
      * Remove an item from the cart.
      */
-    public function removeItem(int $productId): bool
+    public function removeItem(int $productId, ?int $cartItemId = null): bool
     {
-        $deleted = $this->items()->where('product_id', $productId)->delete();
+        $query = $this->items();
+        if ($cartItemId) {
+            $query->where('id', $cartItemId);
+        } else {
+            $query->where('product_id', $productId);
+        }
+        $deleted = $query->delete();
         $this->unsetRelation('items');
 
         return $deleted > 0;

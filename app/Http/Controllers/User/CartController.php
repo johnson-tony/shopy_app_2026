@@ -99,11 +99,15 @@ class CartController extends Controller
     public function add(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'product_id' => ['required', 'integer', 'exists:products,id'],
-            'quantity'   => ['nullable', 'integer', 'min:1'],
+            'product_id'   => ['required', 'integer', 'exists:products,id'],
+            'quantity'     => ['nullable', 'integer', 'min:1'],
+            'color'        => ['nullable', 'string', 'max:50'],
+            'size'         => ['nullable', 'string', 'max:50'],
         ]);
 
         $quantity = (int) ($validated['quantity'] ?? 1);
+        $color = !empty($validated['color']) ? trim($validated['color']) : null;
+        $size = !empty($validated['size']) ? trim($validated['size']) : null;
         $product = Product::with('mode')->findOrFail($validated['product_id']);
 
         if ($product->stock <= 0) {
@@ -121,7 +125,7 @@ class CartController extends Controller
         $cart = Cart::getOrCreate($user, $sessionId, $modeSlug);
 
         try {
-            $item = $cart->addItem($product, $quantity);
+            $item = $cart->addItem($product, $quantity, $color, $size);
         } catch (\InvalidArgumentException $e) {
             return response()->json([
                 'success' => false,
@@ -158,17 +162,19 @@ class CartController extends Controller
     public function updateQuantity(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'product_id' => ['required', 'integer', 'exists:products,id'],
-            'quantity'   => ['required', 'integer', 'min:0'],
+            'product_id'   => ['required', 'integer', 'exists:products,id'],
+            'quantity'     => ['required', 'integer', 'min:0'],
+            'cart_item_id' => ['nullable', 'integer'],
         ]);
 
         $product = Product::with('mode')->findOrFail($validated['product_id']);
         $user = Auth::guard('web')->user();
         $sessionId = $request->session()->getId();
         $modeSlug = $product->mode?->slug ?? 'shopy';
+        $cartItemId = !empty($validated['cart_item_id']) ? (int) $validated['cart_item_id'] : null;
 
         $cart = Cart::getOrCreate($user, $sessionId, $modeSlug);
-        $item = $cart->updateItem($product->id, (int) $validated['quantity']);
+        $item = $cart->updateItem($product->id, (int) $validated['quantity'], $cartItemId);
 
         $cartItemCount = $user ? $user->cartCount($modeSlug) : $cart->totalQuantity();
         $totalCartCount = $user ? $user->cartCount() : Cart::where('session_id', $sessionId)->with('items')->get()->sum(fn ($c) => $c->totalQuantity());
@@ -199,9 +205,10 @@ class CartController extends Controller
         $user = Auth::guard('web')->user();
         $sessionId = $request->session()->getId();
         $modeSlug = $product->mode?->slug ?? 'shopy';
+        $cartItemId = $request->input('cart_item_id') ? (int) $request->input('cart_item_id') : null;
 
         $cart = Cart::getOrCreate($user, $sessionId, $modeSlug);
-        $cart->removeItem($productId);
+        $cart->removeItem($productId, $cartItemId);
 
         if ($request->expectsJson()) {
             $cartItemCount = $user ? $user->cartCount($modeSlug) : $cart->totalQuantity();

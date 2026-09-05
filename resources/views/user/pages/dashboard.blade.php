@@ -17,7 +17,11 @@
                     Welcome to your personal Shopy store account. Manage your profile and security from here.
                 </p>
             </div>
-            <div class="flex items-center gap-3 shrink-0">
+            <div class="flex items-center gap-3 shrink-0 flex-wrap">
+                <a href="{{ route('orders.index') }}" class="px-5 py-2.5 rounded-xl bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition shadow-xs backdrop-blur-xs flex items-center gap-2">
+                    <i class="fa-solid fa-box text-xs"></i>
+                    <span>My Orders</span>
+                </a>
                 <a href="{{ route('user.addresses.index') }}" class="px-5 py-2.5 rounded-xl bg-white/20 text-white font-semibold text-sm hover:bg-white/30 transition shadow-xs backdrop-blur-xs flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
                     <span>My Addresses</span>

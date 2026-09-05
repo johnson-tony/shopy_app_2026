@@ -262,4 +262,108 @@ class ProductDetailTest extends TestCase
             'quantity' => 3,
         ]);
     }
+
+    public function test_quantity_stepper_is_only_visible_for_minutes_and_food_modes(): void
+    {
+        $shopyMode = Mode::where('slug', 'shopy')->firstOrFail();
+        $minutesMode = Mode::where('slug', 'minutes')->firstOrFail();
+        $foodMode = Mode::where('slug', 'food')->firstOrFail();
+
+        $shopyProduct = Product::where('mode_id', $shopyMode->id)->where('status', true)->firstOrFail();
+        $minutesProduct = Product::where('mode_id', $minutesMode->id)->where('status', true)->firstOrFail();
+        $foodProduct = Product::where('mode_id', $foodMode->id)->where('status', true)->firstOrFail();
+
+        // 1. Shopy mode: NO quantity stepper buttons, fixed hidden input 1
+        $resShopy = $this->get(route('product.show', $shopyProduct->slug));
+        $resShopy->assertStatus(200);
+        $resShopy->assertSee('type="hidden" id="pdpQuantity" value="1"', false);
+        $resShopy->assertDontSee('fa-minus', false);
+        $resShopy->assertDontSee('fa-plus', false);
+
+        // 2. Minutes mode: Quantity stepper buttons present
+        $resMinutes = $this->get(route('product.show', $minutesProduct->slug));
+        $resMinutes->assertStatus(200);
+        $resMinutes->assertSee('fa-minus', false);
+        $resMinutes->assertSee('fa-plus', false);
+
+        // 3. Food mode: Quantity stepper buttons present
+        $resFood = $this->get(route('product.show', $foodProduct->slug));
+        $resFood->assertStatus(200);
+        $resFood->assertSee('fa-minus', false);
+        $resFood->assertSee('fa-plus', false);
+    }
+
+    public function test_product_detail_displays_gallery_thumbnails_and_variants(): void
+    {
+        $shopyMode = Mode::where('slug', 'shopy')->firstOrFail();
+        $category = Category::where('mode_id', $shopyMode->id)->firstOrFail();
+
+        $variantProduct = Product::create([
+            'mode_id' => $shopyMode->id,
+            'category_id' => $category->id,
+            'name' => 'Premium Titanium Gadget',
+            'slug' => 'premium-titanium-gadget',
+            'sku' => 'VAR-GAD-01',
+            'price' => 999.00,
+            'stock' => 25,
+            'status' => true,
+            'images' => [
+                'https://placehold.co/400x400/e2e8f0/475569?text=Gadget+Angle1',
+                'https://placehold.co/400x400/334155/f8fafc?text=Gadget+Angle2',
+            ],
+            'colors' => [
+                ['name' => 'Midnight', 'hex' => '#0f172a'],
+                ['name' => 'Silver', 'hex' => '#cbd5e1'],
+            ],
+            'sizes' => ['128GB', '256GB', '512GB'],
+        ]);
+
+        $response = $this->get(route('product.show', $variantProduct->slug));
+        $response->assertStatus(200);
+
+        // Gallery thumbnails rendered
+        $response->assertSee('gallery-thumb-btn', false);
+        $response->assertSee('Gadget+Angle1', false);
+        $response->assertSee('Gadget+Angle2', false);
+
+        // Color swatches rendered
+        $response->assertSee('color-swatch-btn', false);
+        $response->assertSee('Midnight', false);
+        $response->assertSee('Silver', false);
+
+        // Size pills rendered
+        $response->assertSee('size-pill-btn', false);
+        $response->assertSee('128GB', false);
+        $response->assertSee('256GB', false);
+        $response->assertSee('512GB', false);
+    }
+
+    public function test_user_can_add_product_to_cart_with_color_and_size_variants(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::where('status', true)->firstOrFail();
+
+        $response = $this->actingAs($user)->postJson(route('cart.add'), [
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'color' => 'Space Black',
+            'size' => '256GB',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        $this->assertDatabaseHas('cart_items', [
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'color' => 'Space Black',
+            'size' => '256GB',
+        ]);
+
+        // Cart page displays selected variant badges
+        $cartPage = $this->actingAs($user)->get(route('cart.index'));
+        $cartPage->assertStatus(200);
+        $cartPage->assertSee('Space Black');
+        $cartPage->assertSee('256GB');
+    }
 }

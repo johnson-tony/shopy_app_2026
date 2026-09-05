@@ -13,7 +13,7 @@ class ProductDetailController extends Controller
      */
     public function show(string $slug): View
     {
-        $product = Product::with(['category.parent', 'mode'])
+        $product = Product::with(['category.parent', 'mode', 'approvedReviews.user'])
             ->where('slug', $slug)
             ->where('status', true)
             ->firstOrFail();
@@ -41,6 +41,19 @@ class ProductDetailController extends Controller
             default   => 499.00, // Shopy
         };
 
-        return view('user.pages.product-detail', compact('product', 'relatedProducts', 'freeDeliveryThreshold'));
+        // User purchase status & existing review check
+        $currentUser = auth()->guard('web')->user();
+        $hasPurchased = $currentUser ? $currentUser->hasPurchasedProduct($product) : false;
+        $userOrderId = $currentUser ? $currentUser->getOrderIdForProduct($product) : null;
+        $userReview = $currentUser ? $product->reviews()->where('user_id', $currentUser->id)->first() : null;
+
+        return view('user.pages.product-detail', compact(
+            'product',
+            'relatedProducts',
+            'freeDeliveryThreshold',
+            'hasPurchased',
+            'userOrderId',
+            'userReview'
+        ));
     }
 }

@@ -3,13 +3,16 @@
 use App\Http\Controllers\User\AddressController;
 use App\Http\Controllers\User\AuthController;
 use App\Http\Controllers\User\CartController;
+use App\Http\Controllers\User\CheckoutController;
 use App\Http\Controllers\User\CouponController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ForgotPasswordController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\ImpersonationController;
+use App\Http\Controllers\User\OrderController;
 use App\Http\Controllers\User\ProductDetailController;
 use App\Http\Controllers\User\ProfileController;
+use App\Http\Controllers\User\ReviewController;
 use App\Http\Controllers\User\WishlistController;
 use App\Models\Cart;
 
@@ -88,6 +91,21 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::delete('/{product}', [WishlistController::class, 'destroy'])->name('destroy');
         Route::post('/clear', [WishlistController::class, 'clear'])->name('clear');
     });
+
+    // Checkout Routes
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+    Route::post('/checkout/place-order', [CheckoutController::class, 'placeOrder'])->name('checkout.place_order');
+
+    // Customer Orders Routes
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [OrderController::class, 'index'])->name('index');
+        Route::get('/success/{order_number}', [OrderController::class, 'success'])->name('success');
+        Route::get('/{order_number}', [OrderController::class, 'show'])->name('show');
+        Route::post('/{order_number}/cancel', [OrderController::class, 'cancel'])->name('cancel');
+    });
+
+    // Customer Product Review Submission
+    Route::post('/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 });
 
 // Wishlist AJAX Toggle (accessible with unauthenticated handling)

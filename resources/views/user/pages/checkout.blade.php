@@ -1,0 +1,477 @@
+@extends('user.layouts.app')
+
+@section('title', 'Checkout')
+
+@section('content')
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+    <!-- Breadcrumb & Step Navigation -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+        <div>
+            <nav class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+                <a href="{{ route('home') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition">Home</a>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                <a href="{{ route('cart.index', ['mode' => $cart->mode?->slug]) }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition">Cart</a>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                <span class="text-slate-900 dark:text-white font-semibold">Checkout</span>
+            </nav>
+            <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-1 flex items-center gap-2.5">
+                <i class="fa-solid fa-shield-check text-emerald-600"></i>
+                <span>Secure Checkout</span>
+            </h1>
+        </div>
+
+        <!-- Checkout Steps Pill -->
+        <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl text-xs font-semibold">
+            <span class="px-3 py-1 rounded-xl bg-white dark:bg-slate-700 text-slate-400 dark:text-slate-400 line-through">1. Cart</span>
+            <i class="fa-solid fa-arrow-right text-[10px] text-slate-400"></i>
+            <span class="px-3 py-1 rounded-xl bg-indigo-600 text-white shadow-xs">2. Order &amp; Delivery</span>
+            <i class="fa-solid fa-arrow-right text-[10px] text-slate-400"></i>
+            <span class="px-3 py-1 rounded-xl text-slate-400">3. Confirmation</span>
+        </div>
+    </div>
+
+    <!-- Main Checkout Form -->
+    <form action="{{ route('checkout.place_order') }}" method="POST" id="checkoutForm" class="space-y-8">
+        @csrf
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- Left Column: Delivery Address & Payment Method Selection (7/12 Cols) -->
+            <div class="lg:col-span-7 space-y-8">
+
+                <!-- 1. Delivery Address Card -->
+                <div class="bg-white dark:bg-slate-800/90 rounded-3xl p-6 border border-slate-200 dark:border-slate-700/80 shadow-sm space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-sm">1</span>
+                            <div>
+                                <h2 class="text-base font-bold text-slate-900 dark:text-white">Delivery Address</h2>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Where should we deliver your order?</p>
+                            </div>
+                        </div>
+
+                        @if($addresses->count() > 0)
+                            <button type="button" 
+                                    id="toggleNewAddressBtn"
+                                    onclick="toggleNewAddressSection();"
+                                    class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer">
+                                <i class="fa-solid fa-plus text-[10px]"></i>
+                                <span id="toggleAddressBtnText">Add New Address</span>
+                            </button>
+                        @endif
+                    </div>
+
+                    <!-- Hidden address source input -->
+                    <input type="hidden" name="address_source" id="addressSourceInput" value="{{ $addresses->count() > 0 ? 'existing' : 'new' }}">
+
+                    <!-- Existing Addresses List -->
+                    @if($addresses->count() > 0)
+                        <div id="existingAddressesSection" class="space-y-3">
+                            <div class="grid grid-cols-1 gap-3">
+                                @foreach($addresses as $addr)
+                                    <label class="relative flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition select-none {{ (old('address_id', $defaultAddress?->id) == $addr->id) ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-950/30' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600' }}">
+                                        <input type="radio" 
+                                               name="address_id" 
+                                               value="{{ $addr->id }}" 
+                                               class="mt-1 text-indigo-600 focus:ring-indigo-500" 
+                                               {{ (old('address_id', $defaultAddress?->id) == $addr->id) ? 'checked' : '' }}
+                                               onchange="highlightSelectedAddress(this)">
+                                        
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                                <span class="font-bold text-sm text-slate-900 dark:text-white">{{ $addr->full_name }}</span>
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                                                    {{ $addr->address_type ?? 'Home' }}
+                                                </span>
+                                                @if($addr->is_default)
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400">
+                                                        Default
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                                {{ $addr->formatted_address }}
+                                            </p>
+                                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
+                                                <i class="fa-solid fa-phone text-[10px]"></i>
+                                                <span>{{ $addr->phone }}</span>
+                                            </p>
+                                        </div>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- New Address Form (Toggleable or default if 0 addresses) -->
+                    <div id="newAddressSection" class="{{ $addresses->count() > 0 ? 'hidden' : 'block' }} space-y-4 pt-2">
+                        <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/80 space-y-4">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                Enter Delivery Address Details
+                            </h3>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Full Name *</label>
+                                    <input type="text" name="full_name" value="{{ old('full_name', auth()->user()->name) }}" placeholder="e.g. Rahul Sharma" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Contact Phone *</label>
+                                    <input type="text" name="phone" value="{{ old('phone', auth()->user()->phone) }}" placeholder="10-digit mobile number" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Street Address / House No. / Flat *</label>
+                                <input type="text" name="address_line1" value="{{ old('address_line1') }}" placeholder="Flat, House no., Building, Apartment" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Area / Sector / Locality</label>
+                                    <input type="text" name="address_line2" value="{{ old('address_line2') }}" placeholder="Area or Colony" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Landmark (Optional)</label>
+                                    <input type="text" name="landmark" value="{{ old('landmark') }}" placeholder="e.g. Near City Hospital" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">City *</label>
+                                    <input type="text" name="city" value="{{ old('city') }}" placeholder="City" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">State *</label>
+                                    <input type="text" name="state" value="{{ old('state') }}" placeholder="State" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Pincode *</label>
+                                    <input type="text" name="postal_code" value="{{ old('postal_code') }}" placeholder="6-digit Pincode" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-2">
+                                <div class="flex items-center gap-4">
+                                    <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                                        <input type="radio" name="address_type" value="home" checked class="text-indigo-600">
+                                        <span>Home</span>
+                                    </label>
+                                    <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                                        <input type="radio" name="address_type" value="work" class="text-indigo-600">
+                                        <span>Work</span>
+                                    </label>
+                                </div>
+
+                                <label class="inline-flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+                                    <input type="checkbox" name="save_address" value="1" checked class="rounded text-indigo-600">
+                                    <span>Save to address book</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Payment Method Selector (Mock / Cash on Delivery without Gateway Credentials) -->
+                <div class="bg-white dark:bg-slate-800/90 rounded-3xl p-6 border border-slate-200 dark:border-slate-700/80 shadow-sm space-y-6">
+                    <div class="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-slate-700">
+                        <span class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-sm">2</span>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-900 dark:text-white">Select Payment Method</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Safe and flexible payment options</p>
+                        </div>
+                    </div>
+
+                    <!-- Payment Options -->
+                    <div class="space-y-3">
+                        <!-- COD / Pay on Delivery (Pre-selected) -->
+                        <label class="relative flex items-start gap-4 p-4 rounded-2xl border-2 border-indigo-600 bg-indigo-50/30 dark:bg-indigo-950/30 cursor-pointer transition select-none payment-option-card">
+                            <input type="radio" 
+                                   name="payment_method" 
+                                   value="pay_on_delivery" 
+                                   checked 
+                                   class="mt-1 text-indigo-600 focus:ring-indigo-500" 
+                                   onchange="updatePaymentCardHighlight(this)">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fa-solid fa-hand-holding-dollar text-indigo-600 dark:text-indigo-400 text-lg"></i>
+                                        <span class="font-bold text-sm text-slate-900 dark:text-white">Pay on Delivery (Cash / Doorstep UPI)</span>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
+                                        Recommended
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    Pay securely at your doorstep via Cash or scan delivery partner's QR code. No advance payment required.
+                                </p>
+                            </div>
+                        </label>
+
+                        <!-- Mock UPI -->
+                        <label class="relative flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer transition select-none payment-option-card">
+                            <input type="radio" 
+                                   name="payment_method" 
+                                   value="mock_upi" 
+                                   class="mt-1 text-indigo-600 focus:ring-indigo-500" 
+                                   onchange="updatePaymentCardHighlight(this)">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fa-solid fa-qrcode text-indigo-600 dark:text-indigo-400 text-lg"></i>
+                                        <span class="font-bold text-sm text-slate-900 dark:text-white">UPI / Instant QR (Test / Mock Mode)</span>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
+                                        Instant Confirm
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    Google Pay, PhonePe, Paytm, BHIM. (Payment gateway in simulation mode; order confirms immediately without deducting money).
+                                </p>
+                            </div>
+                        </label>
+
+                        <!-- Mock Credit / Debit Card -->
+                        <label class="relative flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer transition select-none payment-option-card">
+                            <input type="radio" 
+                                   name="payment_method" 
+                                   value="mock_card" 
+                                   class="mt-1 text-indigo-600 focus:ring-indigo-500" 
+                                   onchange="updatePaymentCardHighlight(this)">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fa-regular fa-credit-card text-indigo-600 dark:text-indigo-400 text-lg"></i>
+                                        <span class="font-bold text-sm text-slate-900 dark:text-white">Credit / Debit Card (Test Mode)</span>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
+                                        Visa / MC / RuPay
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    Simulate card checkout. Instant approval without connecting third-party gateway credentials.
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Delivery Instructions / Order Notes -->
+                    <div class="pt-2">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                            Delivery Instructions or Order Notes (Optional)
+                        </label>
+                        <input type="text" 
+                               name="notes" 
+                               value="{{ old('notes') }}" 
+                               placeholder="e.g. Leave package with security guard, or call before delivery" 
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- 3. Review Order Items Preview -->
+                <div class="bg-white dark:bg-slate-800/90 rounded-3xl p-6 border border-slate-200 dark:border-slate-700/80 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-sm">3</span>
+                            <div>
+                                <h2 class="text-base font-bold text-slate-900 dark:text-white">Items in this Order ({{ $cart->totalQuantity() }})</h2>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Review selected quantities and variants</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('cart.index') }}" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+                            Edit Cart
+                        </a>
+                    </div>
+
+                    <div class="divide-y divide-slate-100 dark:divide-slate-700/60">
+                        @foreach($cart->items as $item)
+                            <div class="py-3.5 flex items-center gap-4">
+                                <img src="{{ $item->product?->image_url ?? 'https://placehold.co/100x100' }}" 
+                                     alt="{{ $item->product?->name }}" 
+                                     class="w-14 h-14 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shrink-0">
+                                
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                                        {{ $item->product?->name ?? 'Product' }}
+                                    </h4>
+                                    <div class="flex flex-wrap items-center gap-2 mt-1">
+                                        @if($item->color)
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/60 px-2 py-0.5 rounded-md">
+                                                Color: <strong>{{ $item->color }}</strong>
+                                            </span>
+                                        @endif
+                                        @if($item->size)
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/60 px-2 py-0.5 rounded-md">
+                                                Size: <strong>{{ $item->size }}</strong>
+                                            </span>
+                                        @endif
+                                        <span class="text-[11px] text-slate-500 dark:text-slate-400">
+                                            Qty: <strong>{{ $item->quantity }}</strong>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="text-right shrink-0">
+                                    <span class="text-sm font-bold text-slate-900 dark:text-white block">
+                                        ₹{{ number_format($item->unit_price * $item->quantity, 2) }}
+                                    </span>
+                                    <span class="text-[10px] text-slate-400">
+                                        ₹{{ number_format($item->unit_price, 2) }} each
+                                    </span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Price Summary & Place Order Sticky Card (5/12 Cols) -->
+            <div class="lg:col-span-5 space-y-6 sticky top-24">
+                
+                <!-- Order Summary Card -->
+                <div class="bg-white dark:bg-slate-800/90 rounded-3xl p-6 border border-slate-200 dark:border-slate-700/80 shadow-sm space-y-5">
+                    <h3 class="text-base font-black text-slate-900 dark:text-white tracking-tight pb-3 border-b border-slate-100 dark:border-slate-700">
+                        Order Summary
+                    </h3>
+
+                    <div class="space-y-3 text-sm">
+                        <!-- Subtotal -->
+                        <div class="flex items-center justify-between text-slate-600 dark:text-slate-400">
+                            <span>Item Subtotal</span>
+                            <span class="font-semibold text-slate-900 dark:text-white">₹{{ number_format($subtotal, 2) }}</span>
+                        </div>
+
+                        <!-- Delivery Fee -->
+                        <div class="flex items-center justify-between text-slate-600 dark:text-slate-400">
+                            <span class="flex items-center gap-1.5">
+                                <span>Delivery Fee</span>
+                                @if($deliveryFee == 0)
+                                    <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">FREE</span>
+                                @endif
+                            </span>
+                            <span class="font-semibold {{ $deliveryFee == 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white' }}">
+                                {{ $deliveryFee == 0 ? 'FREE' : '₹' . number_format($deliveryFee, 2) }}
+                            </span>
+                        </div>
+
+                        <!-- Taxes -->
+                        <div class="flex items-center justify-between text-slate-600 dark:text-slate-400">
+                            <span>Estimated GST (5%)</span>
+                            <span class="font-semibold text-slate-900 dark:text-white">₹{{ number_format($taxAmount, 2) }}</span>
+                        </div>
+
+                        <!-- Coupon Discount -->
+                        @if($discountAmount > 0)
+                            <div class="flex items-center justify-between text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 p-2.5 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-tag text-xs"></i>
+                                    <span>Coupon Discount ({{ $cart->coupon_code }})</span>
+                                </span>
+                                <span class="font-bold">-₹{{ number_format($discountAmount, 2) }}</span>
+                            </div>
+                        @endif
+
+                        <!-- Grand Total Divider -->
+                        <div class="pt-3 border-t border-slate-100 dark:border-slate-700 flex items-baseline justify-between">
+                            <div>
+                                <span class="text-base font-black text-slate-900 dark:text-white block">Total Amount</span>
+                                <span class="text-[11px] text-slate-400 block">Inclusive of all taxes</span>
+                            </div>
+                            <span class="text-2xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">
+                                ₹{{ number_format($grandTotal, 2) }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Place Order Button -->
+                    <div class="pt-2">
+                        <button type="submit" 
+                                id="placeOrderBtn"
+                                class="w-full py-4 px-6 rounded-2xl font-black text-base text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] transition shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-lock text-sm"></i>
+                            <span>Confirm &amp; Place Order</span>
+                            <i class="fa-solid fa-arrow-right text-xs ml-1"></i>
+                        </button>
+                        <p class="text-center text-[11px] text-slate-400 mt-2">
+                            By placing order you agree to the Terms of Service
+                        </p>
+                    </div>
+
+                    <!-- Trust & Guarantee Badges -->
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-700 space-y-2.5 text-xs text-slate-500 dark:text-slate-400">
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-shield-halved text-emerald-500"></i>
+                            <span>100% Safe &amp; Secure Order Placement</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-truck-fast text-indigo-500"></i>
+                            <span>Free replacement on damaged delivery</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-handshake-angle text-amber-500"></i>
+                            <span>Cash on Delivery / UPI at your doorstep</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@push('scripts')
+<script>
+    function toggleNewAddressSection() {
+        const newSec = document.getElementById('newAddressSection');
+        const existSec = document.getElementById('existingAddressesSection');
+        const sourceInput = document.getElementById('addressSourceInput');
+        const btnText = document.getElementById('toggleAddressBtnText');
+
+        if (newSec.classList.contains('hidden')) {
+            newSec.classList.remove('hidden');
+            if (existSec) existSec.classList.add('opacity-50', 'pointer-events-none');
+            sourceInput.value = 'new';
+            if (btnText) btnText.textContent = 'Select Saved Address';
+        } else {
+            newSec.classList.add('hidden');
+            if (existSec) existSec.classList.remove('opacity-50', 'pointer-events-none');
+            sourceInput.value = 'existing';
+            if (btnText) btnText.textContent = 'Add New Address';
+        }
+    }
+
+    function highlightSelectedAddress(radioEl) {
+        document.querySelectorAll('#existingAddressesSection label').forEach(label => {
+            label.classList.remove('border-indigo-600', 'bg-indigo-50/40', 'dark:bg-indigo-950/30');
+            label.classList.add('border-slate-200', 'dark:border-slate-700');
+        });
+        const parentLabel = radioEl.closest('label');
+        if (parentLabel) {
+            parentLabel.classList.remove('border-slate-200', 'dark:border-slate-700');
+            parentLabel.classList.add('border-indigo-600', 'bg-indigo-50/40', 'dark:bg-indigo-950/30');
+        }
+    }
+
+    function updatePaymentCardHighlight(radioEl) {
+        document.querySelectorAll('.payment-option-card').forEach(card => {
+            card.classList.remove('border-indigo-600', 'bg-indigo-50/30', 'dark:bg-indigo-950/30');
+            card.classList.add('border-slate-200', 'dark:border-slate-700');
+        });
+        const parent = radioEl.closest('.payment-option-card');
+        if (parent) {
+            parent.classList.remove('border-slate-200', 'dark:border-slate-700');
+            parent.classList.add('border-indigo-600', 'bg-indigo-50/30', 'dark:bg-indigo-950/30');
+        }
+    }
+
+    document.getElementById('checkoutForm')?.addEventListener('submit', function(e) {
+        const btn = document.getElementById('placeOrderBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Placing Order...';
+        }
+    });
+</script>
+@endpush
+@endsection
