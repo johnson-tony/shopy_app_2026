@@ -172,6 +172,14 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('modalProductName').textContent = card.dataset.productName || '';
             document.getElementById('modalProductCategory').textContent = card.dataset.productCategory || '';
             document.getElementById('modalProductMode').textContent = card.dataset.productMode || '';
+            
+            const deliveryText = card.dataset.productDelivery || '10-15 mins';
+            const deliveryIcon = card.dataset.productDeliveryIcon || 'fa-solid fa-bolt';
+            const modalDelivery = document.getElementById('modalProductDelivery');
+            const modalDeliveryIcon = document.getElementById('modalProductDeliveryIcon');
+            if (modalDelivery) modalDelivery.textContent = deliveryText;
+            if (modalDeliveryIcon) modalDeliveryIcon.className = deliveryIcon + ' text-[10px]';
+
             document.getElementById('modalProductPrice').textContent = card.dataset.productPrice || '';
             document.getElementById('modalProductCompare').textContent = card.dataset.productCompare || '';
             document.getElementById('modalProductDescription').textContent = card.dataset.productDescription || '';

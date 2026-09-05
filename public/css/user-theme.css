@@ -2118,6 +2118,35 @@ body {
     backdrop-filter: blur(4px);
     z-index: 2;
 }
+.delivery-eta-badge {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.96);
+    color: #0f172a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    backdrop-filter: blur(6px);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 4.5px;
+    letter-spacing: 0.04em;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.dark .delivery-eta-badge {
+    background: rgba(15, 23, 42, 0.92);
+    color: #f8fafc;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.delivery-eta-badge i {
+    font-size: 0.62rem;
+}
 .wishlist-btn {
     position: absolute;
     top: 10px;

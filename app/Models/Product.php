@@ -34,6 +34,7 @@ class Product extends Model
         'price',
         'sale_price',
         'stock',
+        'delivery_time',
         'image',
         'status',
         'featured',
@@ -92,6 +93,44 @@ class Product extends Model
         return Wishlist::where('product_id', $this->id)
             ->where('user_id', $user->id)
             ->exists();
+    }
+
+    /**
+     * Estimated delivery timing for this product.
+     * Falls back to the shopping mode default if not customized.
+     */
+    public function deliveryEstimate(): string
+    {
+        if (!empty($this->delivery_time)) {
+            return $this->delivery_time;
+        }
+
+        $modeSlug = $this->mode?->slug ?? 'shopy';
+
+        return match ($modeSlug) {
+            'minutes' => '10-15 mins',
+            'food'    => '30-45 mins',
+            default   => '2-3 days',
+        };
+    }
+
+    /**
+     * FontAwesome icon class matching delivery type.
+     */
+    public function deliveryIcon(): string
+    {
+        $estimate = strtolower($this->deliveryEstimate());
+        $modeSlug = $this->mode?->slug ?? 'shopy';
+
+        if ($modeSlug === 'food') {
+            return 'fa-solid fa-motorcycle';
+        }
+
+        if ($modeSlug === 'minutes' || str_contains($estimate, 'min')) {
+            return 'fa-solid fa-bolt';
+        }
+
+        return 'fa-solid fa-truck-fast';
     }
 
     /**

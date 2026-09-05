@@ -126,6 +126,10 @@
                                 <span class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
                                     {{ $p->category?->name ?? 'General' }}
                                 </span>
+                                <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                    <i class="{{ $p->deliveryIcon() }} text-[9px]"></i>
+                                    <span>{{ $p->deliveryEstimate() }}</span>
+                                </span>
                                 @if($isLowStock)
                                     <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50">
                                         Only {{ $p->stock }} left

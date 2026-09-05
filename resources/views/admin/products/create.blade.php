@@ -208,6 +208,38 @@
                             @enderror
                         </div>
                     </div>
+
+                    <!-- Delivery Timing Option -->
+                    <div class="pt-2 border-t border-slate-800/80">
+                        <label for="delivery_time" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                            <span>Estimated Delivery Timing</span>
+                            <span class="text-indigo-400 font-mono text-[10px] font-normal lowercase">(optional - overrides channel default)</span>
+                        </label>
+                        <select id="delivery_time" name="delivery_time" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 @error('delivery_time') border-rose-500 @enderror">
+                            <option value="">Channel Default (Automated: 10-15m Minutes, 30-45m Food, 2-3d Shopy)</option>
+                            <optgroup label="⚡ Quick Commerce (Minutes)">
+                                <option value="10-15 mins" {{ old('delivery_time') === '10-15 mins' ? 'selected' : '' }}>⚡ 10-15 mins (Standard Quick Delivery)</option>
+                                <option value="15-25 mins" {{ old('delivery_time') === '15-25 mins' ? 'selected' : '' }}>⚡ 15-25 mins (Fresh Bakery / Dairy)</option>
+                                <option value="25-35 mins" {{ old('delivery_time') === '25-35 mins' ? 'selected' : '' }}>⚡ 25-35 mins (Extended Hub Item)</option>
+                            </optgroup>
+                            <optgroup label="🛵 Hot Food & Kitchen (Food)">
+                                <option value="20-30 mins" {{ old('delivery_time') === '20-30 mins' ? 'selected' : '' }}>🛵 20-30 mins (Fast Food, Beverages & Desserts)</option>
+                                <option value="30-45 mins" {{ old('delivery_time') === '30-45 mins' ? 'selected' : '' }}>🛵 30-45 mins (Cooked Meals, Biryani & Curries)</option>
+                                <option value="45-60 mins" {{ old('delivery_time') === '45-60 mins' ? 'selected' : '' }}>🛵 45-60 mins (Tandoor & Slow-Cooked Dishes)</option>
+                                <option value="1-2 hours" {{ old('delivery_time') === '1-2 hours' ? 'selected' : '' }}>🎂 1-2 hours (Cakes & Custom Baking)</option>
+                            </optgroup>
+                            <optgroup label="🚚 Standard Shipping (Shopy)">
+                                <option value="Same Day" {{ old('delivery_time') === 'Same Day' ? 'selected' : '' }}>🚚 Same Day Delivery (Local City Orders)</option>
+                                <option value="Tomorrow" {{ old('delivery_time') === 'Tomorrow' ? 'selected' : '' }}>🚚 Tomorrow / Next Day Delivery</option>
+                                <option value="2-3 days" {{ old('delivery_time') === '2-3 days' ? 'selected' : '' }}>🚚 2-3 Business Days (Standard Courier)</option>
+                                <option value="4-7 days" {{ old('delivery_time') === '4-7 days' ? 'selected' : '' }}>🚚 4-7 Days (Bulky / Freight Goods)</option>
+                            </optgroup>
+                        </select>
+                        <p class="text-[11px] text-slate-500 mt-1">Leave as Channel Default for automated timing or pick a specific duration for this item.</p>
+                        @error('delivery_time')
+                            <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
             </div>

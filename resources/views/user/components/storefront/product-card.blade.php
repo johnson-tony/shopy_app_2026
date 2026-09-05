@@ -16,6 +16,8 @@
      data-product-image="{{ $imageUrl }}"
      data-product-category="{{ $product->category?->name ?? 'Store Item' }}"
      data-product-mode="{{ $product->mode?->name ?? 'Store' }}"
+     data-product-delivery="{{ $product->deliveryEstimate() }}"
+     data-product-delivery-icon="{{ $product->deliveryIcon() }}"
      data-product-description="{{ $product->short_description ?? $product->description ?? 'Premium authentic product available on Shopy.' }}"
      data-product-stock="{{ $product->stock ?? 0 }}">
     
@@ -34,12 +36,11 @@
             </div>
         @endif
 
-        @if($product->mode)
-            <div class="mode-tag-badge">
-                @if($product->mode->icon)<i class="{{ $product->mode->icon }} mr-1"></i>@endif
-                {{ $product->mode->name }}
-            </div>
-        @endif
+        <!-- Minimal Clean Top-Notch Delivery Timing Pill -->
+        <div class="delivery-eta-badge" title="Estimated delivery: {{ $product->deliveryEstimate() }}">
+            <i class="{{ $product->deliveryIcon() }}"></i>
+            <span>{{ strtoupper($product->deliveryEstimate()) }}</span>
+        </div>
 
         <button type="button" 
                 class="wishlist-btn shopy-wishlist-btn {{ $isWishlisted ? 'active text-rose-500' : 'text-slate-400' }}" 
@@ -53,8 +54,13 @@
 
     <!-- Product Details -->
     <div class="product-details">
-        <div class="product-category-sub">
-            {{ $product->category?->name ?? 'General' }}
+        <div class="product-category-sub flex items-center justify-between">
+            <span>{{ $product->category?->name ?? 'General' }}</span>
+            @if($product->mode)
+                <span class="text-[10px] font-medium text-slate-400 dark:text-slate-500">
+                    {{ $product->mode->name }}
+                </span>
+            @endif
         </div>
 
         <div class="product-title">

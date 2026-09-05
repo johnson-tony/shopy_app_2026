@@ -9,9 +9,13 @@
 
         <!-- Right: Product Details -->
         <div class="modal-right">
-            <div class="flex items-center gap-2 mb-2">
+            <div class="flex items-center gap-2 mb-2 flex-wrap">
                 <span id="modalProductCategory" class="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 dark:text-indigo-400 px-2.5 py-0.5 rounded-full"></span>
                 <span id="modalProductMode" class="text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full"></span>
+                <span id="modalProductDeliveryWrapper" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    <i id="modalProductDeliveryIcon" class="fa-solid fa-bolt text-[10px]"></i>
+                    <span id="modalProductDelivery">10-15 mins</span>
+                </span>
             </div>
 
             <h2 id="modalProductName" class="text-xl font-bold text-slate-900 dark:text-white leading-snug mb-3"></h2>
