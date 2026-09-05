@@ -51,7 +51,7 @@
             <a href="{{ Route::has('orders.history') ? route('orders.history') : url('/orders') }}">
                 <i class="fas fa-box mr-2 text-slate-400"></i> My Orders
             </a>
-            <a href="{{ Route::has('wishlist.index') ? route('wishlist.index') : url('/wishlist') }}">
+            <a href="{{ route('wishlist.index', ['mode' => session('active_shopping_mode', 'shopy')]) }}">
                 <i class="fas fa-heart mr-2 text-slate-400"></i> Wishlist
             </a>
             @if (Route::has('user.addresses.index'))

@@ -38,7 +38,7 @@
             </a>
         </li>
         <li>
-            <a href="{{ Route::has('shop.index') ? route('shop.index') : url('/shop') }}" class="{{ request()->routeIs('shop.*') ? 'active' : '' }}">
+            <a href="{{ route('home', ['mode' => 'shopy']) }}" class="{{ request()->query('mode') === 'shopy' ? 'active' : '' }}">
                 <span><i class="fas fa-bag-shopping mr-2 text-slate-400"></i> Shop</span>
             </a>
         </li>
@@ -67,7 +67,7 @@
         </li>
         @auth
             <li>
-                <a href="{{ Route::has('wishlist.index') ? route('wishlist.index') : url('/wishlist') }}" class="{{ request()->is('wishlist*') ? 'active' : '' }}">
+                <a href="{{ route('wishlist.index', ['mode' => session('active_shopping_mode', 'shopy')]) }}" class="{{ request()->is('wishlist*') ? 'active' : '' }}">
                     <span><i class="fas fa-heart mr-2 text-slate-400"></i> Wishlist</span>
                 </a>
             </li>

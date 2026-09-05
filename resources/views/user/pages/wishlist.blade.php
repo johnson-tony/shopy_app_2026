@@ -6,15 +6,30 @@
 <div class="space-y-6">
     <!-- Breadcrumb & Title -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+        @php
+            $currentModeModel = $modes->firstWhere('slug', $selectedMode);
+            $modeTitle = ($selectedMode && $selectedMode !== 'all' && $currentModeModel) 
+                ? $currentModeModel->name . ' Wishlist' 
+                : 'My Wishlist';
+        @endphp
         <div>
             <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
                 <a href="{{ route('home') }}" class="hover:text-indigo-600 transition">Home</a>
+                @if($currentModeModel && $selectedMode !== 'all')
+                    <span>/</span>
+                    <a href="{{ route('home', ['mode' => $currentModeModel->slug]) }}" class="hover:text-indigo-600 transition">{{ $currentModeModel->name }}</a>
+                @endif
                 <span>/</span>
-                <span class="text-slate-700 dark:text-slate-300 font-medium">My Wishlist</span>
+                <span class="text-slate-700 dark:text-slate-300 font-medium">{{ $modeTitle }}</span>
             </div>
             <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
                 <span class="text-rose-500">❤️</span>
                 <span>My Wishlist</span>
+                @if($currentModeModel && $selectedMode && $selectedMode !== 'all')
+                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                        {{ $currentModeModel->name }}
+                    </span>
+                @endif
                 <span class="text-sm font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400" id="wishlistItemsCount">
                     {{ $wishlistProducts->total() }} {{ Str::plural('item', $wishlistProducts->total()) }}
                 </span>
@@ -33,19 +48,16 @@
         @endif
     </div>
 
-    <!-- Mode Filter Tabs (Shopy / Minutes / Food) -->
-    @if(($totalCount ?? 0) > 0 && isset($modes) && count($modes) > 1)
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-            <!-- All Modes Tab -->
-            <a href="{{ route('wishlist.index') }}" 
-               class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 {{ empty($selectedMode) ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700' }}">
-                <span>All Items</span>
-                <span class="text-[10px] px-1.5 py-0.2 rounded-full {{ empty($selectedMode) ? 'bg-white/20 text-white dark:bg-slate-900/20 dark:text-slate-900' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300' }}">
-                    {{ $totalCount ?? 0 }}
-                </span>
-            </a>
+    <!-- Mode Filter Tabs (Only show modes with items > 0, hiding empty 0-count stores) -->
+    @php
+        $modesWithItems = $modes->filter(function($mode) use ($modeCounts, $selectedMode) {
+            return ($modeCounts[$mode->slug] ?? 0) > 0 || $selectedMode === $mode->slug;
+        });
+    @endphp
 
-            @foreach($modes as $mode)
+    @if(($totalCount ?? 0) > 0 && ($modesWithItems->count() > 1 || $selectedMode === 'all'))
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            @foreach($modesWithItems as $mode)
                 @php
                     $countForMode = $modeCounts[$mode->slug] ?? 0;
                     $isActive = $selectedMode === $mode->slug;
@@ -59,6 +71,17 @@
                     </span>
                 </a>
             @endforeach
+
+            @if($modesWithItems->count() > 1)
+                <!-- All Stores Tab -->
+                <a href="{{ route('wishlist.index', ['mode' => 'all']) }}" 
+                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 {{ $selectedMode === 'all' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700' }}">
+                    <span>All Stores</span>
+                    <span class="text-[10px] px-1.5 py-0.2 rounded-full {{ $selectedMode === 'all' ? 'bg-white/20 text-white dark:bg-slate-900/20 dark:text-slate-900' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300' }}">
+                        {{ $totalCount ?? 0 }}
+                    </span>
+                </a>
+            @endif
         </div>
     @endif
 
@@ -154,7 +177,7 @@
                             <button type="button" 
                                     class="w-full py-2 px-3 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                     {{ !$inStock ? 'disabled' : '' }}
-                                    onclick="if(typeof toastr !== 'undefined') toastr.success('Added {{ addslashes($product->name) }} to cart!');">
+                                    onclick="window.addToCart({{ $product->id }}, 1, this);">
                                 <i class="fa-solid fa-cart-plus"></i>
                                 <span>{{ $inStock ? 'Add to Cart' : 'Out of Stock' }}</span>
                             </button>
@@ -175,11 +198,16 @@
                 <i class="fa-regular fa-heart text-3xl"></i>
             </div>
             <h2 class="text-xl font-bold text-slate-900 dark:text-white">Your Wishlist is Empty</h2>
+            @if($selectedMode && $selectedMode !== 'all' && $currentModeModel)
+                <p class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mt-1 uppercase tracking-wider">
+                    {{ $currentModeModel->name }} Store
+                </p>
+            @endif
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1.5 max-w-sm mx-auto">
-                Explore our store and tap the heart icon on any product to save your favorites here.
+                {{ $selectedMode && $selectedMode !== 'all' && $currentModeModel ? "Browse {$currentModeModel->name} products and tap the heart icon to save your favorites." : 'Explore our store and tap the heart icon on any product to save your favorites here.' }}
             </p>
             <div class="mt-6">
-                <a href="{{ route('home') }}" 
+                <a href="{{ $selectedMode && $selectedMode !== 'all' && $currentModeModel ? route('home', ['mode' => $currentModeModel->slug]) : route('home') }}" 
                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition">
                     <i class="fa-solid fa-bag-shopping"></i>
                     <span>Start Shopping</span>

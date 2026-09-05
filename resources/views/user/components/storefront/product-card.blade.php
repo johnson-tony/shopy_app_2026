@@ -85,7 +85,7 @@
         @if($inStock)
             <button type="button" 
                     class="add-to-cart"
-                    onclick="if(typeof toastr !== 'undefined') toastr.success('{{ addslashes($product->name) }} added to cart!');">
+                    onclick="window.addToCart({{ $product->id }}, 1, this)">
                 <i class="fas fa-bag-shopping text-xs"></i> Add to Cart
             </button>
         @else

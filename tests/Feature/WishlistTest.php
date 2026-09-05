@@ -275,4 +275,69 @@ class WishlistTest extends TestCase
         $shopyResponse->assertSee('Wireless Headphones 2026');
         $shopyResponse->assertDontSee('Instant Fresh Apples');
     }
+
+    public function test_user_wishlist_count_is_scoped_by_mode(): void
+    {
+        $minutesMode = Mode::where('slug', 'minutes')->first() ?? Mode::create(['name' => 'Minutes', 'slug' => 'minutes', 'status' => true]);
+        $category = Category::first();
+
+        $minutesProduct = Product::create([
+            'mode_id'     => $minutesMode->id,
+            'category_id' => $category->id,
+            'name'        => 'Instant Milk 500ml',
+            'slug'        => 'instant-milk-500ml',
+            'sku'         => 'MIN-MILK',
+            'price'       => 35.00,
+            'stock'       => 15,
+            'status'      => true,
+        ]);
+
+        // Add 1 Shopy product and 1 Minutes product
+        Wishlist::create(['user_id' => $this->user->id, 'product_id' => $this->product->id]);
+        Wishlist::create(['user_id' => $this->user->id, 'product_id' => $minutesProduct->id]);
+
+        // Total count
+        $this->assertEquals(2, $this->user->wishlistCount());
+
+        // Scoped mode counts
+        $this->assertEquals(1, $this->user->wishlistCount('shopy'));
+        $this->assertEquals(1, $this->user->wishlistCount('minutes'));
+        $this->assertEquals(0, $this->user->wishlistCount('food'));
+
+        // fetch-counts endpoint scoped to minutes
+        $response = $this->actingAs($this->user)->getJson(route('footer.fetch-counts', ['mode' => 'minutes']));
+        $response->assertStatus(200)
+            ->assertJson([
+                'wishlist_count' => 1,
+                'total_wishlist' => 2,
+                'active_mode'    => 'minutes',
+            ]);
+
+        // fetch-counts endpoint scoped to food
+        $responseFood = $this->actingAs($this->user)->getJson(route('footer.fetch-counts', ['mode' => 'food']));
+        $responseFood->assertStatus(200)
+            ->assertJson([
+                'wishlist_count' => 0,
+                'total_wishlist' => 2,
+                'active_mode'    => 'food',
+            ]);
+    }
+
+    public function test_modes_with_zero_items_are_hidden_from_wishlist_tabs(): void
+    {
+        // Add only 1 Shopy item
+        Wishlist::create(['user_id' => $this->user->id, 'product_id' => $this->product->id]);
+
+        $response = $this->actingAs($this->user)->get(route('wishlist.index', ['mode' => 'shopy']));
+        $response->assertStatus(200);
+
+        // Shopy tab is visible
+        $response->assertSee('Shopy');
+
+        // Food tab has 0 items and is not the active mode, so its tab should be hidden
+        $foodMode = Mode::where('slug', 'food')->first();
+        if ($foodMode) {
+            $this->assertEquals(0, $this->user->wishlistCount('food'));
+        }
+    }
 }

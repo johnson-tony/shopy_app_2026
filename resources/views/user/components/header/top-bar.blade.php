@@ -24,7 +24,7 @@
         @auth
             <!-- Logged In (Auth): Show Wishlist, Notifications, Cart, Account -->
             <!-- 1. Wishlist -->
-            <a href="{{ Route::has('wishlist.index') ? route('wishlist.index') : url('/wishlist') }}"
+            <a href="{{ route('wishlist.index', ['mode' => session('active_shopping_mode', 'shopy')]) }}"
                class="icon-btn wishlist-wrapper {{ request()->routeIs('wishlist.*') ? 'active' : '' }}"
                id="wishlistBtn"
                title="Wishlist">

@@ -153,11 +153,40 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the total number of items in the user's wishlist.
+     * Get the number of items in the user's wishlist, optionally filtered by shopping mode.
      */
-    public function wishlistCount(): int
+    public function wishlistCount(?string $modeSlug = null): int
     {
+        if ($modeSlug !== null && $modeSlug !== '' && $modeSlug !== 'all') {
+            return $this->wishlistProducts()
+                ->whereHas('mode', fn ($q) => $q->where('slug', $modeSlug))
+                ->count();
+        }
+
         return $this->wishlists()->count();
+    }
+
+    /**
+     * Get all cart records for the user.
+     */
+    public function carts(): HasMany
+    {
+        return $this->hasMany(Cart::class);
+    }
+
+    /**
+     * Get the total item count in user's carts, optionally scoped by shopping mode.
+     */
+    public function cartCount(?string $modeSlug = null): int
+    {
+        $query = CartItem::whereHas('cart', function ($q) use ($modeSlug) {
+            $q->where('user_id', $this->id);
+            if ($modeSlug !== null && $modeSlug !== '' && $modeSlug !== 'all') {
+                $q->whereHas('mode', fn ($mq) => $mq->where('slug', $modeSlug));
+            }
+        });
+
+        return (int) $query->sum('quantity');
     }
 }
 

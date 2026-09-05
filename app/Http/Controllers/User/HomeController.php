@@ -22,6 +22,9 @@ class HomeController extends Controller
 
         // 2. Determine selected mode filter (if requested)
         $selectedModeSlug = $request->query('mode');
+        if ($request->has('mode')) {
+            session(['active_shopping_mode' => $selectedModeSlug ?: 'all']);
+        }
         $currentMode = $selectedModeSlug ? $modes->firstWhere('slug', $selectedModeSlug) : null;
 
         // 3. Fetch top root categories for "Shop by Category" section

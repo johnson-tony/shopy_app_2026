@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\User\AddressController;
 use App\Http\Controllers\User\AuthController;
+use App\Http\Controllers\User\CartController;
 use App\Http\Controllers\User\DashboardController;
 use App\Http\Controllers\User\ForgotPasswordController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\ImpersonationController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\WishlistController;
+use App\Models\Cart;
 
 /*
 |--------------------------------------------------------------------------
@@ -87,15 +89,42 @@ Route::middleware(['auth', 'active'])->group(function () {
 // Wishlist AJAX Toggle (accessible with unauthenticated handling)
 Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
+// Cart Routes (Accessible by both guests and authenticated customers)
+Route::prefix('cart')->name('cart.')->group(function () {
+    Route::get('/', [CartController::class, 'index'])->name('index');
+    Route::post('/add', [CartController::class, 'add'])->name('add');
+    Route::post('/update', [CartController::class, 'updateQuantity'])->name('update');
+    Route::delete('/item/{product}', [CartController::class, 'remove'])->name('remove');
+    Route::post('/clear', [CartController::class, 'clear'])->name('clear');
+    Route::post('/apply-coupon', [CartController::class, 'applyCoupon'])->name('coupon.apply');
+    Route::post('/remove-coupon', [CartController::class, 'removeCoupon'])->name('coupon.remove');
+});
+
 // Footer & Navbar utility endpoints
-Route::get('/footer/fetch-counts', function () {
-    $wishlistCount = Auth::guard('web')->check()
-        ? Auth::guard('web')->user()->wishlistCount()
-        : 0;
+Route::get('/footer/fetch-counts', function (\Illuminate\Http\Request $request) {
+    $activeMode = $request->query('mode') ?? session('active_shopping_mode', 'shopy');
+    $user = Auth::guard('web')->user();
+
+    $wishlistCount = $user ? $user->wishlistCount($activeMode) : 0;
+    $totalWishlist = $user ? $user->wishlistCount() : 0;
+
+    $cartCount = 0;
+    if ($user) {
+        $cartCount = $user->cartCount($activeMode);
+    } else {
+        $sessionId = $request->session()->getId();
+        $guestCart = Cart::where('session_id', $sessionId)
+            ->whereNull('user_id')
+            ->whereHas('mode', fn ($q) => $q->where('slug', $activeMode))
+            ->first();
+        $cartCount = $guestCart ? $guestCart->totalQuantity() : 0;
+    }
 
     return response()->json([
         'wishlist_count'     => $wishlistCount,
-        'cart_count'         => 0,
+        'total_wishlist'     => $totalWishlist,
+        'active_mode'        => $activeMode,
+        'cart_count'         => $cartCount,
         'notification_count' => 0,
     ]);
 })->name('footer.fetch-counts');

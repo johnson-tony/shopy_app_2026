@@ -1,5 +1,5 @@
 <div class="mobile-category-chips" aria-label="Quick Category Access">
-    <a href="{{ Route::has('shop.index') ? route('shop.index') : url('/shop') }}" class="category-chip {{ request()->routeIs('shop.index') ? 'active' : '' }}">
+    <a href="{{ route('home', ['mode' => 'shopy']) }}" class="category-chip {{ request()->query('mode') === 'shopy' ? 'active' : '' }}">
         <i class="fas fa-border-all text-xs"></i> All
     </a>
     @foreach($navcategories ?? [] as $cat)

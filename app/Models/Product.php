@@ -244,4 +244,13 @@ class Product extends Model
 
         return false;
     }
+
+    /**
+     * Cart items containing this product.
+     */
+    public function cartItems(): HasMany
+    {
+        return $this->hasMany(CartItem::class);
+    }
 }
+

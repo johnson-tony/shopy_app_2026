@@ -35,7 +35,8 @@
             <div class="mt-auto flex items-center gap-3">
                 <button type="button" 
                         id="modalAddToCartBtn"
-                        class="flex-1 py-3 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition shadow-md shadow-indigo-600/30 flex items-center justify-center gap-2">
+                        onclick="if(window.currentQuickViewProductId) window.addToCart(window.currentQuickViewProductId, 1, this);"
+                        class="flex-1 py-3 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition shadow-md shadow-indigo-600/30 flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fas fa-bag-shopping"></i> Add to Cart
                 </button>
                 <button type="button" 

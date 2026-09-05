@@ -20,7 +20,14 @@ class WishlistController extends Controller
     public function index(Request $request): View|RedirectResponse
     {
         $user = Auth::guard('web')->user();
+
+        // If no explicit mode query provided, use active shopping mode if set in session
         $selectedMode = $request->query('mode');
+        if ($selectedMode === null && session()->has('active_shopping_mode')) {
+            $selectedMode = session('active_shopping_mode');
+        } elseif ($selectedMode !== null && $selectedMode !== 'all') {
+            session(['active_shopping_mode' => $selectedMode]);
+        }
 
         $modes = Mode::where('status', true)->orderBy('id')->get();
 
@@ -28,7 +35,7 @@ class WishlistController extends Controller
             ->with(['category', 'mode'])
             ->latest('wishlists.created_at');
 
-        if (!empty($selectedMode)) {
+        if (!empty($selectedMode) && $selectedMode !== 'all') {
             $query->whereHas('mode', function ($q) use ($selectedMode) {
                 $q->where('slug', $selectedMode);
             });
@@ -73,15 +80,21 @@ class WishlistController extends Controller
         }
 
         $user = Auth::guard('web')->user();
-        $product = Product::findOrFail($validated['product_id']);
+        $product = Product::with('mode')->findOrFail($validated['product_id']);
 
         $result = Wishlist::toggle($user->id, $product->id);
+        $productModeSlug = $product->mode?->slug ?? 'shopy';
+        $modeCount = $user->wishlistCount($productModeSlug);
+        $totalCount = $user->wishlistCount();
 
         return response()->json([
             'success'     => true,
             'action'      => $result['action'],
             'in_wishlist' => $result['in_wishlist'],
-            'count'       => $result['count'],
+            'count'       => $modeCount,
+            'mode_count'  => $modeCount,
+            'mode_slug'   => $productModeSlug,
+            'total_count' => $totalCount,
             'message'     => $result['in_wishlist']
                 ? "Added {$product->name} to your wishlist!"
                 : "Removed {$product->name} from your wishlist.",

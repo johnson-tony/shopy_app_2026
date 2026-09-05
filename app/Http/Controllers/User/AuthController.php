@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\LoginRequest;
 use App\Http\Requests\User\RegisterRequest;
 use App\Mail\UserEmailOtpMail;
+use App\Models\Cart;
 use App\Models\User;
 use App\Models\UserEmailVerification;
 use Illuminate\Http\RedirectResponse;
@@ -73,7 +74,9 @@ class AuthController extends Controller
             return redirect()->route('login')->with('error', "Your account is {$user->status}. Please contact support.");
         }
 
+        $guestSessionId = $request->session()->getId();
         $request->session()->regenerate();
+        Cart::mergeGuestCart($guestSessionId, $user->id);
 
         return redirect()->intended(route('dashboard'))
             ->with('success', "Welcome back, {$user->name}!");

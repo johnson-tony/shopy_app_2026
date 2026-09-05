@@ -14,8 +14,8 @@
                 </div>
             </div>
 
-            <a href="{{ Route::has('shop.index') ? route('shop.index') : url('/shop') }}"
-               class="nav-link {{ request()->routeIs('shop.*') ? 'active' : '' }}">
+            <a href="{{ route('home', ['mode' => 'shopy']) }}"
+               class="nav-link {{ request()->query('mode') === 'shopy' ? 'active' : '' }}">
                 Shop
             </a>
 

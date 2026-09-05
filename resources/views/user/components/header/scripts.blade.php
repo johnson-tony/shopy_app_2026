@@ -129,13 +129,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // 6. Real-time Counts Fetcher (Wishlist, Cart, Notifications)
     // ---------------------------------------------------------
     function fetchCounts() {
-        fetch('/footer/fetch-counts')
+        const urlParams = new URLSearchParams(window.location.search);
+        const modeParam = urlParams.get('mode') || '{{ session("active_shopping_mode", "shopy") }}';
+        fetch(`/footer/fetch-counts?mode=${encodeURIComponent(modeParam)}`)
             .then(res => {
                 if (!res.ok) throw new Error('Counts endpoint not available');
                 return res.json();
             })
             .then(data => {
-                // Wishlist count
+                // Wishlist count (store-scoped)
                 const wishlistEl = document.getElementById('wishlistCount');
                 if (wishlistEl) {
                     const count = data.wishlist_count ?? 0;
@@ -309,11 +311,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 modalIcon.className = data.in_wishlist ? 'fa-solid fa-heart text-rose-500' : 'far fa-heart';
             }
 
-            // Update top-bar wishlist count badge
+            // Update top-bar wishlist count badge based on active shopping mode
             const wishlistBadge = document.getElementById('wishlistCount');
             if (wishlistBadge) {
-                wishlistBadge.textContent = data.count;
-                wishlistBadge.style.display = data.count > 0 ? 'inline-block' : 'none';
+                const urlParams = new URLSearchParams(window.location.search);
+                const currentMode = urlParams.get('mode') || '{{ session("active_shopping_mode", "shopy") }}';
+                
+                if (currentMode === 'all') {
+                    const count = data.total_count ?? data.count;
+                    wishlistBadge.textContent = count;
+                    wishlistBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                } else if (data.mode_slug && data.mode_slug === currentMode) {
+                    const count = data.mode_count ?? data.count;
+                    wishlistBadge.textContent = count;
+                    wishlistBadge.style.display = count > 0 ? 'inline-block' : 'none';
+                } else {
+                    fetchCounts();
+                }
             }
 
             // Toastr feedback
@@ -327,6 +341,83 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(err => {
             console.error('Wishlist toggle error:', err);
+        });
+    };
+
+    // ---------------------------------------------------------
+    // 9. Global Add To Cart (AJAX)
+    // ---------------------------------------------------------
+    window.addToCart = function (productId, quantity, btnEl) {
+        quantity = quantity || 1;
+        
+        let originalContent = '';
+        if (btnEl) {
+            btnEl.disabled = true;
+            originalContent = btnEl.innerHTML;
+            btnEl.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Adding...';
+        }
+
+        fetch('{{ route("cart.add") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                product_id: productId,
+                quantity: quantity
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                if (typeof toastr !== 'undefined') {
+                    toastr.error(data.message || 'Could not add product to cart.');
+                }
+                if (btnEl) {
+                    btnEl.innerHTML = originalContent;
+                    btnEl.disabled = false;
+                }
+                return;
+            }
+
+            // Update top-bar cart count badge
+            const cartBadge = document.getElementById('cartCount');
+            if (cartBadge) {
+                cartBadge.textContent = data.cart_count;
+                cartBadge.style.display = data.cart_count > 0 ? 'inline-block' : 'none';
+            }
+
+            // Update mobile bottom nav cart count badge
+            const bottomBadge = document.getElementById('mobileBottomCartCount');
+            if (bottomBadge) {
+                bottomBadge.textContent = data.cart_count;
+                bottomBadge.style.display = data.cart_count > 0 ? 'inline-block' : 'none';
+            }
+
+            // Button feedback
+            if (btnEl) {
+                btnEl.innerHTML = '<i class="fa-solid fa-check text-xs"></i> Added!';
+                setTimeout(() => {
+                    btnEl.innerHTML = originalContent;
+                    btnEl.disabled = false;
+                }, 1200);
+            }
+
+            if (typeof toastr !== 'undefined') {
+                toastr.success(data.message || 'Added to cart!');
+            }
+        })
+        .catch(err => {
+            console.error('Add to cart error:', err);
+            if (typeof toastr !== 'undefined') {
+                toastr.error('Failed to add product to cart. Please try again.');
+            }
+            if (btnEl) {
+                btnEl.innerHTML = originalContent;
+                btnEl.disabled = false;
+            }
         });
     };
 });

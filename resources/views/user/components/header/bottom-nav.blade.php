@@ -14,7 +14,7 @@
         </button>
 
         <!-- 3. Shop -->
-        <a href="{{ Route::has('shop.index') ? route('shop.index') : url('/shop') }}" class="mobile-nav-item {{ request()->routeIs('shop.*') ? 'active' : '' }}">
+        <a href="{{ route('home', ['mode' => 'shopy']) }}" class="mobile-nav-item {{ request()->query('mode') === 'shopy' ? 'active' : '' }}">
             <i class="fas fa-bag-shopping"></i>
             <span>Shop</span>
         </a>
