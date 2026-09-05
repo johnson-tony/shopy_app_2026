@@ -20,6 +20,7 @@ class UserSeeder extends Seeder
                 'phone' => '+1000000004',
                 'password' => Hash::make('password'),
                 'status' => User::STATUS_ACTIVE,
+                'email_verified_at' => now(),
             ],
             [
                 'name' => 'Inactive Customer',
@@ -27,6 +28,7 @@ class UserSeeder extends Seeder
                 'phone' => '+1000000005',
                 'password' => Hash::make('password'),
                 'status' => User::STATUS_INACTIVE,
+                'email_verified_at' => now(),
             ],
             [
                 'name' => 'Blocked Customer',
@@ -34,6 +36,7 @@ class UserSeeder extends Seeder
                 'phone' => '+1000000006',
                 'password' => Hash::make('password'),
                 'status' => User::STATUS_BLOCKED,
+                'email_verified_at' => now(),
             ],
         ];
 

@@ -26,6 +26,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
 });
 
+// Email OTP Verification Routes (Cross-device accessible)
+Route::get('/verify-otp', [AuthController::class, 'showVerifyOtpForm'])->name('verification.notice');
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('verification.verify');
+Route::get('/verify-otp/link/{token}', [AuthController::class, 'verifyOtpLink'])->name('verification.verify_link');
+Route::post('/verify-otp/resend', [AuthController::class, 'resendOtp'])->name('verification.resend');
+
 // Signed impersonation entry point (opened in a NEW tab, no session yet)
 Route::get('/impersonate/{user}', [ImpersonationController::class, 'login'])
     ->middleware('signed')

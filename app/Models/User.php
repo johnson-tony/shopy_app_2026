@@ -72,6 +72,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user status is pending.
+     */
+    public function isPending(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    /**
+     * Check if user has verified their email address.
+     */
+    public function hasVerifiedEmail(): bool
+    {
+        return !is_null($this->email_verified_at);
+    }
+
+    /**
      * Get all addresses for the user.
      */
     public function addresses(): HasMany
@@ -86,4 +102,21 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserAddress::class)->where('is_default', true);
     }
+
+    /**
+     * Get all email verification records for the user.
+     */
+    public function emailVerifications(): HasMany
+    {
+        return $this->hasMany(UserEmailVerification::class);
+    }
+
+    /**
+     * Get the latest email verification record for the user.
+     */
+    public function latestEmailVerification(): HasOne
+    {
+        return $this->hasOne(UserEmailVerification::class)->latestOfMany();
+    }
 }
+
