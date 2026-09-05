@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -133,6 +134,30 @@ class User extends Authenticatable
     public function latestPasswordResetOtp(): HasOne
     {
         return $this->hasOne(UserPasswordResetOtp::class)->latestOfMany();
+    }
+
+    /**
+     * Get all wishlist records for the user.
+     */
+    public function wishlists(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    /**
+     * Get all wishlisted products for the user.
+     */
+    public function wishlistProducts(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'wishlists')->withTimestamps();
+    }
+
+    /**
+     * Get the total number of items in the user's wishlist.
+     */
+    public function wishlistCount(): int
+    {
+        return $this->wishlists()->count();
     }
 }
 

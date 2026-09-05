@@ -7,6 +7,7 @@ use App\Http\Controllers\User\ForgotPasswordController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\ImpersonationController;
 use App\Http\Controllers\User\ProfileController;
+use App\Http\Controllers\User\WishlistController;
 
 /*
 |--------------------------------------------------------------------------
@@ -74,13 +75,27 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::patch('/{address}/default', [AddressController::class, 'setDefault'])->name('default');
         Route::post('/reverse-geocode', [AddressController::class, 'reverseGeocode'])->name('reverseGeocode');
     });
+
+    // Wishlist Management Routes (Customer Area)
+    Route::prefix('wishlist')->name('wishlist.')->group(function () {
+        Route::get('/', [WishlistController::class, 'index'])->name('index');
+        Route::delete('/{product}', [WishlistController::class, 'destroy'])->name('destroy');
+        Route::post('/clear', [WishlistController::class, 'clear'])->name('clear');
+    });
 });
+
+// Wishlist AJAX Toggle (accessible with unauthenticated handling)
+Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
 // Footer & Navbar utility endpoints
 Route::get('/footer/fetch-counts', function () {
+    $wishlistCount = Auth::guard('web')->check()
+        ? Auth::guard('web')->user()->wishlistCount()
+        : 0;
+
     return response()->json([
-        'wishlist_count' => 0,
-        'cart_count' => 0,
+        'wishlist_count'     => $wishlistCount,
+        'cart_count'         => 0,
         'notification_count' => 0,
     ]);
 })->name('footer.fetch-counts');

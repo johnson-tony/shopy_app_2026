@@ -161,6 +161,14 @@ document.addEventListener('DOMContentLoaded', function () {
             const card = this.closest('.product-card');
             if (!card) return;
 
+            window.currentQuickViewProductId = card.dataset.productId;
+            const cardWishlistBtn = card.querySelector('.wishlist-btn');
+            const modalWishlistIcon = document.getElementById('modalWishlistIcon');
+            if (modalWishlistIcon && cardWishlistBtn) {
+                const isWishlisted = cardWishlistBtn.classList.contains('active');
+                modalWishlistIcon.className = isWishlisted ? 'fa-solid fa-heart text-rose-500' : 'far fa-heart';
+            }
+
             document.getElementById('modalProductName').textContent = card.dataset.productName || '';
             document.getElementById('modalProductCategory').textContent = card.dataset.productCategory || '';
             document.getElementById('modalProductMode').textContent = card.dataset.productMode || '';

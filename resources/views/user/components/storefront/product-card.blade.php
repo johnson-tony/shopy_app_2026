@@ -5,6 +5,7 @@
     $discountPercent = $product->discount_percentage ?? 0;
     $imageUrl = $product->image_url ?? 'https://placehold.co/400x400/e2e8f0/475569?text=' . urlencode(substr($product->name, 0, 8));
     $inStock = ($product->stock ?? 0) > 0;
+    $isWishlisted = Auth::guard('web')->check() && $product->isWishlistedBy(Auth::guard('web')->user());
 @endphp
 
 <div class="product-card" 
@@ -41,10 +42,12 @@
         @endif
 
         <button type="button" 
-                class="wishlist-btn shopy-wishlist-btn" 
-                title="Add to wishlist"
-                onclick="event.stopPropagation(); if(typeof toastr !== 'undefined') toastr.info('Added {{ addslashes($product->name) }} to Wishlist');">
-            <i class="far fa-heart"></i>
+                class="wishlist-btn shopy-wishlist-btn {{ $isWishlisted ? 'active text-rose-500' : 'text-slate-400' }}" 
+                data-product-id="{{ $product->id }}"
+                data-wishlisted="{{ $isWishlisted ? 'true' : 'false' }}"
+                title="{{ $isWishlisted ? 'Remove from wishlist' : 'Add to wishlist' }}"
+                onclick="event.stopPropagation(); toggleWishlist({{ $product->id }}, this);">
+            <i class="{{ $isWishlisted ? 'fa-solid fa-heart text-rose-500' : 'fa-regular fa-heart' }}"></i>
         </button>
     </div>
 

@@ -39,10 +39,11 @@
                     <i class="fas fa-bag-shopping"></i> Add to Cart
                 </button>
                 <button type="button" 
-                        class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition"
-                        title="Add to Wishlist"
-                        onclick="if(typeof toastr !== 'undefined') toastr.info('Saved to Wishlist');">
-                    <i class="far fa-heart"></i>
+                        id="modalWishlistBtn"
+                        class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer"
+                        title="Toggle Wishlist"
+                        onclick="if(window.currentQuickViewProductId) toggleWishlist(window.currentQuickViewProductId, this);">
+                    <i class="far fa-heart" id="modalWishlistIcon"></i>
                 </button>
             </div>
         </div>

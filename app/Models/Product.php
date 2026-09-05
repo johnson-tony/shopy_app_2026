@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -69,6 +70,28 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Wishlists relationship.
+     */
+    public function wishlists(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    /**
+     * Check if product is wishlisted by a given user.
+     */
+    public function isWishlistedBy(?User $user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        return Wishlist::where('product_id', $this->id)
+            ->where('user_id', $user->id)
+            ->exists();
     }
 
     /**

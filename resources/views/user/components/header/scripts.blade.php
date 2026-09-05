@@ -250,5 +250,84 @@ document.addEventListener('DOMContentLoaded', function () {
         console.warn('Theme toggle initialization error:', themeInitErr);
     }
     @endif
+
+    // ---------------------------------------------------------
+    // 8. Global Wishlist Toggle (AJAX)
+    // ---------------------------------------------------------
+    window.toggleWishlist = function (productId, btnEl) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+        fetch('{{ route("wishlist.toggle") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ product_id: productId })
+        })
+        .then(async res => {
+            if (res.status === 401) {
+                const data = await res.json();
+                if (typeof toastr !== 'undefined') {
+                    toastr.info(data.message || 'Please sign in to save items to your wishlist.');
+                }
+                setTimeout(() => {
+                    window.location.href = data.login_url || '{{ route("login") }}';
+                }, 1200);
+                return null;
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (!data || !data.success) return;
+
+            // Update all buttons for this product on the page
+            document.querySelectorAll(`button.wishlist-btn[data-product-id="${productId}"]`).forEach(btn => {
+                const icon = btn.querySelector('i');
+                if (data.in_wishlist) {
+                    btn.classList.add('active', 'text-rose-500');
+                    btn.classList.remove('text-slate-400');
+                    btn.setAttribute('title', 'Remove from wishlist');
+                    if (icon) icon.className = 'fa-solid fa-heart text-rose-500';
+                    btn.animate([
+                        { transform: 'scale(1)' },
+                        { transform: 'scale(1.3)' },
+                        { transform: 'scale(1)' }
+                    ], { duration: 250 });
+                } else {
+                    btn.classList.remove('active', 'text-rose-500');
+                    btn.classList.add('text-slate-400');
+                    btn.setAttribute('title', 'Add to wishlist');
+                    if (icon) icon.className = 'fa-regular fa-heart';
+                }
+            });
+
+            // Update modal wishlist icon if open
+            const modalIcon = document.getElementById('modalWishlistIcon');
+            if (modalIcon && window.currentQuickViewProductId == productId) {
+                modalIcon.className = data.in_wishlist ? 'fa-solid fa-heart text-rose-500' : 'far fa-heart';
+            }
+
+            // Update top-bar wishlist count badge
+            const wishlistBadge = document.getElementById('wishlistCount');
+            if (wishlistBadge) {
+                wishlistBadge.textContent = data.count;
+                wishlistBadge.style.display = data.count > 0 ? 'inline-block' : 'none';
+            }
+
+            // Toastr feedback
+            if (typeof toastr !== 'undefined') {
+                if (data.in_wishlist) {
+                    toastr.success(data.message || 'Added to wishlist!');
+                } else {
+                    toastr.info(data.message || 'Removed from wishlist.');
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Wishlist toggle error:', err);
+        });
+    };
 });
 </script>
