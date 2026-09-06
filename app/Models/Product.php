@@ -26,6 +26,7 @@ class Product extends Model
     protected $fillable = [
         'mode_id',
         'category_id',
+        'restaurant_id',
         'name',
         'slug',
         'sku',
@@ -40,6 +41,8 @@ class Product extends Model
         'images',
         'colors',
         'sizes',
+        'addons',
+        'is_veg',
         'status',
         'featured',
         'sort_order',
@@ -53,12 +56,15 @@ class Product extends Model
     protected $casts = [
         'mode_id' => 'integer',
         'category_id' => 'integer',
+        'restaurant_id' => 'integer',
         'price' => 'decimal:2',
         'sale_price' => 'decimal:2',
         'stock' => 'integer',
         'images' => 'array',
         'colors' => 'array',
         'sizes' => 'array',
+        'addons' => 'array',
+        'is_veg' => 'boolean',
         'status' => 'boolean',
         'featured' => 'boolean',
         'sort_order' => 'integer',
@@ -70,6 +76,14 @@ class Product extends Model
     public function mode(): BelongsTo
     {
         return $this->belongsTo(Mode::class);
+    }
+
+    /**
+     * Restaurant relationship (for food items).
+     */
+    public function restaurant(): BelongsTo
+    {
+        return $this->belongsTo(Restaurant::class);
     }
 
     /**
@@ -341,6 +355,57 @@ class Product extends Model
         }
 
         return array_values(array_filter(array_map('trim', $this->sizes)));
+    }
+
+    /**
+     * Check if product has customizable add-ons.
+     */
+    public function hasAddons(): bool
+    {
+        return is_array($this->addons) && !empty($this->addons);
+    }
+
+    /**
+     * Get normalized add-on options / groups.
+     *
+     * @return array<int, array{group: string, type: string, options: array<int, array{name: string, price: float}>}>
+     */
+    public function addonsGroups(): array
+    {
+        if (!$this->hasAddons()) {
+            return [];
+        }
+
+        $groups = [];
+        foreach ($this->addons as $group) {
+            if (!is_array($group)) {
+                continue;
+            }
+
+            $rawItems = $group['items'] ?? $group['options'] ?? [];
+            $options = [];
+            foreach ($rawItems as $opt) {
+                if (is_array($opt) && !empty($opt['name'])) {
+                    $options[] = [
+                        'name'  => (string) $opt['name'],
+                        'price' => (float) ($opt['price'] ?? 0.00),
+                    ];
+                }
+            }
+
+            if (!empty($options)) {
+                $groupTitle = $group['group_name'] ?? $group['group'] ?? 'Extras & Add-ons';
+                $groups[] = [
+                    'group'      => $groupTitle,
+                    'group_name' => $groupTitle,
+                    'type'       => $group['type'] ?? 'multiple', // 'multiple' (checkbox) or 'single' (radio)
+                    'options'    => $options,
+                    'items'      => $options,
+                ];
+            }
+        }
+
+        return $groups;
     }
 
     /**

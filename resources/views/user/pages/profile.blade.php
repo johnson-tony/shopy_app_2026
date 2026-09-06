@@ -101,11 +101,64 @@
                 <a href="{{ route('dashboard') }}" class="px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
                     Cancel
                 </a>
-                <button type="submit" class="px-6 py-2.5 rounded-xl text-white font-semibold bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-200 transition shadow-sm text-sm">
+                <button type="submit" class="px-6 py-2.5 rounded-xl text-white font-semibold bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-200 transition shadow-sm text-sm cursor-pointer">
                     Save Changes
                 </button>
             </div>
         </form>
+    </div>
+
+    <!-- Saved Addresses Section in Profile -->
+    <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-6">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div>
+                <h2 class="text-base font-bold text-slate-900">Saved Delivery Addresses</h2>
+                <p class="text-xs text-slate-500">Manage multiple delivery locations for quick checkout</p>
+            </div>
+            <a href="{{ route('user.addresses.index') }}" class="px-4 py-2 rounded-xl text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-location-dot text-[11px]"></i>
+                <span>Manage Addresses</span>
+            </a>
+        </div>
+
+        @php $userAddresses = $user->addresses()->latest()->get(); @endphp
+
+        @if($userAddresses->count() > 0)
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @foreach($userAddresses as $uAddr)
+                    <div class="p-4 rounded-2xl border {{ $uAddr->is_default ? 'border-indigo-500 bg-indigo-50/20' : 'border-slate-200 bg-slate-50/50' }} space-y-2 relative">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-sm text-slate-900">{{ $uAddr->full_name }}</span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-200 text-slate-700">
+                                    {{ $uAddr->address_type ?? 'Home' }}
+                                </span>
+                                @if($uAddr->is_default)
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
+                                        Default
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            {{ $uAddr->formatted_address }}
+                        </p>
+                        <p class="text-xs text-slate-500 flex items-center gap-1.5">
+                            <i class="fa-solid fa-phone text-[10px]"></i>
+                            <span>{{ $uAddr->phone }}</span>
+                        </p>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="text-center py-6 space-y-3">
+                <p class="text-xs text-slate-500">You don't have any saved delivery addresses in your profile yet.</p>
+                <a href="{{ route('user.addresses.create') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition">
+                    <i class="fa-solid fa-plus text-[10px]"></i>
+                    <span>Add First Address</span>
+                </a>
+            </div>
+        @endif
     </div>
 </div>
 @endsection

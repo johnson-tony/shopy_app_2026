@@ -57,17 +57,18 @@
                                     onclick="toggleNewAddressSection();"
                                     class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer">
                                 <i class="fa-solid fa-plus text-[10px]"></i>
-                                <span id="toggleAddressBtnText">Add New Address</span>
+                                <span id="toggleAddressBtnText">{{ old('address_source') === 'new' ? 'Select Saved Address' : 'Add New Address' }}</span>
                             </button>
                         @endif
                     </div>
 
                     <!-- Hidden address source input -->
-                    <input type="hidden" name="address_source" id="addressSourceInput" value="{{ $addresses->count() > 0 ? 'existing' : 'new' }}">
+                    <input type="hidden" name="address_source" id="addressSourceInput" value="{{ old('address_source', $addresses->count() > 0 ? 'existing' : 'new') }}">
 
                     <!-- Existing Addresses List -->
                     @if($addresses->count() > 0)
-                        <div id="existingAddressesSection" class="space-y-3">
+                        <div id="existingAddressesSection" class="{{ old('address_source') === 'new' ? 'opacity-50 pointer-events-none' : '' }} space-y-3">
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Select an address from your profile to deliver to:</p>
                             <div class="grid grid-cols-1 gap-3">
                                 @foreach($addresses as $addr)
                                     <label class="relative flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition select-none {{ (old('address_id', $defaultAddress?->id) == $addr->id) ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-950/30' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600' }}">
@@ -102,10 +103,15 @@
                                 @endforeach
                             </div>
                         </div>
+                    @else
+                        <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center gap-2.5 text-xs text-amber-800 dark:text-amber-300">
+                            <i class="fa-solid fa-info-circle text-amber-500 text-sm"></i>
+                            <span>No address saved in your profile yet. Enter your delivery address below to place your order.</span>
+                        </div>
                     @endif
 
                     <!-- New Address Form (Toggleable or default if 0 addresses) -->
-                    <div id="newAddressSection" class="{{ $addresses->count() > 0 ? 'hidden' : 'block' }} space-y-4 pt-2">
+                    <div id="newAddressSection" class="{{ ($addresses->count() > 0 && old('address_source') !== 'new') ? 'hidden' : 'block' }} space-y-4 pt-2">
                         <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/80 space-y-4">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                 Enter Delivery Address Details
@@ -305,6 +311,18 @@
                                         @if($item->size)
                                             <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/60 px-2 py-0.5 rounded-md">
                                                 Size: <strong>{{ $item->size }}</strong>
+                                            </span>
+                                        @endif
+                                        @if($item->product?->restaurant)
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                                                <i class="fa-solid fa-utensils text-[9px] text-amber-500"></i>
+                                                <span>{{ $item->product->restaurant->name }}</span>
+                                            </span>
+                                        @endif
+                                        @if($item->hasAddons())
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800/40">
+                                                <i class="fa-solid fa-plus-circle text-[9px]"></i>
+                                                <span>{{ $item->formattedAddons() }}</span>
                                             </span>
                                         @endif
                                         <span class="text-[11px] text-slate-500 dark:text-slate-400">

@@ -347,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ---------------------------------------------------------
     // 9. Global Add To Cart (AJAX)
     // ---------------------------------------------------------
-    window.addToCart = function (productId, quantity, btnEl, color, size) {
+    window.addToCart = function (productId, quantity, btnEl, color, size, addons, replaceCart) {
         quantity = quantity || 1;
         
         let originalContent = '';
@@ -368,13 +368,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 product_id: productId,
                 quantity: quantity,
                 color: color || null,
-                size: size || null
+                size: size || null,
+                addons: addons || null,
+                replace_cart: replaceCart ? true : false
             })
         })
         .then(res => res.json())
         .then(data => {
             if (!data.success) {
-                if (typeof toastr !== 'undefined') {
+                if (data.restaurant_conflict) {
+                    if (confirm(data.message)) {
+                        window.addToCart(productId, quantity, btnEl, color, size, addons, true);
+                        return;
+                    }
+                } else if (typeof toastr !== 'undefined') {
                     toastr.error(data.message || 'Could not add product to cart.');
                 }
                 if (btnEl) {

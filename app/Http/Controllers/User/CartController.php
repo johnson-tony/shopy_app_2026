@@ -103,12 +103,28 @@ class CartController extends Controller
             'quantity'     => ['nullable', 'integer', 'min:1'],
             'color'        => ['nullable', 'string', 'max:50'],
             'size'         => ['nullable', 'string', 'max:50'],
+            'addons'       => ['nullable'],
+            'replace_cart' => ['nullable', 'boolean'],
         ]);
 
         $quantity = (int) ($validated['quantity'] ?? 1);
         $color = !empty($validated['color']) ? trim($validated['color']) : null;
         $size = !empty($validated['size']) ? trim($validated['size']) : null;
-        $product = Product::with('mode')->findOrFail($validated['product_id']);
+
+        // Parse addons if passed as string JSON or array
+        $selectedAddons = null;
+        if (!empty($validated['addons'])) {
+            if (is_string($validated['addons'])) {
+                $decoded = json_decode($validated['addons'], true);
+                if (is_array($decoded)) {
+                    $selectedAddons = $decoded;
+                }
+            } elseif (is_array($validated['addons'])) {
+                $selectedAddons = $validated['addons'];
+            }
+        }
+
+        $product = Product::with(['mode', 'restaurant'])->findOrFail($validated['product_id']);
 
         if ($product->stock <= 0) {
             return response()->json([
@@ -124,8 +140,26 @@ class CartController extends Controller
         // Get or create cart for the product's shopping mode
         $cart = Cart::getOrCreate($user, $sessionId, $modeSlug);
 
+        // Single Restaurant Cart Rule for Food Mode (Swiggy / Zomato style)
+        if ($modeSlug === 'food' && $product->restaurant_id) {
+            $currentRestaurant = $cart->currentRestaurant();
+            if ($currentRestaurant && $currentRestaurant->id !== $product->restaurant_id) {
+                if ($request->boolean('replace_cart')) {
+                    $cart->items()->delete();
+                } else {
+                    return response()->json([
+                        'success'             => false,
+                        'restaurant_conflict' => true,
+                        'current_restaurant'  => $currentRestaurant->name,
+                        'new_restaurant'      => $product->restaurant?->name ?? 'another restaurant',
+                        'message'             => "Your cart contains items from {$currentRestaurant->name}. Would you like to reset your cart to add items from {$product->restaurant?->name}?",
+                    ], 409);
+                }
+            }
+        }
+
         try {
-            $item = $cart->addItem($product, $quantity, $color, $size);
+            $item = $cart->addItem($product, $quantity, $color, $size, $selectedAddons);
         } catch (\InvalidArgumentException $e) {
             return response()->json([
                 'success' => false,

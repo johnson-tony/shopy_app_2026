@@ -205,16 +205,18 @@ class CheckoutController extends Controller
             // Create items and decrement product stock
             foreach ($cart->items as $cartItem) {
                 OrderItem::create([
-                    'order_id'      => $order->id,
-                    'product_id'    => $cartItem->product_id,
-                    'product_name'  => $cartItem->product->name,
-                    'product_slug'  => $cartItem->product->slug,
-                    'product_image' => $cartItem->product->image,
-                    'color'         => $cartItem->color,
-                    'size'          => $cartItem->size,
-                    'quantity'      => $cartItem->quantity,
-                    'unit_price'    => $cartItem->unit_price,
-                    'subtotal'      => round($cartItem->unit_price * $cartItem->quantity, 2),
+                    'order_id'        => $order->id,
+                    'product_id'      => $cartItem->product_id,
+                    'product_name'    => $cartItem->product->name,
+                    'product_slug'    => $cartItem->product->slug,
+                    'restaurant_name' => $cartItem->product->restaurant?->name,
+                    'product_image'   => $cartItem->product->image,
+                    'color'           => $cartItem->color,
+                    'size'            => $cartItem->size,
+                    'selected_addons' => $cartItem->selected_addons,
+                    'quantity'        => $cartItem->quantity,
+                    'unit_price'      => $cartItem->unit_price,
+                    'subtotal'        => round($cartItem->unit_price * $cartItem->quantity, 2),
                 ]);
 
                 // Decrement inventory stock safely

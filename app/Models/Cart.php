@@ -62,6 +62,16 @@ class Cart extends Model
         return $this->hasManyThrough(Product::class, CartItem::class, 'cart_id', 'id', 'id', 'product_id');
     }
 
+    /**
+     * Restaurant associated with current food cart items (if any).
+     */
+    public function currentRestaurant(): ?Restaurant
+    {
+        $item = $this->items()->whereHas('product', fn ($q) => $q->whereNotNull('restaurant_id'))->first();
+
+        return $item?->product?->restaurant;
+    }
+
     // -------------------------------------------------------------
     // Calculations & Totals
     // -------------------------------------------------------------
@@ -190,18 +200,39 @@ class Cart extends Model
      *
      * @throws \InvalidArgumentException if product is out of stock
      */
-    public function addItem(Product $product, int $quantity = 1, ?string $color = null, ?string $size = null): CartItem
+    public function addItem(Product $product, int $quantity = 1, ?string $color = null, ?string $size = null, ?array $selectedAddons = null): CartItem
     {
         if ($product->stock <= 0) {
             throw new \InvalidArgumentException("Sorry, {$product->name} is currently out of stock.");
         }
 
-        $effectivePrice = $product->is_on_sale ? (float) $product->sale_price : (float) $product->price;
+        // Calculate effective price including add-ons (e.g. Biryani + Salna + Coke)
+        $addonsSum = 0.00;
+        $normalizedAddons = null;
+        if (is_array($selectedAddons) && !empty($selectedAddons)) {
+            $normalizedAddons = [];
+            foreach ($selectedAddons as $addon) {
+                if (is_array($addon) && !empty($addon['name'])) {
+                    $price = (float) ($addon['price'] ?? 0.00);
+                    $addonsSum += $price;
+                    $normalizedAddons[] = [
+                        'name'  => (string) $addon['name'],
+                        'price' => $price,
+                    ];
+                }
+            }
+        }
+
+        $basePrice = $product->is_on_sale ? (float) $product->sale_price : (float) $product->price;
+        $effectivePrice = round($basePrice + $addonsSum, 2);
+
+        $addonsJson = $normalizedAddons ? json_encode($normalizedAddons) : null;
 
         $item = $this->items()
             ->where('product_id', $product->id)
             ->when($color !== null && $color !== '', fn ($q) => $q->where('color', $color), fn ($q) => $q->whereNull('color'))
             ->when($size !== null && $size !== '', fn ($q) => $q->where('size', $size), fn ($q) => $q->whereNull('size'))
+            ->when($addonsJson !== null, fn ($q) => $q->where('selected_addons', $addonsJson), fn ($q) => $q->whereNull('selected_addons'))
             ->first();
 
         if ($item) {
@@ -215,11 +246,12 @@ class Cart extends Model
         } else {
             $initialQty = min($quantity, $product->stock);
             $item = $this->items()->create([
-                'product_id' => $product->id,
-                'quantity'   => $initialQty,
-                'color'      => ($color !== '' ? $color : null),
-                'size'       => ($size !== '' ? $size : null),
-                'unit_price' => $effectivePrice,
+                'product_id'      => $product->id,
+                'quantity'        => $initialQty,
+                'color'           => ($color !== '' ? $color : null),
+                'size'            => ($size !== '' ? $size : null),
+                'selected_addons' => $normalizedAddons,
+                'unit_price'      => $effectivePrice,
             ]);
         }
 

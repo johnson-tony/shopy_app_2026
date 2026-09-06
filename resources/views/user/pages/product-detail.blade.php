@@ -107,16 +107,56 @@
             </div>
 
             <!-- Title -->
-            <div>
-                <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
-                    {{ $product->name }}
-                </h1>
+            <div class="space-y-1.5">
+                <div class="flex items-center gap-2">
+                    @if($product->is_veg !== null)
+                        <span class="inline-flex items-center justify-center w-4 h-4 border {{ $product->is_veg ? 'border-emerald-600' : 'border-rose-600' }} p-0.5 rounded-xs shrink-0" title="{{ $product->is_veg ? 'Pure Veg' : 'Non-Veg' }}">
+                            <span class="w-2 h-2 rounded-full {{ $product->is_veg ? 'bg-emerald-600' : 'bg-rose-600' }}"></span>
+                        </span>
+                    @endif
+                    <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
+                        {{ $product->name }}
+                    </h1>
+                </div>
                 @if($product->short_description)
-                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                    <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
                         {{ $product->short_description }}
                     </p>
                 @endif
             </div>
+
+            <!-- Restaurant Info Card (If Food Product) -->
+            @if($product->restaurant)
+                <div class="flex items-center justify-between p-3.5 rounded-2xl bg-amber-50/60 dark:bg-amber-950/25 border border-amber-200/80 dark:border-amber-900/40">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 font-bold text-base overflow-hidden">
+                            @if($product->restaurant->image)
+                                <img src="{{ $product->restaurant->image_url }}" alt="{{ $product->restaurant->name }}" class="w-full h-full object-cover">
+                            @else
+                                <i class="fa-solid fa-utensils"></i>
+                            @endif
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ $product->restaurant->name }}</h3>
+                                @if($product->restaurant->is_pure_veg)
+                                    <span class="inline-flex items-center text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Pure Veg</span>
+                                @endif
+                            </div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                {{ $product->restaurant->cuisine }} &bull; {{ $product->restaurant->delivery_time }} mins &bull; {{ $product->restaurant->city }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-right shrink-0 pl-3">
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-600 text-white text-xs font-bold shadow-xs">
+                            <span>{{ number_format($product->restaurant->rating, 1) }}</span>
+                            <i class="fa-solid fa-star text-[9px]"></i>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">{{ number_format($product->restaurant->ratings_count) }} ratings</div>
+                    </div>
+                </div>
+            @endif
 
             <!-- Product Details & Overview Section (Positioned under the Name) -->
             @if($product->description)
@@ -156,7 +196,7 @@
             <!-- Price Card (No border) -->
             <div class="p-5 rounded-3xl bg-slate-100/80 dark:bg-slate-800/60 space-y-2">
                 <div class="flex items-baseline gap-3">
-                    <span class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+                    <span id="pdpLivePrice" data-base-price="{{ $currentPrice }}" class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
                         ₹{{ number_format($currentPrice, 2) }}
                     </span>
                     @if($hasDiscount)
@@ -230,6 +270,57 @@
                             </div>
                         </div>
                     @endif
+                </div>
+            @endif
+
+            <!-- Add-ons / Customizations (Food Delivery) -->
+            @if($product->hasAddons())
+                <div class="p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-950/25 border border-amber-200/80 dark:border-amber-800/60 space-y-3.5">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-layer-group text-amber-600 dark:text-amber-400 text-sm"></i>
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                                Customise Your Food &amp; Add-ons
+                            </h4>
+                        </div>
+                        <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300">
+                            Optional Extras
+                        </span>
+                    </div>
+
+                    <div class="space-y-3">
+                        @foreach($product->addonsGroups() as $group)
+                            <div class="space-y-1.5">
+                                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide block">
+                                    {{ $group['group_name'] ?? 'Extras' }}
+                                </span>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    @foreach($group['items'] ?? [] as $item)
+                                        @php
+                                            $itemName = $item['name'] ?? '';
+                                            $itemPrice = (float)($item['price'] ?? 0);
+                                        @endphp
+                                        <label class="pdp-addon-label flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400 dark:hover:border-amber-500 transition cursor-pointer select-none">
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <input type="checkbox"
+                                                       class="pdp-addon-checkbox rounded text-amber-600 focus:ring-amber-500 w-4 h-4 cursor-pointer"
+                                                       data-name="{{ $itemName }}"
+                                                       data-price="{{ $itemPrice }}"
+                                                       data-group="{{ $group['group_name'] ?? 'Extras' }}"
+                                                       onchange="updatePdpAddonsCalculation();">
+                                                <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
+                                                    {{ $itemName }}
+                                                </span>
+                                            </div>
+                                            <span class="text-xs font-bold text-amber-600 dark:text-amber-400 shrink-0">
+                                                +₹{{ number_format($itemPrice, 2) }}
+                                            </span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             @endif
 
@@ -708,18 +799,42 @@
         }
     }
 
+    function getSelectedPdpAddons() {
+        const addons = [];
+        document.querySelectorAll('.pdp-addon-checkbox:checked').forEach(cb => {
+            addons.push({
+                name: cb.dataset.name,
+                price: parseFloat(cb.dataset.price) || 0,
+                group: cb.dataset.group || 'Extras'
+            });
+        });
+        return addons;
+    }
+
+    function updatePdpAddonsCalculation() {
+        const livePriceEl = document.getElementById('pdpLivePrice');
+        if (!livePriceEl) return;
+        const basePrice = parseFloat(livePriceEl.dataset.basePrice) || 0;
+        const addons = getSelectedPdpAddons();
+        const addonsTotal = addons.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0);
+        const newTotal = basePrice + addonsTotal;
+        livePriceEl.textContent = '₹' + newTotal.toFixed(2);
+    }
+
     function handlePdpAddToCart(btnEl) {
         const qty = parseInt(document.getElementById('pdpQuantity')?.value) || 1;
         const color = document.getElementById('pdpSelectedColor')?.value || null;
         const size = document.getElementById('pdpSelectedSize')?.value || null;
-        window.addToCart({{ $product->id }}, qty, btnEl, color, size);
+        const addons = getSelectedPdpAddons();
+        window.addToCart({{ $product->id }}, qty, btnEl, color, size, addons);
     }
 
     function handlePdpBuyNow(btnEl) {
         const qty = parseInt(document.getElementById('pdpQuantity')?.value) || 1;
         const color = document.getElementById('pdpSelectedColor')?.value || null;
         const size = document.getElementById('pdpSelectedSize')?.value || null;
-        window.addToCart({{ $product->id }}, qty, btnEl, color, size);
+        const addons = getSelectedPdpAddons();
+        window.addToCart({{ $product->id }}, qty, btnEl, color, size, addons);
         setTimeout(() => {
             window.location.href = '{{ route('cart.index', ['mode' => $product->mode?->slug]) }}';
         }, 350);

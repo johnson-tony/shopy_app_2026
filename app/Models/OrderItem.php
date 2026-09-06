@@ -17,9 +17,11 @@ class OrderItem extends Model
         'product_id',
         'product_name',
         'product_slug',
+        'restaurant_name',
         'product_image',
         'color',
         'size',
+        'selected_addons',
         'quantity',
         'unit_price',
         'subtotal',
@@ -28,9 +30,10 @@ class OrderItem extends Model
     protected function casts(): array
     {
         return [
-            'quantity' => 'integer',
-            'unit_price' => 'decimal:2',
-            'subtotal' => 'decimal:2',
+            'quantity'        => 'integer',
+            'selected_addons' => 'array',
+            'unit_price'      => 'decimal:2',
+            'subtotal'        => 'decimal:2',
         ];
     }
 
@@ -64,5 +67,46 @@ class OrderItem extends Model
         }
 
         return asset('storage/' . $this->product_image);
+    }
+
+    /**
+     * Check if item has selected add-ons.
+     */
+    public function hasAddons(): bool
+    {
+        return is_array($this->selected_addons) && !empty($this->selected_addons);
+    }
+
+    /**
+     * Get list of selected add-ons.
+     *
+     * @return array<int, array{name: string, price: float}>
+     */
+    public function addonsList(): array
+    {
+        if (!$this->hasAddons()) {
+            return [];
+        }
+
+        return array_values($this->selected_addons);
+    }
+
+    /**
+     * Formatted string of selected add-ons.
+     */
+    public function formattedAddons(): string
+    {
+        if (!$this->hasAddons()) {
+            return '';
+        }
+
+        $names = array_map(function ($addon) {
+            $price = isset($addon['price']) && (float) $addon['price'] > 0 
+                ? ' (+₹' . number_format((float) $addon['price'], 0) . ')' 
+                : '';
+            return ($addon['name'] ?? 'Extra') . $price;
+        }, $this->addonsList());
+
+        return implode(', ', $names);
     }
 }

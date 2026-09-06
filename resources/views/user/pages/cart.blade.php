@@ -162,6 +162,21 @@
                                 </div>
                             @endif
 
+                            <!-- Restaurant Name & Food Customizations (Add-ons) -->
+                            @if($p?->restaurant)
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-utensils text-[9px] text-amber-500"></i>
+                                    <span>From <strong>{{ $p->restaurant->name }}</strong></span>
+                                </p>
+                            @endif
+
+                            @if($item->hasAddons())
+                                <div class="mt-1 inline-flex items-center gap-1.5 text-[11px] text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800/40">
+                                    <i class="fa-solid fa-plus-circle text-[9px] text-amber-500"></i>
+                                    <span>Extras: <strong>{{ $item->formattedAddons() }}</strong></span>
+                                </div>
+                            @endif
+
                             <div class="flex items-baseline gap-2 mt-1">
                                 <span class="text-base font-bold text-slate-900 dark:text-white">
                                     ₹{{ number_format((float) $item->unit_price, 2) }}

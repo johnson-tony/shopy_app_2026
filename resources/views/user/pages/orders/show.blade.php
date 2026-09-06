@@ -132,6 +132,16 @@
                                         @if($item->size)
                                             <span class="bg-slate-100 dark:bg-slate-700/60 px-2 py-0.5 rounded-md">Size: <strong>{{ $item->size }}</strong></span>
                                         @endif
+                                        @if($item->restaurant_name)
+                                            <span class="bg-slate-100 dark:bg-slate-700/60 px-2 py-0.5 rounded-md text-amber-700 dark:text-amber-400">
+                                                <i class="fa-solid fa-utensils text-[9px] mr-1"></i>{{ $item->restaurant_name }}
+                                            </span>
+                                        @endif
+                                        @if($item->hasAddons())
+                                            <span class="bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40 px-2 py-0.5 rounded-md">
+                                                Extras: <strong>{{ $item->formattedAddons() }}</strong>
+                                            </span>
+                                        @endif
                                         <span>Qty: <strong>{{ $item->quantity }}</strong></span>
                                         <span>&bull;</span>
                                         <span class="font-bold text-slate-900 dark:text-white">₹{{ number_format($item->subtotal, 2) }}</span>
