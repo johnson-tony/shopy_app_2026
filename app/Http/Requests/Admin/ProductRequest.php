@@ -32,7 +32,7 @@ class ProductRequest extends FormRequest
             'sku' => $this->filled('sku') ? strtoupper(trim($this->input('sku'))) : null,
             'sale_price' => $this->filled('sale_price') ? (float) $this->input('sale_price') : null,
             'restaurant_id' => $this->filled('restaurant_id') ? (int) $this->input('restaurant_id') : null,
-            'is_veg' => $this->has('is_veg') && $this->input('is_veg') !== '' ? (bool) $this->input('is_veg') : null,
+            'is_veg' => $this->has('is_veg') && $this->input('is_veg') !== '' && $this->input('is_veg') !== null ? (bool) $this->input('is_veg') : false,
         ]);
     }
 

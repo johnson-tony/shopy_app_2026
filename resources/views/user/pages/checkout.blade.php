@@ -416,22 +416,6 @@
                             By placing order you agree to the Terms of Service
                         </p>
                     </div>
-
-                    <!-- Trust & Guarantee Badges -->
-                    <div class="pt-4 border-t border-slate-100 dark:border-slate-700 space-y-2.5 text-xs text-slate-500 dark:text-slate-400">
-                        <div class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-shield-halved text-emerald-500"></i>
-                            <span>100% Safe &amp; Secure Order Placement</span>
-                        </div>
-                        <div class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-truck-fast text-indigo-500"></i>
-                            <span>Free replacement on damaged delivery</span>
-                        </div>
-                        <div class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-handshake-angle text-amber-500"></i>
-                            <span>Cash on Delivery / UPI at your doorstep</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

@@ -34,12 +34,6 @@
             @if (session('warning'))
                 toastr.warning("{!! addslashes(session('warning')) !!}", "Warning");
             @endif
-
-            @if ($errors->any())
-                @foreach ($errors->all() as $error)
-                    toastr.error("{!! addslashes($error) !!}", "Validation Error");
-                @endforeach
-            @endif
         }
     });
 </script>

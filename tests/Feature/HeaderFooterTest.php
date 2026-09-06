@@ -57,7 +57,7 @@ class HeaderFooterTest extends TestCase
         $response->assertSee('Fashion');
 
         // Footer elements
-        $response->assertSee('trust-badges-section', false);
+        $response->assertDontSee('trust-badges-section', false);
         $response->assertSee('site-footer', false);
         $response->assertSee('footer-top', false);
         $response->assertSee('data-accordion', false);

@@ -1,6 +1,3 @@
-{{-- 1. Trust & Guarantee Badges Section (Above Footer) --}}
-@include('user.components.footer.trust-badges')
-
 {{-- 2. Master Site Footer --}}
 <footer class="site-footer">
     <div class="max-w-7xl mx-auto">

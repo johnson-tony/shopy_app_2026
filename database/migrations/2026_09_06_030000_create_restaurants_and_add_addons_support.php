@@ -40,7 +40,7 @@ return new class extends Migration
         Schema::table('products', function (Blueprint $table) {
             $table->foreignId('restaurant_id')->nullable()->after('category_id')->constrained('restaurants')->nullOnDelete();
             $table->json('addons')->nullable()->after('sizes');
-            $table->boolean('is_veg')->default(false)->after('return_policy');
+            $table->boolean('is_veg')->default(false)->nullable()->after('return_policy');
 
             $table->index('restaurant_id');
         });
