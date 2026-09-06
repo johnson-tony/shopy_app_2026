@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InvitationController;
 use App\Http\Controllers\Admin\ModeController;
+use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\RestaurantController;
 use App\Http\Controllers\Admin\RoleController;
@@ -234,6 +235,19 @@ Route::middleware(['auth:admin', 'active:admin'])->group(function () {
         Route::patch('/{coupon}/toggle-status', [CouponController::class, 'toggleStatus'])
             ->middleware('permission:coupons.edit')
             ->name('toggleStatus');
+    });
+
+    // Order Management & Fulfillment
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [OrderController::class, 'index'])
+            ->middleware('permission:orders.view,manage-orders')
+            ->name('index');
+        Route::get('/{order}', [OrderController::class, 'show'])
+            ->middleware('permission:orders.view,manage-orders')
+            ->name('show');
+        Route::put('/{order}', [OrderController::class, 'update'])
+            ->middleware('permission:orders.edit,manage-orders')
+            ->name('update');
     });
 
     // System Settings & Theme Management

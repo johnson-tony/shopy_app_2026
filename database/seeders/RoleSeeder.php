@@ -94,7 +94,7 @@ class RoleSeeder extends Seeder
         if ($orderManagerRole) {
             $orderPerms = Permission::whereIn('slug', [
                 'dashboard.view', 'view-dashboard',
-                'manage-orders', 'orders.view',
+                'manage-orders', 'orders.view', 'orders.edit',
                 'manage-products', 'products.view',
             ])->pluck('id');
             $orderManagerRole->permissions()->sync($orderPerms);

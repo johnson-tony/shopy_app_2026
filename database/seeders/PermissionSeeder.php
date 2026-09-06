@@ -73,9 +73,10 @@ class PermissionSeeder extends Seeder
             ['name' => 'Edit Coupons', 'slug' => 'coupons.edit', 'module' => 'coupons', 'description' => 'Modify existing coupons and toggle status.'],
             ['name' => 'Delete Coupons', 'slug' => 'coupons.delete', 'module' => 'coupons', 'description' => 'Remove discount coupons.'],
 
-            // Orders (placeholder for future orders module)
+            // Orders & Fulfillment
             ['name' => 'Manage Orders (Legacy)', 'slug' => 'manage-orders', 'module' => 'orders', 'description' => 'Legacy permission for orders.'],
-            ['name' => 'View Orders', 'slug' => 'orders.view', 'module' => 'orders', 'description' => 'View customer orders.'],
+            ['name' => 'View Orders', 'slug' => 'orders.view', 'module' => 'orders', 'description' => 'View customer orders and order details.'],
+            ['name' => 'Update Orders', 'slug' => 'orders.edit', 'module' => 'orders', 'description' => 'Update order status and payment status.'],
         ];
 
         foreach ($permissions as $permData) {
