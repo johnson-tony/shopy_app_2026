@@ -33,7 +33,7 @@
             </a>
         @endif
 
-        @if($adminUser?->hasPermission('categories.view') || $adminUser?->hasPermission('products.view') || $adminUser?->hasPermission('modes.view') || $adminUser?->hasPermission('coupons.view'))
+        @if($adminUser?->hasPermission('categories.view') || $adminUser?->hasPermission('products.view') || $adminUser?->hasPermission('restaurants.view') || $adminUser?->hasPermission('modes.view') || $adminUser?->hasPermission('coupons.view'))
             <div class="pt-6 px-3 pb-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                 Catalog &amp; Store
             </div>
@@ -53,6 +53,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>
                     <span>Products</span>
+                </a>
+            @endif
+
+            @if($adminUser?->hasPermission('restaurants.view'))
+                <a href="{{ route('admin.restaurants.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition {{ request()->routeIs('admin.restaurants.*') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
+                    <i class="fa-solid fa-utensils w-5 text-center text-sm {{ request()->routeIs('admin.restaurants.*') ? 'text-indigo-400' : 'text-slate-500' }}"></i>
+                    <span>Restaurants</span>
                 </a>
             @endif
 

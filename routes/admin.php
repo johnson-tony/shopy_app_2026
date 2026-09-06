@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InvitationController;
 use App\Http\Controllers\Admin\ModeController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\RestaurantController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
@@ -155,6 +156,31 @@ Route::middleware(['auth:admin', 'active:admin'])->group(function () {
         Route::patch('/{product}/toggle-featured', [ProductController::class, 'toggleFeatured'])
             ->middleware(['permission:products.edit,manage-products', 'mode.access'])
             ->name('toggleFeatured');
+    });
+
+    // Restaurant Management (Food Delivery)
+    Route::prefix('restaurants')->name('restaurants.')->group(function () {
+        Route::get('/', [RestaurantController::class, 'index'])
+            ->middleware('permission:restaurants.view')
+            ->name('index');
+        Route::get('/create', [RestaurantController::class, 'create'])
+            ->middleware('permission:restaurants.create')
+            ->name('create');
+        Route::post('/', [RestaurantController::class, 'store'])
+            ->middleware('permission:restaurants.create')
+            ->name('store');
+        Route::get('/{restaurant}/edit', [RestaurantController::class, 'edit'])
+            ->middleware('permission:restaurants.edit')
+            ->name('edit');
+        Route::put('/{restaurant}', [RestaurantController::class, 'update'])
+            ->middleware('permission:restaurants.edit')
+            ->name('update');
+        Route::delete('/{restaurant}', [RestaurantController::class, 'destroy'])
+            ->middleware('permission:restaurants.delete')
+            ->name('destroy');
+        Route::patch('/{restaurant}/toggle-status', [RestaurantController::class, 'toggleStatus'])
+            ->middleware('permission:restaurants.edit')
+            ->name('toggleStatus');
     });
 
     // Shopping Mode Management

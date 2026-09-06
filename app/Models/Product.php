@@ -246,19 +246,24 @@ class Product extends Model
      */
     public function getImageUrlAttribute(): ?string
     {
-        if (empty($this->image)) {
+        $img = $this->image;
+        if (empty($img) && !empty($this->images) && is_array($this->images) && count($this->images) > 0) {
+            $img = $this->images[0];
+        }
+
+        if (empty($img)) {
             return null;
         }
 
-        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
-            return $this->image;
+        if (str_starts_with($img, 'http://') || str_starts_with($img, 'https://')) {
+            return $img;
         }
 
-        if (Storage::disk('public')->exists($this->image)) {
-            return Storage::disk('public')->url($this->image);
+        if (Storage::disk('public')->exists($img)) {
+            return Storage::disk('public')->url($img);
         }
 
-        return asset('storage/' . $this->image);
+        return asset('storage/' . $img);
     }
 
     /**

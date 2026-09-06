@@ -37,6 +37,12 @@ class PermissionSeeder extends Seeder
             ['name' => 'Delete Products', 'slug' => 'products.delete', 'module' => 'products', 'description' => 'Remove products from catalog.'],
             ['name' => 'Manage Products (Legacy)', 'slug' => 'manage-products', 'module' => 'products', 'description' => 'Legacy permission for product catalog.'],
 
+            // Restaurants (Food Delivery)
+            ['name' => 'View Restaurants', 'slug' => 'restaurants.view', 'module' => 'restaurants', 'description' => 'Browse and view restaurants in food delivery mode.'],
+            ['name' => 'Create Restaurants', 'slug' => 'restaurants.create', 'module' => 'restaurants', 'description' => 'Register and onboard new restaurants.'],
+            ['name' => 'Edit Restaurants', 'slug' => 'restaurants.edit', 'module' => 'restaurants', 'description' => 'Modify restaurant profile, timing, and menus.'],
+            ['name' => 'Delete Restaurants', 'slug' => 'restaurants.delete', 'module' => 'restaurants', 'description' => 'Remove restaurants from food delivery.'],
+
             // Users / Customers
             ['name' => 'View Users', 'slug' => 'users.view', 'module' => 'users', 'description' => 'Browse registered customer accounts.'],
             ['name' => 'Manage Users', 'slug' => 'users.manage', 'module' => 'users', 'description' => 'Activate, deactivate, and edit users.'],

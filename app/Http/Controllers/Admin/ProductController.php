@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\ProductRequest;
 use App\Models\Category;
 use App\Models\Mode;
 use App\Models\Product;
+use App\Models\Restaurant;
 use App\Services\CloudinaryService;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -135,7 +136,9 @@ class ProductController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
-        return view('admin.products.create', compact('modes', 'categories'));
+        $restaurants = Restaurant::active()->orderBy('name', 'asc')->get();
+
+        return view('admin.products.create', compact('modes', 'categories', 'restaurants'));
     }
 
     /**
@@ -207,7 +210,9 @@ class ProductController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
-        return view('admin.products.edit', compact('product', 'modes', 'categories'));
+        $restaurants = Restaurant::active()->orderBy('name', 'asc')->get();
+
+        return view('admin.products.edit', compact('product', 'modes', 'categories', 'restaurants'));
     }
 
     /**

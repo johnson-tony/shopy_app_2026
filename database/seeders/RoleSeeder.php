@@ -74,6 +74,7 @@ class RoleSeeder extends Seeder
                 'dashboard.view', 'view-dashboard',
                 'categories.view', 'categories.create', 'categories.edit',
                 'products.view', 'products.create', 'products.edit', 'manage-products',
+                'restaurants.view', 'restaurants.create', 'restaurants.edit', 'restaurants.delete',
             ])->pluck('id');
             $foodManagerRole->permissions()->sync($foodPerms);
         }

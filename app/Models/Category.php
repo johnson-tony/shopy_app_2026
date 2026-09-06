@@ -136,6 +136,28 @@ class Category extends Model
     public function getImageUrlAttribute(): ?string
     {
         if (empty($this->image)) {
+            // Fallback to the image of an existing product in this category or child categories
+            $productWithImage = $this->products()
+                ->where(function ($q) {
+                    $q->whereNotNull('image')->where('image', '!=', '')
+                      ->orWhereNotNull('images');
+                })
+                ->first();
+
+            if (!$productWithImage && $this->children()->exists()) {
+                $childCategoryIds = $this->children()->pluck('id');
+                $productWithImage = Product::whereIn('category_id', $childCategoryIds)
+                    ->where(function ($q) {
+                        $q->whereNotNull('image')->where('image', '!=', '')
+                          ->orWhereNotNull('images');
+                    })
+                    ->first();
+            }
+
+            if ($productWithImage && !empty($productWithImage->image_url)) {
+                return $productWithImage->image_url;
+            }
+
             return null;
         }
 
@@ -149,7 +171,7 @@ class Category extends Model
             return Storage::disk('public')->url($this->image);
         }
 
-        return null;
+        return asset('storage/' . $this->image);
     }
 
     /**

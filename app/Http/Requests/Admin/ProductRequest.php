@@ -31,6 +31,8 @@ class ProductRequest extends FormRequest
             'slug' => $this->filled('slug') ? Str::slug($this->input('slug')) : null,
             'sku' => $this->filled('sku') ? strtoupper(trim($this->input('sku'))) : null,
             'sale_price' => $this->filled('sale_price') ? (float) $this->input('sale_price') : null,
+            'restaurant_id' => $this->filled('restaurant_id') ? (int) $this->input('restaurant_id') : null,
+            'is_veg' => $this->has('is_veg') && $this->input('is_veg') !== '' ? (bool) $this->input('is_veg') : null,
         ]);
     }
 
@@ -50,6 +52,15 @@ class ProductRequest extends FormRequest
                 'required',
                 'integer',
                 Rule::exists('modes', 'id'),
+            ],
+            'restaurant_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('restaurants', 'id'),
+            ],
+            'is_veg' => [
+                'nullable',
+                'boolean',
             ],
             'category_id' => [
                 'required',

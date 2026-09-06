@@ -58,10 +58,9 @@ class ProductSeeder extends Seeder
                 'sale_price' => 1099.00,
                 'stock' => 45,
                 'images' => [
-                    'https://placehold.co/400x400/e2e8f0/475569?text=iPhone+Front',
-                    'https://placehold.co/400x400/334155/f8fafc?text=iPhone+Back',
-                    'https://placehold.co/400x400/1e293b/94a3b8?text=iPhone+Camera',
-                    'https://placehold.co/400x400/0f172a/e2e8f0?text=iPhone+Side',
+                    'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1511707171634-5f897ff025a5?auto=format&fit=crop&w=600&q=80',
                 ],
                 'colors' => [
                     ['name' => 'Desert Titanium', 'hex' => '#c2a382'],
@@ -86,9 +85,9 @@ class ProductSeeder extends Seeder
                 'sale_price' => null,
                 'stock' => 18,
                 'images' => [
-                    'https://placehold.co/400x400/e2e8f0/475569?text=MacBook+Open',
-                    'https://placehold.co/400x400/1e293b/f8fafc?text=MacBook+Top',
-                    'https://placehold.co/400x400/334155/94a3b8?text=MacBook+Ports',
+                    'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?auto=format&fit=crop&w=600&q=80',
                 ],
                 'colors' => [
                     ['name' => 'Space Black', 'hex' => '#1d1d1f'],
@@ -111,9 +110,8 @@ class ProductSeeder extends Seeder
                 'sale_price' => 34.99,
                 'stock' => 120,
                 'images' => [
-                    'https://placehold.co/400x400/e2e8f0/475569?text=Shirt+Front',
-                    'https://placehold.co/400x400/cbd5e1/334155?text=Shirt+Collar',
-                    'https://placehold.co/400x400/94a3b8/0f172a?text=Shirt+Back',
+                    'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=600&q=80',
                 ],
                 'colors' => [
                     ['name' => 'Sky Blue', 'hex' => '#38bdf8'],
@@ -138,9 +136,8 @@ class ProductSeeder extends Seeder
                 'sale_price' => 329.00,
                 'stock' => 35,
                 'images' => [
-                    'https://placehold.co/400x400/e2e8f0/475569?text=Sony+Angle',
-                    'https://placehold.co/400x400/111827/f3f4f6?text=Sony+Side',
-                    'https://placehold.co/400x400/1e293b/94a3b8?text=Sony+Case',
+                    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=600&q=80',
                 ],
                 'colors' => [
                     ['name' => 'Midnight Black', 'hex' => '#111827'],
@@ -165,8 +162,8 @@ class ProductSeeder extends Seeder
                 'sale_price' => 11.99,
                 'stock' => 85,
                 'images' => [
-                    'https://placehold.co/400x400/e2e8f0/475569?text=Pizza+Slice',
-                    'https://placehold.co/400x400/fecdd3/881337?text=Cheese+Burst',
+                    'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80',
                 ],
                 'sizes' => ['Regular 7"', 'Medium 10"', 'Large 12"'],
                 'status' => true,
@@ -184,6 +181,10 @@ class ProductSeeder extends Seeder
                 'price' => 12.50,
                 'sale_price' => 9.99,
                 'stock' => 60,
+                'images' => [
+                    'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80',
+                ],
                 'sizes' => ['Single Patty', 'Double Patty'],
                 'status' => true,
                 'featured' => true,
@@ -201,8 +202,8 @@ class ProductSeeder extends Seeder
                 'sale_price' => 15.00,
                 'stock' => 40,
                 'images' => [
-                    'https://placehold.co/400x400/e2e8f0/475569?text=Biryani+Pot',
-                    'https://placehold.co/400x400/fef08a/854d0e?text=Biryani+Raita',
+                    'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?auto=format&fit=crop&w=600&q=80',
                 ],
                 'sizes' => ['Regular (Serves 1)', 'Family Pack (Serves 3)', 'Jumbo Handi (Serves 5)'],
                 'status' => true,
@@ -222,6 +223,9 @@ class ProductSeeder extends Seeder
                 'price' => 2.20,
                 'sale_price' => 1.99,
                 'stock' => 450,
+                'images' => [
+                    'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=600&q=80',
+                ],
                 'status' => true,
                 'featured' => true,
                 'sort_order' => 1,
@@ -237,6 +241,9 @@ class ProductSeeder extends Seeder
                 'price' => 3.50,
                 'sale_price' => null,
                 'stock' => 280,
+                'images' => [
+                    'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=600&q=80',
+                ],
                 'status' => true,
                 'featured' => false,
                 'sort_order' => 2,
@@ -252,6 +259,9 @@ class ProductSeeder extends Seeder
                 'price' => 1.80,
                 'sale_price' => 1.49,
                 'stock' => 160,
+                'images' => [
+                    'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=600&q=80',
+                ],
                 'status' => true,
                 'featured' => true,
                 'sort_order' => 3,
@@ -267,6 +277,9 @@ class ProductSeeder extends Seeder
                 'price' => 2.50,
                 'sale_price' => 2.00,
                 'stock' => 0, // Intentionally 0 to verify out-of-stock badge
+                'images' => [
+                    'https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=600&q=80',
+                ],
                 'status' => true,
                 'featured' => false,
                 'sort_order' => 4,
@@ -275,6 +288,9 @@ class ProductSeeder extends Seeder
 
         foreach ($products as $item) {
             if (!empty($item['mode_id']) && !empty($item['category_id'])) {
+                if (empty($item['image']) && !empty($item['images'][0])) {
+                    $item['image'] = $item['images'][0];
+                }
                 Product::updateOrCreate(
                     ['slug' => $item['slug']],
                     $item

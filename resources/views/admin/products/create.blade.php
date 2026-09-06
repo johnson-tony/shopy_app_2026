@@ -78,6 +78,45 @@
                                 <p class="mt-1 text-xs text-rose-400">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        <!-- Restaurant & Diet Selector (For Food Delivery Mode) -->
+                        <div id="foodRestaurantField" class="hidden sm:col-span-2 space-y-4 pt-3 border-t border-slate-800">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="restaurant_id" class="block text-xs font-semibold text-amber-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-utensils text-xs"></i>
+                                        <span>Partner Restaurant</span>
+                                    </label>
+                                    <select id="restaurant_id" name="restaurant_id"
+                                        class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 transition">
+                                        <option value="">Select Restaurant (Optional)</option>
+                                        @foreach ($restaurants ?? [] as $rest)
+                                            <option value="{{ $rest->id }}" {{ old('restaurant_id') == $rest->id ? 'selected' : '' }}>
+                                                {{ $rest->name }} ({{ $rest->cuisine }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-[11px] text-slate-500 mt-1">Assign this food item to a restaurant partner.</p>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-amber-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-leaf text-xs"></i>
+                                        <span>Food Diet Type</span>
+                                    </label>
+                                    <div class="grid grid-cols-2 gap-2 mt-1">
+                                        <label class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500 transition">
+                                            <input type="radio" name="is_veg" value="1" {{ old('is_veg') === '1' ? 'checked' : '' }} class="text-emerald-500 focus:ring-emerald-500">
+                                            <span class="text-xs font-bold text-emerald-400">Pure Veg</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-rose-500 transition">
+                                            <input type="radio" name="is_veg" value="0" {{ old('is_veg') === '0' ? 'checked' : '' }} class="text-rose-500 focus:ring-rose-500">
+                                            <span class="text-xs font-bold text-rose-400">Non-Veg</span>
+                                        </label>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 mt-1">Displays green / red dietary indicator on menus.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -398,6 +437,18 @@ document.addEventListener('DOMContentLoaded', function () {
         // If the selected category doesn't belong to the newly chosen mode, reset it
         if (!hasValidSelection && currentCategoryVal) {
             categorySelect.value = '';
+        }
+
+        // Toggle Food Restaurant selector based on mode slug
+        const selectedModeOption = modeSelect.options[modeSelect.selectedIndex];
+        const modeSlug = selectedModeOption ? selectedModeOption.getAttribute('data-slug') : '';
+        const foodField = document.getElementById('foodRestaurantField');
+        if (foodField) {
+            if (modeSlug === 'food') {
+                foodField.classList.remove('hidden');
+            } else {
+                foodField.classList.add('hidden');
+            }
         }
     }
 
