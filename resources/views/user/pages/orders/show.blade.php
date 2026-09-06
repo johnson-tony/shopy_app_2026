@@ -182,9 +182,9 @@
                 <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Shipping Details</h3>
                 <div class="text-sm">
                     <p class="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <span>{{ $order->shipping_name }}</span>
+                        <span>{{ $order->userAddress?->full_name }}</span>
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                            {{ $order->shipping_address_type }}
+                            {{ $order->userAddress?->address_type ?? 'Home' }}
                         </span>
                     </p>
                     <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
@@ -192,7 +192,7 @@
                     </p>
                     <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 flex items-center gap-1.5">
                         <i class="fa-solid fa-phone text-[10px]"></i>
-                        <span>Phone: {{ $order->shipping_phone }}</span>
+                        <span>Phone: {{ $order->userAddress?->phone }}</span>
                     </p>
                     @if($order->notes)
                         <p class="text-xs text-slate-500 dark:text-slate-400 italic mt-2 bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl">

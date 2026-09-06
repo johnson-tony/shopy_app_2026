@@ -28,22 +28,27 @@ class OrderAndReviewSeeder extends Seeder
 
         $firstProduct = $products->first();
 
+        $address = $user->addresses()->first() ?? $user->addresses()->create([
+            'full_name'     => $user->name,
+            'phone'         => $user->phone ?? '+91 98765 43210',
+            'address_line1' => 'Flat 402, Sunshine Heights',
+            'address_line2' => 'MG Road, Indiranagar',
+            'landmark'      => 'Near Metro Station',
+            'city'          => 'Bengaluru',
+            'state'         => 'Karnataka',
+            'postal_code'   => '560038',
+            'country'       => 'India',
+            'address_type'  => 'home',
+            'is_default'    => true,
+        ]);
+
         // 1. Create a sample delivered order
         $order = Order::firstOrCreate(
             ['order_number' => 'SHP-202609-DEMO01'],
             [
                 'user_id'                => $user->id,
                 'mode_id'                => $firstProduct->mode_id,
-                'shipping_name'          => $user->name,
-                'shipping_phone'         => $user->phone ?? '+91 98765 43210',
-                'shipping_address_line1' => 'Flat 402, Sunshine Heights',
-                'shipping_address_line2' => 'MG Road, Indiranagar',
-                'shipping_landmark'      => 'Near Metro Station',
-                'shipping_city'          => 'Bengaluru',
-                'shipping_state'         => 'Karnataka',
-                'shipping_postal_code'   => '560038',
-                'shipping_country'       => 'India',
-                'shipping_address_type'  => 'home',
+                'address_id'             => $address->id,
                 'status'                 => Order::STATUS_DELIVERED,
                 'payment_method'         => Order::PAYMENT_METHOD_COD,
                 'payment_status'         => Order::PAYMENT_STATUS_PAID,

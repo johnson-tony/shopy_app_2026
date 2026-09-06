@@ -94,63 +94,58 @@ class CheckoutController extends Controller
             'notes'          => 'nullable|string|max:500',
         ];
 
+        $messages = [
+            'address_id.required'     => 'Please select a saved delivery address from your profile.',
+            'address_id.exists'       => 'The selected delivery address is no longer available.',
+            'full_name.required'      => 'Recipient full name is required.',
+            'phone.required'          => 'Contact phone number is required.',
+            'phone.regex'             => 'Please enter a valid phone number (at least 10 digits).',
+            'address_line1.required'  => 'Street address / Flat / House number is required.',
+            'city.required'           => 'City is required.',
+            'state.required'          => 'State is required.',
+            'postal_code.required'    => 'PIN code / Postal code is required.',
+            'postal_code.regex'       => 'Please enter a valid PIN or postal code.',
+            'address_type.required'   => 'Please select an address type (Home, Work, or Other).',
+            'payment_method.required' => 'Please select a payment method.',
+        ];
+
         if ($request->input('address_source') === 'existing') {
             $rules['address_id'] = 'required|exists:user_addresses,id';
         } else {
-            $rules['full_name']     = 'required|string|max:100';
-            $rules['phone']         = 'required|string|max:20';
-            $rules['address_line1'] = 'required|string|max:255';
-            $rules['address_line2'] = 'nullable|string|max:255';
-            $rules['landmark']      = 'nullable|string|max:255';
-            $rules['city']          = 'required|string|max:100';
-            $rules['state']         = 'required|string|max:100';
-            $rules['postal_code']   = 'required|string|max:12';
-            $rules['address_type']  = 'required|in:home,work,other';
+            $rules['full_name']     = ['required', 'string', 'max:100'];
+            $rules['phone']         = ['required', 'string', 'min:10', 'max:20', 'regex:/^[0-9+\s\-\(\)]{10,20}$/'];
+            $rules['address_line1'] = ['required', 'string', 'max:255'];
+            $rules['address_line2'] = ['nullable', 'string', 'max:255'];
+            $rules['landmark']      = ['nullable', 'string', 'max:255'];
+            $rules['city']          = ['required', 'string', 'max:100'];
+            $rules['state']         = ['required', 'string', 'max:100'];
+            $rules['postal_code']   = ['required', 'string', 'min:5', 'max:10', 'regex:/^[0-9A-Za-z\s\-]{5,10}$/'];
+            $rules['address_type']  = ['required', 'in:home,work,other'];
         }
 
-        $validated = $request->validate($rules);
+        $validated = $request->validate($rules, $messages);
 
-        // Resolve shipping address data
+        // Resolve delivery address id
         if ($validated['address_source'] === 'existing') {
             $address = $user->addresses()->where('id', $validated['address_id'])->firstOrFail();
-            $shippingName = $address->full_name;
-            $shippingPhone = $address->phone;
-            $shippingLine1 = $address->address_line1;
-            $shippingLine2 = $address->address_line2;
-            $shippingLandmark = $address->landmark;
-            $shippingCity = $address->city;
-            $shippingState = $address->state;
-            $shippingPostal = $address->postal_code;
-            $shippingType = $address->address_type ?? 'home';
-            $shippingCountry = $address->country ?? 'India';
+            $addressId = $address->id;
         } else {
-            $shippingName = $validated['full_name'];
-            $shippingPhone = $validated['phone'];
-            $shippingLine1 = $validated['address_line1'];
-            $shippingLine2 = $validated['address_line2'] ?? null;
-            $shippingLandmark = $validated['landmark'] ?? null;
-            $shippingCity = $validated['city'];
-            $shippingState = $validated['state'];
-            $shippingPostal = $validated['postal_code'];
-            $shippingType = $validated['address_type'];
-            $shippingCountry = 'India';
+            // Always save new address to user profile address book so they have a persistent address
+            $address = $user->addresses()->create([
+                'full_name'     => $validated['full_name'],
+                'phone'         => $validated['phone'],
+                'address_line1' => $validated['address_line1'],
+                'address_line2' => $validated['address_line2'] ?? null,
+                'landmark'      => $validated['landmark'] ?? null,
+                'city'          => $validated['city'],
+                'state'         => $validated['state'],
+                'postal_code'   => $validated['postal_code'],
+                'address_type'  => $validated['address_type'],
+                'country'       => 'India',
+                'is_default'    => $user->addresses()->count() === 0,
+            ]);
 
-            // Optional save to address book
-            if ($request->boolean('save_address')) {
-                $user->addresses()->create([
-                    'full_name'     => $shippingName,
-                    'phone'         => $shippingPhone,
-                    'address_line1' => $shippingLine1,
-                    'address_line2' => $shippingLine2,
-                    'landmark'      => $shippingLandmark,
-                    'city'          => $shippingCity,
-                    'state'         => $shippingState,
-                    'postal_code'   => $shippingPostal,
-                    'address_type'  => $shippingType,
-                    'country'       => $shippingCountry,
-                    'is_default'    => $user->addresses()->count() === 0,
-                ]);
-            }
+            $addressId = $address->id;
         }
 
         $paymentMethod = $validated['payment_method'];
@@ -162,16 +157,7 @@ class CheckoutController extends Controller
         $order = DB::transaction(function () use (
             $user,
             $cart,
-            $shippingName,
-            $shippingPhone,
-            $shippingLine1,
-            $shippingLine2,
-            $shippingLandmark,
-            $shippingCity,
-            $shippingState,
-            $shippingPostal,
-            $shippingCountry,
-            $shippingType,
+            $addressId,
             $paymentMethod,
             $paymentStatus,
             $validated
@@ -180,16 +166,7 @@ class CheckoutController extends Controller
                 'order_number'          => Order::generateOrderNumber(),
                 'user_id'               => $user->id,
                 'mode_id'               => $cart->mode_id,
-                'shipping_name'         => $shippingName,
-                'shipping_phone'        => $shippingPhone,
-                'shipping_address_line1'=> $shippingLine1,
-                'shipping_address_line2'=> $shippingLine2,
-                'shipping_landmark'     => $shippingLandmark,
-                'shipping_city'         => $shippingCity,
-                'shipping_state'        => $shippingState,
-                'shipping_postal_code'  => $shippingPostal,
-                'shipping_country'      => $shippingCountry,
-                'shipping_address_type' => $shippingType,
+                'address_id'            => $addressId,
                 'status'                => Order::STATUS_CONFIRMED,
                 'payment_method'        => $paymentMethod,
                 'payment_status'        => $paymentStatus,

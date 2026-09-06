@@ -68,7 +68,13 @@
                     <!-- Existing Addresses List -->
                     @if($addresses->count() > 0)
                         <div id="existingAddressesSection" class="{{ old('address_source') === 'new' ? 'opacity-50 pointer-events-none' : '' }} space-y-3">
-                            <p class="text-xs text-slate-500 dark:text-slate-400">Select an address from your profile to deliver to:</p>
+                            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                                <span>Select a delivery address saved in your profile:</span>
+                                <a href="{{ route('user.addresses.index') }}" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold flex items-center gap-1">
+                                    <i class="fa-solid fa-address-book text-[11px]"></i>
+                                    <span>Manage Addresses</span>
+                                </a>
+                            </div>
                             <div class="grid grid-cols-1 gap-3">
                                 @foreach($addresses as $addr)
                                     <label class="relative flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition select-none {{ (old('address_id', $defaultAddress?->id) == $addr->id) ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-950/30' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600' }}">
@@ -102,79 +108,200 @@
                                     </label>
                                 @endforeach
                             </div>
+                            @error('address_id')
+                                <p class="text-xs text-rose-600 dark:text-rose-400 mt-1.5 flex items-center gap-1.5 font-medium">
+                                    <i class="fa-solid fa-circle-exclamation text-xs"></i>
+                                    <span>{{ $message }}</span>
+                                </p>
+                            @enderror
                         </div>
                     @else
-                        <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center gap-2.5 text-xs text-amber-800 dark:text-amber-300">
-                            <i class="fa-solid fa-info-circle text-amber-500 text-sm"></i>
-                            <span>No address saved in your profile yet. Enter your delivery address below to place your order.</span>
+                        <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300">
+                            <i class="fa-solid fa-location-dot text-amber-600 dark:text-amber-400 text-base mt-0.5 shrink-0"></i>
+                            <div class="space-y-1">
+                                <p class="font-bold text-sm">Delivery Address Required</p>
+                                <p>You haven't saved a delivery address yet. Please enter your address details below. It will be securely saved into your profile for all your orders.</p>
+                                <a href="{{ route('user.addresses.create') }}" class="inline-flex items-center gap-1 font-bold text-indigo-600 dark:text-indigo-400 hover:underline pt-0.5">
+                                    <span>Or save address directly in your Profile Address Book</span>
+                                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                </a>
+                            </div>
                         </div>
                     @endif
 
                     <!-- New Address Form (Toggleable or default if 0 addresses) -->
                     <div id="newAddressSection" class="{{ ($addresses->count() > 0 && old('address_source') !== 'new') ? 'hidden' : 'block' }} space-y-4 pt-2">
-                        <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/80 space-y-4">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Enter Delivery Address Details
-                            </h3>
+                        <div class="bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/80 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-map-pin text-indigo-600 dark:text-indigo-400"></i>
+                                    <span>Enter Delivery Address Details</span>
+                                </h3>
+                                <span class="text-[11px] text-slate-400">* Required fields</span>
+                            </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Full Name *</label>
-                                    <input type="text" name="full_name" value="{{ old('full_name', auth()->user()->name) }}" placeholder="e.g. Rahul Sharma" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        Full Name <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           name="full_name" 
+                                           value="{{ old('full_name', auth()->user()->name) }}" 
+                                           placeholder="e.g. Rahul Sharma" 
+                                           class="w-full px-3.5 py-2.5 rounded-xl border @error('full_name') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
+                                    @error('full_name')
+                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
+                                            <span>{{ $message }}</span>
+                                        </p>
+                                    @enderror
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Contact Phone *</label>
-                                    <input type="text" name="phone" value="{{ old('phone', auth()->user()->phone) }}" placeholder="10-digit mobile number" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        Contact Phone <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           name="phone" 
+                                           value="{{ old('phone', auth()->user()->phone) }}" 
+                                           placeholder="10-digit mobile number" 
+                                           class="w-full px-3.5 py-2.5 rounded-xl border @error('phone') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
+                                    @error('phone')
+                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
+                                            <span>{{ $message }}</span>
+                                        </p>
+                                    @enderror
                                 </div>
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Street Address / House No. / Flat *</label>
-                                <input type="text" name="address_line1" value="{{ old('address_line1') }}" placeholder="Flat, House no., Building, Apartment" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    Street Address / House No. / Flat <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="address_line1" 
+                                       value="{{ old('address_line1') }}" 
+                                       placeholder="Flat, House no., Building, Apartment" 
+                                       class="w-full px-3.5 py-2.5 rounded-xl border @error('address_line1') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
+                                @error('address_line1')
+                                    <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                                        <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
+                                        <span>{{ $message }}</span>
+                                    </p>
+                                @enderror
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Area / Sector / Locality</label>
-                                    <input type="text" name="address_line2" value="{{ old('address_line2') }}" placeholder="Area or Colony" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    <input type="text" 
+                                           name="address_line2" 
+                                           value="{{ old('address_line2') }}" 
+                                           placeholder="Area or Colony" 
+                                           class="w-full px-3.5 py-2.5 rounded-xl border @error('address_line2') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
+                                    @error('address_line2')
+                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
+                                            <span>{{ $message }}</span>
+                                        </p>
+                                    @enderror
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Landmark (Optional)</label>
-                                    <input type="text" name="landmark" value="{{ old('landmark') }}" placeholder="e.g. Near City Hospital" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    <input type="text" 
+                                           name="landmark" 
+                                           value="{{ old('landmark') }}" 
+                                           placeholder="e.g. Near City Hospital" 
+                                           class="w-full px-3.5 py-2.5 rounded-xl border @error('landmark') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
+                                    @error('landmark')
+                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
+                                            <span>{{ $message }}</span>
+                                        </p>
+                                    @enderror
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">City *</label>
-                                    <input type="text" name="city" value="{{ old('city') }}" placeholder="City" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        City <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           name="city" 
+                                           value="{{ old('city') }}" 
+                                           placeholder="City" 
+                                           class="w-full px-3.5 py-2.5 rounded-xl border @error('city') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
+                                    @error('city')
+                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
+                                            <span>{{ $message }}</span>
+                                        </p>
+                                    @enderror
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">State *</label>
-                                    <input type="text" name="state" value="{{ old('state') }}" placeholder="State" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        State <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           name="state" 
+                                           value="{{ old('state') }}" 
+                                           placeholder="State" 
+                                           class="w-full px-3.5 py-2.5 rounded-xl border @error('state') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
+                                    @error('state')
+                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
+                                            <span>{{ $message }}</span>
+                                        </p>
+                                    @enderror
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Pincode *</label>
-                                    <input type="text" name="postal_code" value="{{ old('postal_code') }}" placeholder="6-digit Pincode" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        Pincode <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           name="postal_code" 
+                                           value="{{ old('postal_code') }}" 
+                                           placeholder="6-digit Pincode" 
+                                           class="w-full px-3.5 py-2.5 rounded-xl border @error('postal_code') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
+                                    @error('postal_code')
+                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
+                                            <span>{{ $message }}</span>
+                                        </p>
+                                    @enderror
                                 </div>
                             </div>
 
                             <div class="flex items-center justify-between pt-2">
-                                <div class="flex items-center gap-4">
-                                    <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
-                                        <input type="radio" name="address_type" value="home" checked class="text-indigo-600">
-                                        <span>Home</span>
-                                    </label>
-                                    <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
-                                        <input type="radio" name="address_type" value="work" class="text-indigo-600">
-                                        <span>Work</span>
-                                    </label>
+                                <div>
+                                    <div class="flex items-center gap-4">
+                                        <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                                            <input type="radio" name="address_type" value="home" {{ old('address_type', 'home') === 'home' ? 'checked' : '' }} class="text-indigo-600">
+                                            <span>Home</span>
+                                        </label>
+                                        <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                                            <input type="radio" name="address_type" value="work" {{ old('address_type') === 'work' ? 'checked' : '' }} class="text-indigo-600">
+                                            <span>Work</span>
+                                        </label>
+                                        <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                                            <input type="radio" name="address_type" value="other" {{ old('address_type') === 'other' ? 'checked' : '' }} class="text-indigo-600">
+                                            <span>Other</span>
+                                        </label>
+                                    </div>
+                                    @error('address_type')
+                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
+                                            <span>{{ $message }}</span>
+                                        </p>
+                                    @enderror
                                 </div>
 
-                                <label class="inline-flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
-                                    <input type="checkbox" name="save_address" value="1" checked class="rounded text-indigo-600">
-                                    <span>Save to address book</span>
-                                </label>
+                                <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-shield-check text-emerald-500"></i>
+                                    <span>Auto-saved to Profile</span>
+                                </div>
                             </div>
                         </div>
                     </div>

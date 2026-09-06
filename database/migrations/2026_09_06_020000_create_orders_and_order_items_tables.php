@@ -17,17 +17,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('mode_id')->nullable()->constrained('modes')->nullOnDelete();
 
-            // Shipping Address Snapshot (Immutable once placed)
-            $table->string('shipping_name');
-            $table->string('shipping_phone');
-            $table->string('shipping_address_line1');
-            $table->string('shipping_address_line2')->nullable();
-            $table->string('shipping_landmark')->nullable();
-            $table->string('shipping_city');
-            $table->string('shipping_state');
-            $table->string('shipping_postal_code');
-            $table->string('shipping_country')->default('India');
-            $table->string('shipping_address_type')->default('home');
+            // Delivery Address (foreign key to user_addresses)
+            $table->foreignId('address_id')->nullable()->constrained('user_addresses')->nullOnDelete();
 
             // Order lifecycle status
             $table->string('status')->default('confirmed'); // confirmed, processing, shipped, delivered, cancelled
@@ -52,6 +43,7 @@ return new class extends Migration
             // Performant query indexes
             $table->index(['user_id', 'status']);
             $table->index(['mode_id', 'status']);
+            $table->index('address_id');
             $table->index('created_at');
         });
 

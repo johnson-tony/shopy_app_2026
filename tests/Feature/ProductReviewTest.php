@@ -84,16 +84,20 @@ class ProductReviewTest extends TestCase
     public function test_user_who_purchased_product_gets_verified_buyer_badge(): void
     {
         // Create confirmed order containing this product for $this->user
+        $address = $this->user->addresses()->create([
+            'full_name'     => $this->user->name,
+            'phone'         => '9876543210',
+            'address_line1' => '20 Ingram Street, Forest Hills',
+            'city'          => 'New York',
+            'state'         => 'NY',
+            'postal_code'   => '11375',
+        ]);
+
         $order = Order::create([
             'order_number'          => Order::generateOrderNumber(),
             'user_id'               => $this->user->id,
             'mode_id'               => $this->shopyMode->id,
-            'shipping_name'         => $this->user->name,
-            'shipping_phone'        => '9876543210',
-            'shipping_address_line1'=> '20 Ingram Street, Forest Hills',
-            'shipping_city'         => 'New York',
-            'shipping_state'        => 'NY',
-            'shipping_postal_code'  => '11375',
+            'address_id'            => $address->id,
             'status'                => Order::STATUS_DELIVERED,
             'payment_method'        => 'pay_on_delivery',
             'payment_status'        => 'paid',

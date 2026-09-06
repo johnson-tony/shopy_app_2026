@@ -117,7 +117,8 @@ class OrderCheckoutTest extends TestCase
         $this->assertEquals(Order::STATUS_CONFIRMED, $order->status);
         $this->assertEquals('pay_on_delivery', $order->payment_method);
         $this->assertEquals(Order::PAYMENT_STATUS_PENDING, $order->payment_status);
-        $this->assertEquals('10880 Malibu Point', $order->shipping_address_line1);
+        $this->assertEquals($this->address->id, $order->address_id);
+        $this->assertEquals('10880 Malibu Point', $order->userAddress->address_line1);
         $this->assertEquals('Leave at the front gate', $order->notes);
 
         // Check stock decrement
@@ -158,8 +159,8 @@ class OrderCheckoutTest extends TestCase
 
         $order = Order::where('user_id', $this->user->id)->latest()->first();
         $this->assertNotNull($order);
-        $this->assertEquals('Pepper Potts', $order->shipping_name);
-        $this->assertEquals('Stark Tower, 5th Ave', $order->shipping_address_line1);
+        $this->assertEquals('Pepper Potts', $order->userAddress->full_name);
+        $this->assertEquals('Stark Tower, 5th Ave', $order->userAddress->address_line1);
         $this->assertEquals('mock_upi', $order->payment_method);
         $this->assertEquals(Order::PAYMENT_STATUS_PAID, $order->payment_status);
 
@@ -175,12 +176,7 @@ class OrderCheckoutTest extends TestCase
             'order_number'          => Order::generateOrderNumber(),
             'user_id'               => $this->user->id,
             'mode_id'               => $this->shopyMode->id,
-            'shipping_name'         => $this->user->name,
-            'shipping_phone'        => '9876543210',
-            'shipping_address_line1'=> '10880 Malibu Point',
-            'shipping_city'         => 'Malibu',
-            'shipping_state'        => 'CA',
-            'shipping_postal_code'  => '90265',
+            'address_id'            => $this->address->id,
             'status'                => Order::STATUS_CONFIRMED,
             'payment_method'        => 'pay_on_delivery',
             'payment_status'        => 'pending',

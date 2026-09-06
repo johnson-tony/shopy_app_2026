@@ -60,7 +60,7 @@
             <div class="sm:col-span-2 pt-2 border-t border-slate-200 dark:border-slate-700">
                 <span class="text-slate-400 block mb-0.5">Delivery Address</span>
                 <p class="font-medium text-slate-700 dark:text-slate-300">
-                    <strong>{{ $order->shipping_name }}</strong> ({{ $order->shipping_phone }}) &bull; {{ $order->formatted_shipping_address }}
+                    <strong>{{ $order->userAddress?->full_name }}</strong> ({{ $order->userAddress?->phone }}) &bull; {{ $order->formatted_shipping_address }}
                 </p>
             </div>
         </div>

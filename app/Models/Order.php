@@ -34,16 +34,7 @@ class Order extends Model
         'order_number',
         'user_id',
         'mode_id',
-        'shipping_name',
-        'shipping_phone',
-        'shipping_address_line1',
-        'shipping_address_line2',
-        'shipping_landmark',
-        'shipping_city',
-        'shipping_state',
-        'shipping_postal_code',
-        'shipping_country',
-        'shipping_address_type',
+        'address_id',
         'status',
         'payment_method',
         'payment_status',
@@ -89,6 +80,22 @@ class Order extends Model
     }
 
     /**
+     * Delivery address saved at the time of ordering.
+     */
+    public function userAddress(): BelongsTo
+    {
+        return $this->belongsTo(UserAddress::class, 'address_id');
+    }
+
+    /**
+     * Formatted shipping address line (delegates to the linked saved address).
+     */
+    public function getFormattedShippingAddressAttribute(): ?string
+    {
+        return $this->userAddress?->formatted_address;
+    }
+
+    /**
      * Items in this order.
      */
     public function items(): HasMany
@@ -131,23 +138,6 @@ class Order extends Model
     public function totalQuantity(): int
     {
         return (int) $this->items->sum('quantity');
-    }
-
-    /**
-     * Formatted shipping address line.
-     */
-    public function getFormattedShippingAddressAttribute(): string
-    {
-        $parts = array_filter([
-            $this->shipping_address_line1,
-            $this->shipping_address_line2,
-            $this->shipping_landmark ? 'Near ' . $this->shipping_landmark : null,
-            $this->shipping_city,
-            $this->shipping_state . ' - ' . $this->shipping_postal_code,
-            $this->shipping_country,
-        ]);
-
-        return implode(', ', $parts);
     }
 
     /**
