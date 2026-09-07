@@ -8,7 +8,7 @@
     <div class="pb-5 border-b border-slate-800 flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-black text-white tracking-tight">Site &amp; System Settings</h1>
-            <p class="text-xs text-slate-400 mt-1">Manage global brand identity, site logo, and storefront theme preferences.</p>
+            <p class="text-xs text-slate-400 mt-1">Manage global brand identity, site logo, storefront theme, and delivery/partner settings.</p>
         </div>
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
             <i class="fa-solid fa-sliders text-[11px]"></i> Global Config
@@ -132,6 +132,87 @@
             </div>
         </div>
 
+        <!-- Card 3: Delivery & Partner Settings -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
+            <div class="flex items-center gap-3 pb-4 border-b border-slate-800">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-truck-fast text-base"></i>
+                </div>
+                <div>
+                    <h2 class="text-base font-bold text-white">Delivery &amp; Partner System</h2>
+                    <p class="text-xs text-slate-400">Enable or disable the delivery partner system globally and per shopping mode.</p>
+                </div>
+            </div>
+
+            <div class="space-y-5">
+                <!-- Global master switch -->
+                <div class="flex items-center justify-between gap-4 p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                    <div class="flex-1">
+                        <label for="is_delivery_enabled" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                            Enable Delivery System
+                        </label>
+                        <p class="text-[11px] text-slate-500">
+                            Master switch for the whole partner/delivery flow. When off, orders follow the manual admin status flow only.
+                        </p>
+                    </div>
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="is_delivery_enabled" name="is_delivery_enabled" value="1" {{ $isDeliveryEnabled ? 'checked' : '' }}
+                               class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:bg-emerald-600 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5 relative"></div>
+                    </label>
+                </div>
+
+                <!-- Per-mode toggles -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="flex items-center justify-between gap-3 p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                        <div class="flex-1">
+                            <label for="delivery_enabled_shopy" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                                Shopy (E-commerce)
+                            </label>
+                            <p class="text-[11px] text-slate-500">Milestone-based shipping flow.</p>
+                        </div>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="delivery_enabled_shopy" name="delivery_enabled_shopy" value="1" {{ $deliveryEnabledShopy ? 'checked' : '' }}
+                                   class="sr-only peer" @disabled(!$isDeliveryEnabled)>
+                            <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5 relative"></div>
+                        </label>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3 p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                        <div class="flex-1">
+                            <label for="delivery_enabled_minutes" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                                Minutes (Quick Commerce)
+                            </label>
+                            <p class="text-[11px] text-slate-500">Nearest-partner GPS dispatch.</p>
+                        </div>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="delivery_enabled_minutes" name="delivery_enabled_minutes" value="1" {{ $deliveryEnabledMinutes ? 'checked' : '' }}
+                                   class="sr-only peer" @disabled(!$isDeliveryEnabled)>
+                            <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:bg-sky-600 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5 relative"></div>
+                        </label>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3 p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                        <div class="flex-1">
+                            <label for="delivery_enabled_food" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                                Food Delivery
+                            </label>
+                            <p class="text-[11px] text-slate-500">Nearest-partner GPS dispatch.</p>
+                        </div>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="delivery_enabled_food" name="delivery_enabled_food" value="1" {{ $deliveryEnabledFood ? 'checked' : '' }}
+                                   class="sr-only peer" @disabled(!$isDeliveryEnabled)>
+                            <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:bg-emerald-600 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5 relative"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <p class="text-[11px] text-slate-500">
+                    When the global switch is off, delivery is disabled for every mode. Partners and their panel remain accessible in the admin for management.
+                </p>
+            </div>
+        </div>
+
         <!-- Submit Button -->
         <div class="flex items-center justify-end gap-3 pt-2">
             <button type="submit"
@@ -159,6 +240,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 reader.readAsDataURL(file);
             }
         });
+    }
+
+    const masterSwitch = document.getElementById('is_delivery_enabled');
+    const modeToggleIds = ['delivery_enabled_shopy', 'delivery_enabled_minutes', 'delivery_enabled_food'];
+    if (masterSwitch) {
+        const updateDisabled = () => {
+            modeToggleIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = !masterSwitch.checked;
+            });
+        };
+        masterSwitch.addEventListener('change', updateDisabled);
+        updateDisabled();
     }
 });
 </script>

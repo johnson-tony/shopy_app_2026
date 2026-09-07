@@ -33,6 +33,9 @@
     <!-- Hidden Lat/Lng fields -->
     <input type="hidden" name="latitude" id="{{ $formId }}_latitude" value="{{ $latitude }}">
     <input type="hidden" name="longitude" id="{{ $formId }}_longitude" value="{{ $longitude }}">
+    @if(request('return_to'))
+        <input type="hidden" name="return_to" value="{{ request('return_to') }}">
+    @endif
 
     <!-- Google Location Options Banner (Places Autocomplete + GPS Use My Location) -->
     <div class="bg-gradient-to-r from-indigo-50/80 to-blue-50/80 rounded-2xl p-4 sm:p-5 border border-indigo-100 space-y-3">

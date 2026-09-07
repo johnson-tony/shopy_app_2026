@@ -63,7 +63,11 @@ class OrderController extends Controller
         if ($statusFilter && in_array($statusFilter, [
             Order::STATUS_CONFIRMED,
             Order::STATUS_PROCESSING,
+            Order::STATUS_READY_FOR_DELIVERY,
+            Order::STATUS_DELIVERY_ASSIGNED,
+            Order::STATUS_PICKED_UP,
             Order::STATUS_SHIPPED,
+            Order::STATUS_OUT_FOR_DELIVERY,
             Order::STATUS_DELIVERED,
             Order::STATUS_CANCELLED,
         ], true)) {
@@ -123,23 +127,34 @@ class OrderController extends Controller
      */
     public function show(Order $order): View
     {
-        $order->load(['user', 'mode', 'userAddress', 'items.product', 'reviews']);
+        $order->load(['user', 'mode', 'userAddress', 'items.product', 'reviews', 'deliveryPartner']);
 
         $totals = $order->items->reduce(function (array $carry, $item) {
             $carry['quantity'] += $item->quantity;
             return $carry;
         }, ['quantity' => 0]);
 
+        $allStatuses = [
+            Order::STATUS_CONFIRMED            => 'Order Confirmed',
+            Order::STATUS_PROCESSING           => 'Processing',
+            Order::STATUS_READY_FOR_DELIVERY   => 'Ready for Delivery',
+            Order::STATUS_DELIVERY_ASSIGNED    => 'Delivery Assigned',
+            Order::STATUS_PICKED_UP            => 'Picked Up',
+            Order::STATUS_SHIPPED              => 'Shipped',
+            Order::STATUS_OUT_FOR_DELIVERY     => 'Out for Delivery',
+            Order::STATUS_DELIVERED            => 'Delivered',
+            Order::STATUS_CANCELLED            => 'Cancelled',
+        ];
+
+        // Only surface statuses the order is legally allowed to move into.
+        $statuses = collect($allStatuses)
+            ->filter(fn ($label, $value) => $order->canTransitionTo($value))
+            ->all();
+
         return view('admin.orders.show', [
             'order'     => $order,
             'quantity'  => $totals['quantity'],
-            'statuses'  => [
-                Order::STATUS_CONFIRMED  => 'Order Confirmed',
-                Order::STATUS_PROCESSING => 'Processing',
-                Order::STATUS_SHIPPED    => 'Shipped',
-                Order::STATUS_DELIVERED  => 'Delivered',
-                Order::STATUS_CANCELLED  => 'Cancelled',
-            ],
+            'statuses'  => $statuses ?: [$order->status => $allStatuses[$order->status] ?? ucwords(str_replace('-', ' ', $order->status))],
             'paymentStatuses' => [
                 Order::PAYMENT_STATUS_PENDING  => 'Pending',
                 Order::PAYMENT_STATUS_PAID     => 'Paid',
@@ -156,10 +171,27 @@ class OrderController extends Controller
     {
         $data = $request->validated();
 
+        if (!$order->canTransitionTo($data['status'])) {
+            return back()
+                ->withInput()
+                ->with('error', "Order {$order->order_number} cannot move from '{$order->status}' to '{$data['status']}'.");
+        }
+
         $order->status = $data['status'];
 
-        if ($order->status === Order::STATUS_DELIVERED && empty($order->delivered_at)) {
-            $order->delivered_at = now();
+        // Set the appropriate lifecycle timestamps for delivery progress.
+        $statusTimestamps = [
+            Order::STATUS_READY_FOR_DELIVERY => 'ready_for_delivery_at',
+            Order::STATUS_DELIVERY_ASSIGNED => 'assigned_at',
+            Order::STATUS_PICKED_UP => 'picked_up_at',
+            Order::STATUS_OUT_FOR_DELIVERY => 'out_for_delivery_at',
+            Order::STATUS_DELIVERED => 'delivered_at',
+        ];
+
+        foreach ($statusTimestamps as $status => $column) {
+            if ($order->status === $status && empty($order->{$column})) {
+                $order->{$column} = now();
+            }
         }
 
         if ($order->status === Order::STATUS_CANCELLED) {

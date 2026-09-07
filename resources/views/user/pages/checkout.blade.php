@@ -51,30 +51,28 @@
                             </div>
                         </div>
 
-                        @if($addresses->count() > 0)
-                            <button type="button" 
-                                    id="toggleNewAddressBtn"
-                                    onclick="toggleNewAddressSection();"
-                                    class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('user.addresses.create', ['return_to' => 'checkout']) }}" 
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition">
                                 <i class="fa-solid fa-plus text-[10px]"></i>
-                                <span id="toggleAddressBtnText">{{ old('address_source') === 'new' ? 'Select Saved Address' : 'Add New Address' }}</span>
-                            </button>
-                        @endif
+                                <span>Add New Address</span>
+                            </a>
+                            <a href="{{ route('user.addresses.index') }}" 
+                               target="_blank"
+                               class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition" 
+                               title="Manage in Profile Address Book">
+                                <i class="fa-solid fa-gear text-xs"></i>
+                            </a>
+                        </div>
                     </div>
 
                     <!-- Hidden address source input -->
-                    <input type="hidden" name="address_source" id="addressSourceInput" value="{{ old('address_source', $addresses->count() > 0 ? 'existing' : 'new') }}">
+                    <input type="hidden" name="address_source" value="existing">
 
-                    <!-- Existing Addresses List -->
+                    <!-- Saved Addresses Selection -->
                     @if($addresses->count() > 0)
-                        <div id="existingAddressesSection" class="{{ old('address_source') === 'new' ? 'opacity-50 pointer-events-none' : '' }} space-y-3">
-                            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                                <span>Select a delivery address saved in your profile:</span>
-                                <a href="{{ route('user.addresses.index') }}" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold flex items-center gap-1">
-                                    <i class="fa-solid fa-address-book text-[11px]"></i>
-                                    <span>Manage Addresses</span>
-                                </a>
-                            </div>
+                        <div class="space-y-3">
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Select a delivery address from your profile:</p>
                             <div class="grid grid-cols-1 gap-3">
                                 @foreach($addresses as $addr)
                                     <label class="relative flex items-start gap-4 p-4 rounded-2xl border-2 cursor-pointer transition select-none {{ (old('address_id', $defaultAddress?->id) == $addr->id) ? 'border-indigo-600 bg-indigo-50/40 dark:bg-indigo-950/30' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600' }}">
@@ -116,195 +114,20 @@
                             @enderror
                         </div>
                     @else
-                        <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300">
-                            <i class="fa-solid fa-location-dot text-amber-600 dark:text-amber-400 text-base mt-0.5 shrink-0"></i>
-                            <div class="space-y-1">
-                                <p class="font-bold text-sm">Delivery Address Required</p>
-                                <p>You haven't saved a delivery address yet. Please enter your address details below. It will be securely saved into your profile for all your orders.</p>
-                                <a href="{{ route('user.addresses.create') }}" class="inline-flex items-center gap-1 font-bold text-indigo-600 dark:text-indigo-400 hover:underline pt-0.5">
-                                    <span>Or save address directly in your Profile Address Book</span>
-                                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                                </a>
+                        <div class="p-6 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-center space-y-3">
+                            <div class="w-12 h-12 mx-auto rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-location-dot"></i>
                             </div>
+                            <div>
+                                <h3 class="font-bold text-base text-slate-900 dark:text-white">Delivery Address Required</h3>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 mt-1">You must save at least one delivery address in your profile before placing an order.</p>
+                            </div>
+                            <a href="{{ route('user.addresses.create', ['return_to' => 'checkout']) }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-500/20 transition">
+                                <i class="fa-solid fa-plus text-xs"></i>
+                                <span>Add Address to Profile</span>
+                            </a>
                         </div>
                     @endif
-
-                    <!-- New Address Form (Toggleable or default if 0 addresses) -->
-                    <div id="newAddressSection" class="{{ ($addresses->count() > 0 && old('address_source') !== 'new') ? 'hidden' : 'block' }} space-y-4 pt-2">
-                        <div class="bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700/80 space-y-4">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-map-pin text-indigo-600 dark:text-indigo-400"></i>
-                                    <span>Enter Delivery Address Details</span>
-                                </h3>
-                                <span class="text-[11px] text-slate-400">* Required fields</span>
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        Full Name <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input type="text" 
-                                           name="full_name" 
-                                           value="{{ old('full_name', auth()->user()->name) }}" 
-                                           placeholder="e.g. Rahul Sharma" 
-                                           class="w-full px-3.5 py-2.5 rounded-xl border @error('full_name') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
-                                    @error('full_name')
-                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
-                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
-                                            <span>{{ $message }}</span>
-                                        </p>
-                                    @enderror
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        Contact Phone <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input type="text" 
-                                           name="phone" 
-                                           value="{{ old('phone', auth()->user()->phone) }}" 
-                                           placeholder="10-digit mobile number" 
-                                           class="w-full px-3.5 py-2.5 rounded-xl border @error('phone') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
-                                    @error('phone')
-                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
-                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
-                                            <span>{{ $message }}</span>
-                                        </p>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                    Street Address / House No. / Flat <span class="text-rose-500">*</span>
-                                </label>
-                                <input type="text" 
-                                       name="address_line1" 
-                                       value="{{ old('address_line1') }}" 
-                                       placeholder="Flat, House no., Building, Apartment" 
-                                       class="w-full px-3.5 py-2.5 rounded-xl border @error('address_line1') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
-                                @error('address_line1')
-                                    <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
-                                        <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
-                                        <span>{{ $message }}</span>
-                                    </p>
-                                @enderror
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Area / Sector / Locality</label>
-                                    <input type="text" 
-                                           name="address_line2" 
-                                           value="{{ old('address_line2') }}" 
-                                           placeholder="Area or Colony" 
-                                           class="w-full px-3.5 py-2.5 rounded-xl border @error('address_line2') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
-                                    @error('address_line2')
-                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
-                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
-                                            <span>{{ $message }}</span>
-                                        </p>
-                                    @enderror
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Landmark (Optional)</label>
-                                    <input type="text" 
-                                           name="landmark" 
-                                           value="{{ old('landmark') }}" 
-                                           placeholder="e.g. Near City Hospital" 
-                                           class="w-full px-3.5 py-2.5 rounded-xl border @error('landmark') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
-                                    @error('landmark')
-                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
-                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
-                                            <span>{{ $message }}</span>
-                                        </p>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        City <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input type="text" 
-                                           name="city" 
-                                           value="{{ old('city') }}" 
-                                           placeholder="City" 
-                                           class="w-full px-3.5 py-2.5 rounded-xl border @error('city') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
-                                    @error('city')
-                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
-                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
-                                            <span>{{ $message }}</span>
-                                        </p>
-                                    @enderror
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        State <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input type="text" 
-                                           name="state" 
-                                           value="{{ old('state') }}" 
-                                           placeholder="State" 
-                                           class="w-full px-3.5 py-2.5 rounded-xl border @error('state') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
-                                    @error('state')
-                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
-                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
-                                            <span>{{ $message }}</span>
-                                        </p>
-                                    @enderror
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        Pincode <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input type="text" 
-                                           name="postal_code" 
-                                           value="{{ old('postal_code') }}" 
-                                           placeholder="6-digit Pincode" 
-                                           class="w-full px-3.5 py-2.5 rounded-xl border @error('postal_code') border-rose-500 ring-1 ring-rose-500 focus:ring-rose-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:outline-none transition">
-                                    @error('postal_code')
-                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
-                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
-                                            <span>{{ $message }}</span>
-                                        </p>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="flex items-center justify-between pt-2">
-                                <div>
-                                    <div class="flex items-center gap-4">
-                                        <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
-                                            <input type="radio" name="address_type" value="home" {{ old('address_type', 'home') === 'home' ? 'checked' : '' }} class="text-indigo-600">
-                                            <span>Home</span>
-                                        </label>
-                                        <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
-                                            <input type="radio" name="address_type" value="work" {{ old('address_type') === 'work' ? 'checked' : '' }} class="text-indigo-600">
-                                            <span>Work</span>
-                                        </label>
-                                        <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
-                                            <input type="radio" name="address_type" value="other" {{ old('address_type') === 'other' ? 'checked' : '' }} class="text-indigo-600">
-                                            <span>Other</span>
-                                        </label>
-                                    </div>
-                                    @error('address_type')
-                                        <p class="text-xs text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
-                                            <i class="fa-solid fa-circle-exclamation text-[11px]"></i>
-                                            <span>{{ $message }}</span>
-                                        </p>
-                                    @enderror
-                                </div>
-
-                                <div class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-shield-check text-emerald-500"></i>
-                                    <span>Auto-saved to Profile</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- 2. Payment Method Selector (Mock / Cash on Delivery without Gateway Credentials) -->
@@ -532,13 +355,21 @@
 
                     <!-- Place Order Button -->
                     <div class="pt-2">
-                        <button type="submit" 
-                                id="placeOrderBtn"
-                                class="w-full py-4 px-6 rounded-2xl font-black text-base text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] transition shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-lock text-sm"></i>
-                            <span>Confirm &amp; Place Order</span>
-                            <i class="fa-solid fa-arrow-right text-xs ml-1"></i>
-                        </button>
+                        @if($addresses->count() > 0)
+                            <button type="submit" 
+                                    id="placeOrderBtn"
+                                    class="w-full py-4 px-6 rounded-2xl font-black text-base text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] transition shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 cursor-pointer">
+                                <i class="fa-solid fa-lock text-sm"></i>
+                                <span>Confirm &amp; Place Order</span>
+                                <i class="fa-solid fa-arrow-right text-xs ml-1"></i>
+                            </button>
+                        @else
+                            <a href="{{ route('user.addresses.create', ['return_to' => 'checkout']) }}" 
+                               class="w-full py-4 px-6 rounded-2xl font-black text-base text-white bg-amber-600 hover:bg-amber-700 active:scale-[0.99] transition shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer text-center">
+                                <i class="fa-solid fa-location-dot text-sm"></i>
+                                <span>Add Delivery Address to Order</span>
+                            </a>
+                        @endif
                         <p class="text-center text-[11px] text-slate-400 mt-2">
                             By placing order you agree to the Terms of Service
                         </p>
@@ -551,29 +382,13 @@
 
 @push('scripts')
 <script>
-    function toggleNewAddressSection() {
-        const newSec = document.getElementById('newAddressSection');
-        const existSec = document.getElementById('existingAddressesSection');
-        const sourceInput = document.getElementById('addressSourceInput');
-        const btnText = document.getElementById('toggleAddressBtnText');
-
-        if (newSec.classList.contains('hidden')) {
-            newSec.classList.remove('hidden');
-            if (existSec) existSec.classList.add('opacity-50', 'pointer-events-none');
-            sourceInput.value = 'new';
-            if (btnText) btnText.textContent = 'Select Saved Address';
-        } else {
-            newSec.classList.add('hidden');
-            if (existSec) existSec.classList.remove('opacity-50', 'pointer-events-none');
-            sourceInput.value = 'existing';
-            if (btnText) btnText.textContent = 'Add New Address';
-        }
-    }
-
     function highlightSelectedAddress(radioEl) {
-        document.querySelectorAll('#existingAddressesSection label').forEach(label => {
-            label.classList.remove('border-indigo-600', 'bg-indigo-50/40', 'dark:bg-indigo-950/30');
-            label.classList.add('border-slate-200', 'dark:border-slate-700');
+        document.querySelectorAll('input[name="address_id"]').forEach(input => {
+            const label = input.closest('label');
+            if (label) {
+                label.classList.remove('border-indigo-600', 'bg-indigo-50/40', 'dark:bg-indigo-950/30');
+                label.classList.add('border-slate-200', 'dark:border-slate-700');
+            }
         });
         const parentLabel = radioEl.closest('label');
         if (parentLabel) {

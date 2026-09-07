@@ -77,6 +77,17 @@ class PermissionSeeder extends Seeder
             ['name' => 'Manage Orders (Legacy)', 'slug' => 'manage-orders', 'module' => 'orders', 'description' => 'Legacy permission for orders.'],
             ['name' => 'View Orders', 'slug' => 'orders.view', 'module' => 'orders', 'description' => 'View customer orders and order details.'],
             ['name' => 'Update Orders', 'slug' => 'orders.edit', 'module' => 'orders', 'description' => 'Update order status and payment status.'],
+
+            // Delivery Partners
+            ['name' => 'View Delivery Partners', 'slug' => 'partners.view', 'module' => 'partners', 'description' => 'View delivery partners and their on-duty status.'],
+            ['name' => 'Create Delivery Partners', 'slug' => 'partners.create', 'module' => 'partners', 'description' => 'Onboard new delivery partners.'],
+            ['name' => 'Edit Delivery Partners', 'slug' => 'partners.edit', 'module' => 'partners', 'description' => 'Modify partner profiles, modes, and availability.'],
+            ['name' => 'Delete Delivery Partners', 'slug' => 'partners.delete', 'module' => 'partners', 'description' => 'Remove delivery partners from the fleet.'],
+
+            // Customer Reviews & Ratings
+            ['name' => 'View Reviews', 'slug' => 'reviews.view', 'module' => 'reviews', 'description' => 'Browse and inspect customer product reviews.'],
+            ['name' => 'Edit Reviews', 'slug' => 'reviews.edit', 'module' => 'reviews', 'description' => 'Approve or hide customer product reviews.'],
+            ['name' => 'Delete Reviews', 'slug' => 'reviews.delete', 'module' => 'reviews', 'description' => 'Remove fraudulent or abusive product reviews.'],
         ];
 
         foreach ($permissions as $permData) {

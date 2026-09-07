@@ -53,6 +53,10 @@ class AddressController extends Controller
         $validated['is_default'] = $isDefault;
         $user->addresses()->create($validated);
 
+        if ($request->input('return_to') === 'checkout') {
+            return redirect()->route('checkout')->with('success', 'Delivery address saved! You can now place your order.');
+        }
+
         return redirect()->route('user.addresses.index')->with('success', 'Address added successfully.');
     }
 

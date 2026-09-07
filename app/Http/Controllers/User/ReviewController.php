@@ -41,19 +41,27 @@ class ReviewController extends Controller
         $productId = (int) $request->input('product_id');
         $orderId = $request->input('order_id') ? (int) $request->input('order_id') : null;
 
-        // Check verification: has this user purchased this product in any order?
-        $verifiedOrder = OrderItem::where('product_id', $productId)
+        // Enforce: Customer can ONLY write a review after their order has been received (delivered)
+        $deliveredOrder = OrderItem::where('product_id', $productId)
             ->whereHas('order', function ($q) use ($user, $orderId) {
                 $q->where('user_id', $user->id)
-                  ->where('status', '!=', Order::STATUS_CANCELLED);
+                  ->where('status', Order::STATUS_DELIVERED);
                 if ($orderId) {
                     $q->where('id', $orderId);
                 }
             })
             ->first();
 
-        $isVerifiedBuyer = !is_null($verifiedOrder);
-        $finalOrderId = $verifiedOrder ? $verifiedOrder->order_id : null;
+        if (!$deliveredOrder) {
+            $errorMsg = 'You can only review products after receiving them in a delivered order.';
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $errorMsg], 403);
+            }
+            return back()->with('error', $errorMsg)->withInput();
+        }
+
+        $isVerifiedBuyer = true;
+        $finalOrderId = $deliveredOrder->order_id;
 
         // Handle uploaded images
         $uploadedPaths = [];

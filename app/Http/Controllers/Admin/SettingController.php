@@ -27,8 +27,22 @@ class SettingController extends Controller
         $siteName = AdminSetting::siteName();
         $siteLogoUrl = AdminSetting::siteLogoUrl();
         $hasCustomLogo = AdminSetting::hasCustomLogo();
+        $isDeliveryEnabled = AdminSetting::isDeliveryEnabled();
+        $deliveryEnabledShopy = AdminSetting::get('delivery_enabled_shopy', false);
+        $deliveryEnabledMinutes = AdminSetting::get('delivery_enabled_minutes', true);
+        $deliveryEnabledFood = AdminSetting::get('delivery_enabled_food', false);
 
-        return view('admin.pages.settings', compact('setting', 'isDarkMode', 'siteName', 'siteLogoUrl', 'hasCustomLogo'));
+        return view('admin.pages.settings', compact(
+            'setting',
+            'isDarkMode',
+            'siteName',
+            'siteLogoUrl',
+            'hasCustomLogo',
+            'isDeliveryEnabled',
+            'deliveryEnabledShopy',
+            'deliveryEnabledMinutes',
+            'deliveryEnabledFood',
+        ));
     }
 
     /**
@@ -41,6 +55,10 @@ class SettingController extends Controller
             'site_name'    => ['nullable', 'string', 'max:100'],
             'site_logo'    => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
             'remove_logo'  => ['nullable'],
+            'is_delivery_enabled'      => ['nullable'],
+            'delivery_enabled_shopy'   => ['nullable'],
+            'delivery_enabled_minutes' => ['nullable'],
+            'delivery_enabled_food'    => ['nullable'],
         ]);
 
         $setting = AdminSetting::instance();
@@ -76,6 +94,14 @@ class SettingController extends Controller
                 $path = $request->file('site_logo')->store('site', 'public');
                 $setting->site_logo = $path;
             }
+        }
+
+        // 5. Delivery settings
+        if ($request->has('is_delivery_enabled')) {
+            $setting->is_delivery_enabled    = $request->boolean('is_delivery_enabled');
+            $setting->delivery_enabled_shopy = $request->boolean('delivery_enabled_shopy');
+            $setting->delivery_enabled_minutes = $request->boolean('delivery_enabled_minutes');
+            $setting->delivery_enabled_food  = $request->boolean('delivery_enabled_food');
         }
 
         $setting->save();

@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ModeController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\RestaurantController;
+use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
@@ -248,6 +249,19 @@ Route::middleware(['auth:admin', 'active:admin'])->group(function () {
         Route::put('/{order}', [OrderController::class, 'update'])
             ->middleware('permission:orders.edit,manage-orders')
             ->name('update');
+    });
+
+    // Customer Reviews & Ratings Management
+    Route::prefix('reviews')->name('reviews.')->group(function () {
+        Route::get('/', [ReviewController::class, 'index'])
+            ->middleware('permission:reviews.view')
+            ->name('index');
+        Route::patch('/{review}/toggle-status', [ReviewController::class, 'toggleStatus'])
+            ->middleware('permission:reviews.edit')
+            ->name('toggleStatus');
+        Route::delete('/{review}', [ReviewController::class, 'destroy'])
+            ->middleware('permission:reviews.delete')
+            ->name('destroy');
     });
 
     // System Settings & Theme Management

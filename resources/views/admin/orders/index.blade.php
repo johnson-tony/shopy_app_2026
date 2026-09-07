@@ -84,7 +84,11 @@
                     <option value="">All Statuses</option>
                     <option value="confirmed" {{ $statusFilter === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
                     <option value="processing" {{ $statusFilter === 'processing' ? 'selected' : '' }}>Processing</option>
+                    <option value="ready-for-delivery" {{ $statusFilter === 'ready-for-delivery' ? 'selected' : '' }}>Ready for Delivery</option>
+                    <option value="delivery-assigned" {{ $statusFilter === 'delivery-assigned' ? 'selected' : '' }}>Delivery Assigned</option>
+                    <option value="picked-up" {{ $statusFilter === 'picked-up' ? 'selected' : '' }}>Picked Up</option>
                     <option value="shipped" {{ $statusFilter === 'shipped' ? 'selected' : '' }}>Shipped</option>
+                    <option value="out-for-delivery" {{ $statusFilter === 'out-for-delivery' ? 'selected' : '' }}>Out for Delivery</option>
                     <option value="delivered" {{ $statusFilter === 'delivered' ? 'selected' : '' }}>Delivered</option>
                     <option value="cancelled" {{ $statusFilter === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                 </select>

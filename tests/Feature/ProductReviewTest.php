@@ -68,22 +68,8 @@ class ProductReviewTest extends TestCase
             'status'            => User::STATUS_ACTIVE,
             'email_verified_at' => now(),
         ]);
-    }
 
-    public function test_guest_cannot_submit_review(): void
-    {
-        $response = $this->post(route('reviews.store'), [
-            'product_id' => $this->product->id,
-            'rating'     => 5,
-            'comment'    => 'Great jacket, love the fabric!',
-        ]);
-
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_user_who_purchased_product_gets_verified_buyer_badge(): void
-    {
-        // Create confirmed order containing this product for $this->user
+        // Create a delivered order for $this->user containing $this->product
         $address = $this->user->addresses()->create([
             'full_name'     => $this->user->name,
             'phone'         => '9876543210',
@@ -114,11 +100,24 @@ class ProductReviewTest extends TestCase
             'unit_price'   => 1999.00,
             'subtotal'     => 1999.00,
         ]);
+    }
 
+    public function test_guest_cannot_submit_review(): void
+    {
+        $response = $this->post(route('reviews.store'), [
+            'product_id' => $this->product->id,
+            'rating'     => 5,
+            'comment'    => 'Great jacket, love the fabric!',
+        ]);
+
+        $response->assertRedirect(route('login'));
+    }
+
+    public function test_user_who_purchased_product_gets_verified_buyer_badge(): void
+    {
         // Submit review
         $response = $this->actingAs($this->user)->post(route('reviews.store'), [
             'product_id' => $this->product->id,
-            'order_id'   => $order->id,
             'rating'     => 5,
             'title'      => 'Outstanding quality!',
             'comment'    => 'Fits true to size and the denim is heavy and durable.',
@@ -131,10 +130,9 @@ class ProductReviewTest extends TestCase
         $this->assertEquals(5, $review->rating);
         $this->assertEquals('Outstanding quality!', $review->title);
         $this->assertTrue($review->is_verified_buyer);
-        $this->assertEquals($order->id, $review->order_id);
     }
 
-    public function test_user_who_did_not_purchase_does_not_get_verified_buyer_badge(): void
+    public function test_user_without_delivered_order_cannot_submit_review(): void
     {
         $response = $this->actingAs($this->otherUser)->post(route('reviews.store'), [
             'product_id' => $this->product->id,
@@ -143,12 +141,10 @@ class ProductReviewTest extends TestCase
             'comment'    => 'Looks nice from friends recommendation.',
         ]);
 
-        $response->assertSessionHas('success');
+        $response->assertSessionHas('error');
 
         $review = ProductReview::where('product_id', $this->product->id)->where('user_id', $this->otherUser->id)->first();
-        $this->assertNotNull($review);
-        $this->assertEquals(4, $review->rating);
-        $this->assertFalse($review->is_verified_buyer);
+        $this->assertNull($review);
     }
 
     public function test_user_can_upload_multiple_photos_with_review(): void

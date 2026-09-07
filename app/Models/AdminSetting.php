@@ -16,12 +16,20 @@ class AdminSetting extends Model
         'is_dark_mode',
         'site_name',
         'site_logo',
+        'is_delivery_enabled',
+        'delivery_enabled_shopy',
+        'delivery_enabled_minutes',
+        'delivery_enabled_food',
     ];
 
     protected function casts(): array
     {
         return [
             'is_dark_mode' => 'boolean',
+            'is_delivery_enabled' => 'boolean',
+            'delivery_enabled_shopy' => 'boolean',
+            'delivery_enabled_minutes' => 'boolean',
+            'delivery_enabled_food' => 'boolean',
         ];
     }
 
@@ -32,7 +40,14 @@ class AdminSetting extends Model
     {
         return static::firstOrCreate(
             ['id' => 1],
-            ['is_dark_mode' => false, 'site_name' => 'Shopy']
+            [
+                'is_dark_mode' => false,
+                'site_name' => 'Shopy',
+                'is_delivery_enabled' => true,
+                'delivery_enabled_shopy' => false,
+                'delivery_enabled_minutes' => true,
+                'delivery_enabled_food' => false,
+            ]
         );
     }
 
@@ -125,6 +140,70 @@ class AdminSetting extends Model
     }
 
     /**
+     * Global master switch for the whole delivery/partner system.
+     */
+    public static function isDeliveryEnabled(): bool
+    {
+        try {
+            return (bool) Cache::remember('admin_setting_is_delivery_enabled', 3600, function () {
+                $setting = static::first();
+                return $setting ? (bool) $setting->is_delivery_enabled : true;
+            });
+        } catch (\Throwable $e) {
+            return true;
+        }
+    }
+
+    /**
+     * Check whether delivery is enabled for a specific shopping mode slug.
+     */
+    public static function isDeliveryEnabledForMode(string $modeSlug): bool
+    {
+        if (!static::isDeliveryEnabled()) {
+            return false;
+        }
+
+        return match ($modeSlug) {
+            'shopy'   => static::isDeliveryEnabledForFlag('delivery_enabled_shopy'),
+            'minutes' => static::isDeliveryEnabledForFlag('delivery_enabled_minutes'),
+            'food'    => static::isDeliveryEnabledForFlag('delivery_enabled_food'),
+            default   => false,
+        };
+    }
+
+    /**
+     * Read a cached boolean settings flag.
+     */
+    protected static function isDeliveryEnabledForFlag(string $column): bool
+    {
+        try {
+            return (bool) Cache::remember('admin_setting_' . $column, 3600, function () use ($column) {
+                $setting = static::first();
+                return $setting ? (bool) $setting->{$column} : false;
+            });
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Persist the delivery settings toggle block.
+     */
+    public static function setDeliverySettings(array $values): self
+    {
+        $setting = static::updateOrCreate(['id' => 1], [
+            'is_delivery_enabled'      => (bool) ($values['is_delivery_enabled'] ?? true),
+            'delivery_enabled_shopy'   => (bool) ($values['delivery_enabled_shopy'] ?? false),
+            'delivery_enabled_minutes' => (bool) ($values['delivery_enabled_minutes'] ?? true),
+            'delivery_enabled_food'    => (bool) ($values['delivery_enabled_food'] ?? false),
+        ]);
+
+        static::clearCache();
+
+        return $setting;
+    }
+
+    /**
      * Clear all cached settings.
      */
     public static function clearCache(): void
@@ -133,6 +212,10 @@ class AdminSetting extends Model
         Cache::forget('admin_setting_theme');
         Cache::forget('admin_setting_site_name');
         Cache::forget('admin_setting_site_logo');
+        Cache::forget('admin_setting_is_delivery_enabled');
+        Cache::forget('admin_setting_delivery_enabled_shopy');
+        Cache::forget('admin_setting_delivery_enabled_minutes');
+        Cache::forget('admin_setting_delivery_enabled_food');
     }
 
     /**
@@ -151,6 +234,12 @@ class AdminSetting extends Model
         }
         if ($key === 'site_logo') {
             return static::siteLogoUrl();
+        }
+        if ($key === 'is_delivery_enabled') {
+            return static::isDeliveryEnabled();
+        }
+        if (in_array($key, ['delivery_enabled_shopy', 'delivery_enabled_minutes', 'delivery_enabled_food'], true)) {
+            return static::isDeliveryEnabledForFlag($key);
         }
         return $default;
     }
@@ -179,6 +268,16 @@ class AdminSetting extends Model
             $setting = static::updateOrCreate(['id' => 1], ['site_logo' => (string) $value]);
             static::clearCache();
             return $setting;
+        }
+
+        if ($key === 'is_delivery_enabled' || in_array($key, ['delivery_enabled_shopy', 'delivery_enabled_minutes', 'delivery_enabled_food'], true)) {
+            $values = [
+                'is_delivery_enabled'      => $key === 'is_delivery_enabled' ? (bool) $value : static::isDeliveryEnabled(),
+                'delivery_enabled_shopy'   => $key === 'delivery_enabled_shopy' ? (bool) $value : static::get('delivery_enabled_shopy', false),
+                'delivery_enabled_minutes' => $key === 'delivery_enabled_minutes' ? (bool) $value : static::get('delivery_enabled_minutes', true),
+                'delivery_enabled_food'    => $key === 'delivery_enabled_food' ? (bool) $value : static::get('delivery_enabled_food', false),
+            ];
+            return static::setDeliverySettings($values);
         }
 
         return static::instance();

@@ -93,6 +93,13 @@
                 </svg>
                 <span>Orders</span>
             </a>
+
+            @if($adminUser?->hasPermission('reviews.view'))
+                <a href="{{ route('admin.reviews.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition {{ request()->routeIs('admin.reviews.*') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
+                    <i class="fa-solid fa-star w-5 text-center text-sm {{ request()->routeIs('admin.reviews.*') ? 'text-indigo-400' : 'text-slate-500' }}"></i>
+                    <span>Customer Reviews</span>
+                </a>
+            @endif
         @endif
 
         @if($adminUser?->hasPermission('users.view') || $adminUser?->hasPermission('admins.view') || $adminUser?->hasPermission('roles.view') || $adminUser?->hasPermission('settings.view'))

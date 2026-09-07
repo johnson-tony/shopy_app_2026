@@ -20,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->prefix('admin')
                 ->name('admin.')
                 ->group(base_path('routes/admin.php'));
+
+            Route::middleware(['web'])
+                ->prefix('partner')
+                ->name('partner.')
+                ->group(base_path('routes/partner.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -36,6 +41,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(function (Request $request) {
             if ($request->is('admin*')) {
                 return route('admin.login');
+            }
+            if ($request->is('partner*')) {
+                return route('partner.login');
             }
             return route('login');
         });

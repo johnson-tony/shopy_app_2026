@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Admin;
+use App\Models\DeliveryPartner;
 use App\Models\User;
 
 return [
@@ -31,6 +32,10 @@ return [
             'driver' => 'session',
             'provider' => 'admins',
         ],
+        'partner' => [
+            'driver' => 'session',
+            'provider' => 'partners',
+        ],
     ],
 
     /*
@@ -47,6 +52,10 @@ return [
         'admins' => [
             'driver' => 'eloquent',
             'model' => Admin::class,
+        ],
+        'partners' => [
+            'driver' => 'eloquent',
+            'model' => DeliveryPartner::class,
         ],
     ],
 
@@ -66,6 +75,12 @@ return [
         'admins' => [
             'provider' => 'admins',
             'table' => 'admin_password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'partners' => [
+            'provider' => 'partners',
+            'table' => 'partner_password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,
         ],

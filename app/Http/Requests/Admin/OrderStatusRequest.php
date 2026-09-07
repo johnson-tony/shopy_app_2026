@@ -27,7 +27,11 @@ class OrderStatusRequest extends FormRequest
             'status' => ['required', 'string', Rule::in([
                 Order::STATUS_CONFIRMED,
                 Order::STATUS_PROCESSING,
+                Order::STATUS_READY_FOR_DELIVERY,
+                Order::STATUS_DELIVERY_ASSIGNED,
+                Order::STATUS_PICKED_UP,
                 Order::STATUS_SHIPPED,
+                Order::STATUS_OUT_FOR_DELIVERY,
                 Order::STATUS_DELIVERED,
                 Order::STATUS_CANCELLED,
             ])],

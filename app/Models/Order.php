@@ -16,7 +16,11 @@ class Order extends Model
 
     public const STATUS_CONFIRMED = 'confirmed';
     public const STATUS_PROCESSING = 'processing';
+    public const STATUS_READY_FOR_DELIVERY = 'ready-for-delivery';
+    public const STATUS_DELIVERY_ASSIGNED = 'delivery-assigned';
+    public const STATUS_PICKED_UP = 'picked-up';
     public const STATUS_SHIPPED = 'shipped';
+    public const STATUS_OUT_FOR_DELIVERY = 'out-for-delivery';
     public const STATUS_DELIVERED = 'delivered';
     public const STATUS_CANCELLED = 'cancelled';
 
@@ -35,6 +39,7 @@ class Order extends Model
         'user_id',
         'mode_id',
         'address_id',
+        'delivery_partner_id',
         'status',
         'payment_method',
         'payment_status',
@@ -48,6 +53,10 @@ class Order extends Model
         'delivered_at',
         'cancelled_at',
         'cancellation_reason',
+        'assigned_at',
+        'ready_for_delivery_at',
+        'picked_up_at',
+        'out_for_delivery_at',
     ];
 
     protected function casts(): array
@@ -60,6 +69,10 @@ class Order extends Model
             'grand_total' => 'decimal:2',
             'delivered_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'assigned_at' => 'datetime',
+            'ready_for_delivery_at' => 'datetime',
+            'picked_up_at' => 'datetime',
+            'out_for_delivery_at' => 'datetime',
         ];
     }
 
@@ -85,6 +98,14 @@ class Order extends Model
     public function userAddress(): BelongsTo
     {
         return $this->belongsTo(UserAddress::class, 'address_id');
+    }
+
+    /**
+     * Delivery partner assigned to fulfil this order.
+     */
+    public function deliveryPartner(): BelongsTo
+    {
+        return $this->belongsTo(DeliveryPartner::class, 'delivery_partner_id');
     }
 
     /**
@@ -129,7 +150,36 @@ class Order extends Model
      */
     public function canBeCancelled(): bool
     {
-        return in_array($this->status, [self::STATUS_CONFIRMED, self::STATUS_PROCESSING]);
+        return in_array($this->status, [
+            self::STATUS_CONFIRMED,
+            self::STATUS_PROCESSING,
+            self::STATUS_READY_FOR_DELIVERY,
+        ]);
+    }
+
+    /**
+     * All statuses this order can legally transition into from its current one.
+     * This is the single source of truth used by admin updates and the partner flow.
+     */
+    public function canTransitionTo(string $status): bool
+    {
+        if ($status === $this->status) {
+            return true;
+        }
+
+        $map = [
+            self::STATUS_CONFIRMED        => [self::STATUS_PROCESSING, self::STATUS_READY_FOR_DELIVERY, self::STATUS_SHIPPED, self::STATUS_CANCELLED],
+            self::STATUS_PROCESSING       => [self::STATUS_READY_FOR_DELIVERY, self::STATUS_SHIPPED, self::STATUS_CANCELLED],
+            self::STATUS_READY_FOR_DELIVERY => [self::STATUS_DELIVERY_ASSIGNED, self::STATUS_SHIPPED, self::STATUS_CANCELLED],
+            self::STATUS_DELIVERY_ASSIGNED => [self::STATUS_PICKED_UP, self::STATUS_READY_FOR_DELIVERY, self::STATUS_SHIPPED],
+            self::STATUS_PICKED_UP        => [self::STATUS_OUT_FOR_DELIVERY, self::STATUS_DELIVERY_ASSIGNED],
+            self::STATUS_OUT_FOR_DELIVERY => [self::STATUS_DELIVERED, self::STATUS_DELIVERY_ASSIGNED],
+            self::STATUS_SHIPPED          => [self::STATUS_OUT_FOR_DELIVERY, self::STATUS_DELIVERED, self::STATUS_CANCELLED],
+            self::STATUS_DELIVERED        => [],
+            self::STATUS_CANCELLED        => [],
+        ];
+
+        return in_array($status, $map[$this->status] ?? [], true);
     }
 
     /**
@@ -157,6 +207,30 @@ class Order extends Model
                 'bg' => 'bg-blue-100 dark:bg-blue-950/40',
                 'text' => 'text-blue-700 dark:text-blue-400',
                 'icon' => 'fa-solid fa-truck-fast',
+            ],
+            self::STATUS_READY_FOR_DELIVERY => [
+                'label' => 'Ready for Delivery',
+                'bg' => 'bg-cyan-100 dark:bg-cyan-950/40',
+                'text' => 'text-cyan-700 dark:text-cyan-400',
+                'icon' => 'fa-solid fa-box-open',
+            ],
+            self::STATUS_DELIVERY_ASSIGNED => [
+                'label' => 'Delivery Assigned',
+                'bg' => 'bg-violet-100 dark:bg-violet-950/40',
+                'text' => 'text-violet-700 dark:text-violet-400',
+                'icon' => 'fa-solid fa-person-biking',
+            ],
+            self::STATUS_PICKED_UP => [
+                'label' => 'Picked Up',
+                'bg' => 'bg-sky-100 dark:bg-sky-950/40',
+                'text' => 'text-sky-700 dark:text-sky-400',
+                'icon' => 'fa-solid fa-basket-shopping',
+            ],
+            self::STATUS_OUT_FOR_DELIVERY => [
+                'label' => 'Out for Delivery',
+                'bg' => 'bg-orange-100 dark:bg-orange-950/40',
+                'text' => 'text-orange-700 dark:text-orange-400',
+                'icon' => 'fa-solid fa-motorcycle',
             ],
             self::STATUS_PROCESSING => [
                 'label' => 'Processing',

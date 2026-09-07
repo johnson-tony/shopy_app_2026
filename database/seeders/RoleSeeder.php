@@ -45,6 +45,12 @@ class RoleSeeder extends Seeder
                 'description' => 'Administrative staff responsible for order fulfillment and catalog.',
                 'status' => true,
             ],
+            [
+                'name' => 'Delivery Ops Manager',
+                'slug' => 'delivery-ops-manager',
+                'description' => 'Administrative staff responsible for dispatch, partner fleet, and delivery settings.',
+                'status' => true,
+            ],
         ];
 
         foreach ($roles as $roleData) {
@@ -98,6 +104,26 @@ class RoleSeeder extends Seeder
                 'manage-products', 'products.view',
             ])->pluck('id');
             $orderManagerRole->permissions()->sync($orderPerms);
+        }
+
+        $deliveryOpsRole = Role::where('slug', 'delivery-ops-manager')->first();
+        if ($deliveryOpsRole) {
+            $deliveryPerms = Permission::whereIn('slug', [
+                'dashboard.view', 'view-dashboard',
+                'orders.view', 'orders.edit',
+                'partners.view', 'partners.create', 'partners.edit', 'partners.delete',
+                'settings.view', 'settings.edit',
+            ])->pluck('id');
+            $deliveryOpsRole->permissions()->sync($deliveryPerms);
+
+            $deliveryOpsModeIds = array_filter([
+                $shopyMode?->id,
+                $minutesMode?->id,
+                $foodMode?->id,
+            ]);
+            if ($deliveryOpsModeIds) {
+                $deliveryOpsRole->modes()->syncWithoutDetaching($deliveryOpsModeIds);
+            }
         }
     }
 }
