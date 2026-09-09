@@ -44,7 +44,8 @@ class ProductDetailController extends Controller
         // User purchase status & existing review check
         $currentUser = auth()->guard('web')->user();
         $hasPurchased = $currentUser ? $currentUser->hasPurchasedProduct($product) : false;
-        $userOrderId = $currentUser ? $currentUser->getOrderIdForProduct($product) : null;
+        $hasDelivered = $currentUser ? $currentUser->hasDeliveredProduct($product) : false;
+        $userOrderId = $currentUser ? $currentUser->getDeliveredOrderIdForProduct($product) : null;
         $userReview = $currentUser ? $product->reviews()->where('user_id', $currentUser->id)->first() : null;
 
         return view('user.pages.product-detail', compact(
@@ -52,6 +53,7 @@ class ProductDetailController extends Controller
             'relatedProducts',
             'freeDeliveryThreshold',
             'hasPurchased',
+            'hasDelivered',
             'userOrderId',
             'userReview'
         ));

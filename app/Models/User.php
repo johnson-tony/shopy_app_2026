@@ -234,5 +234,36 @@ class User extends Authenticatable
             })
             ->value('order_id');
     }
+
+    /**
+     * Check whether user has received this product in a delivered order.
+     */
+    public function hasDeliveredProduct(Product|int $product): bool
+    {
+        $productId = $product instanceof Product ? $product->id : $product;
+
+        return OrderItem::where('product_id', $productId)
+            ->whereHas('order', function ($q) {
+                $q->where('user_id', $this->id)
+                  ->where('status', Order::STATUS_DELIVERED);
+            })
+            ->exists();
+    }
+
+    /**
+     * Find user's delivered order ID for a given product (if any).
+     */
+    public function getDeliveredOrderIdForProduct(Product|int $product): ?int
+    {
+        $productId = $product instanceof Product ? $product->id : $product;
+
+        return OrderItem::where('product_id', $productId)
+            ->whereHas('order', function ($q) {
+                $q->where('user_id', $this->id)
+                  ->where('status', Order::STATUS_DELIVERED);
+            })
+            ->latest('id')
+            ->value('order_id');
+    }
 }
 

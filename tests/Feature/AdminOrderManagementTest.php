@@ -139,6 +139,7 @@ class AdminOrderManagementTest extends TestCase
     {
         $order = $this->makeOrder();
 
+        // Access via route helper (order_number in URL)
         $response = $this->actingAs($this->admin, 'admin')
             ->get(route('admin.orders.show', $order));
 
@@ -146,6 +147,18 @@ class AdminOrderManagementTest extends TestCase
         $response->assertSee($order->order_number);
         $response->assertSee($this->customer->name);
         $response->assertSee('Update Fulfillment');
+
+        // Access via explicit order_number URL
+        $responseOrderNumber = $this->actingAs($this->admin, 'admin')
+            ->get("/admin/orders/{$order->order_number}");
+        $responseOrderNumber->assertStatus(200);
+        $responseOrderNumber->assertSee($order->order_number);
+
+        // Access via fallback numeric ID URL (e.g. /admin/orders/2)
+        $responseNumericId = $this->actingAs($this->admin, 'admin')
+            ->get("/admin/orders/{$order->id}");
+        $responseNumericId->assertStatus(200);
+        $responseNumericId->assertSee($order->order_number);
     }
 
     public function test_admin_can_update_order_status_and_payment(): void

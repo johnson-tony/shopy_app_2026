@@ -158,6 +158,36 @@ class Order extends Model
     }
 
     /**
+     * Check if order has been delivered to customer.
+     */
+    public function isDelivered(): bool
+    {
+        return $this->status === self::STATUS_DELIVERED;
+    }
+
+    /**
+     * Use order_number as the public route key instead of normal auto-increment ID.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'order_number';
+    }
+
+    /**
+     * Retrieve the model for a bound value.
+     * Supports looking up by order_number (e.g. SHP-20260910-XXXXXX)
+     * as well as numeric database ID (e.g. 2) for backwards compatibility.
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where($field ?? 'order_number', $value)
+            ->when(is_numeric($value), function ($query) use ($value) {
+                $query->orWhere('id', (int) $value);
+            })
+            ->first() ?? abort(404);
+    }
+
+    /**
      * All statuses this order can legally transition into from its current one.
      * This is the single source of truth used by admin updates and the partner flow.
      */

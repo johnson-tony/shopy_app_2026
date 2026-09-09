@@ -200,7 +200,7 @@
                             <!-- Order Link -->
                             <td class="py-3.5 px-4 whitespace-nowrap">
                                 @if($review->order)
-                                    <a href="{{ route('admin.orders.show', $review->order_id) }}" class="font-mono text-indigo-400 hover:underline flex items-center gap-1">
+                                    <a href="{{ route('admin.orders.show', $review->order) }}" class="font-mono text-indigo-400 hover:underline flex items-center gap-1">
                                         <i class="fa-solid fa-receipt text-[10px]"></i>
                                         <span>{{ $review->order->order_number }}</span>
                                     </a>

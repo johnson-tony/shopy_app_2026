@@ -453,13 +453,23 @@
                             <i class="fa-solid fa-pen-to-square"></i>
                             <span>Edit Your Review</span>
                         </button>
-                    @else
+                    @elseif($hasDelivered)
                         <button type="button" 
                                 onclick="openPdpReviewModal();"
                                 class="px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-500/20 transition flex items-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-star text-amber-300"></i>
                             <span>Rate Product</span>
                         </button>
+                    @elseif($hasPurchased)
+                        <div class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60" title="Review available once your order is delivered">
+                            <i class="fa-solid fa-truck-fast text-amber-500"></i>
+                            <span>Rating unlocks on delivery</span>
+                        </div>
+                    @else
+                        <div class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700" title="Only customers who bought and received this product can write a review">
+                            <i class="fa-solid fa-shield-check text-slate-400"></i>
+                            <span>Verified buyers only</span>
+                        </div>
                     @endif
                 @else
                     <a href="{{ route('login') }}" class="px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-500/20 transition flex items-center gap-2 cursor-pointer">
@@ -493,10 +503,15 @@
                 <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">
                     {{ number_format($product->ratingsCount()) }} Ratings &amp; {{ number_format($product->reviewsCount()) }} Reviews
                 </p>
-                @if($hasPurchased)
+                @if($hasDelivered)
                     <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
                         <i class="fa-solid fa-badge-check"></i>
-                        <span>You purchased this product</span>
+                        <span>You purchased this product (Delivered)</span>
+                    </div>
+                @elseif($hasPurchased)
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">
+                        <i class="fa-solid fa-truck-fast"></i>
+                        <span>Order in progress</span>
                     </div>
                 @endif
             </div>
@@ -621,13 +636,27 @@
                         Be the first verified customer to share your thoughts, photos, and rating with other shoppers!
                     </p>
                     @auth
-                        <div class="pt-1">
-                            <button type="button" 
-                                    onclick="openPdpReviewModal();" 
-                                    class="px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-500/20 transition cursor-pointer">
-                                Write the First Review
-                            </button>
-                        </div>
+                        @if($userReview)
+                            <div class="pt-1">
+                                <button type="button" 
+                                        onclick="openPdpReviewModal();" 
+                                        class="px-5 py-2.5 rounded-xl font-bold text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 transition cursor-pointer">
+                                    Edit Your Review
+                                </button>
+                            </div>
+                        @elseif($hasDelivered)
+                            <div class="pt-1">
+                                <button type="button" 
+                                        onclick="openPdpReviewModal();" 
+                                        class="px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-500/20 transition cursor-pointer">
+                                    Write the First Review
+                                </button>
+                            </div>
+                        @elseif($hasPurchased)
+                            <p class="text-xs text-amber-600 dark:text-amber-400 font-semibold pt-1 flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-truck-fast"></i> You can review this item once your order is delivered.
+                            </p>
+                        @endif
                     @endauth
                 </div>
             @endif

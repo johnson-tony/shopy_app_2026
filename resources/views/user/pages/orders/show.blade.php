@@ -152,23 +152,35 @@
                             <!-- Review Action Button -->
                             @if($item->product_id)
                                 <div class="shrink-0 flex items-center gap-2">
-                                    @if($hasReviewed)
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
-                                            <i class="fa-solid fa-circle-check text-[11px]"></i>
-                                            <span>Reviewed</span>
+                                    @if($order->isDelivered())
+                                        @if($hasReviewed)
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
+                                                <i class="fa-solid fa-circle-check text-[11px]"></i>
+                                                <span>Reviewed</span>
+                                            </span>
+                                            <button type="button" 
+                                                    onclick="openReviewModal({{ $item->product_id }}, '{{ addslashes($item->product_name) }}', {{ $order->id }});"
+                                                    class="px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition cursor-pointer">
+                                                Edit
+                                            </button>
+                                        @else
+                                            <button type="button" 
+                                                    onclick="openReviewModal({{ $item->product_id }}, '{{ addslashes($item->product_name) }}', {{ $order->id }});"
+                                                    class="px-4 py-2 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800/60 transition flex items-center gap-1.5 cursor-pointer shadow-xs">
+                                                <i class="fa-solid fa-star text-amber-500"></i>
+                                                <span>Rate &amp; Review Product</span>
+                                            </button>
+                                        @endif
+                                    @elseif($order->status === \App\Models\Order::STATUS_CANCELLED)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 bg-slate-100 dark:bg-slate-700/40 border border-slate-200/60 dark:border-slate-700">
+                                            <i class="fa-solid fa-circle-xmark text-[11px]"></i>
+                                            <span>Cancelled</span>
                                         </span>
-                                        <button type="button" 
-                                                onclick="openReviewModal({{ $item->product_id }}, '{{ addslashes($item->product_name) }}', {{ $order->id }});"
-                                                class="px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition">
-                                            Edit
-                                        </button>
                                     @else
-                                        <button type="button" 
-                                                onclick="openReviewModal({{ $item->product_id }}, '{{ addslashes($item->product_name) }}', {{ $order->id }});"
-                                                class="px-4 py-2 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800/60 transition flex items-center gap-1.5 cursor-pointer shadow-xs">
-                                            <i class="fa-solid fa-star text-amber-500"></i>
-                                            <span>Rate &amp; Review Product</span>
-                                        </button>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700" title="Review becomes available once this order is marked delivered">
+                                            <i class="fa-solid fa-truck-fast text-[11px] text-slate-400"></i>
+                                            <span>Available on delivery</span>
+                                        </span>
                                     @endif
                                 </div>
                             @endif
