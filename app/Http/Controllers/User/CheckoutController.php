@@ -3,15 +3,20 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OrderConfirmationMail;
+use App\Models\AdminSetting;
 use App\Models\Cart;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Payment;
 use App\Models\UserAddress;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class CheckoutController extends Controller
@@ -46,7 +51,15 @@ class CheckoutController extends Controller
         $grandTotal = $cart->grandTotal();
         $freeDeliveryThreshold = $cart->freeDeliveryThreshold();
 
+        $isCodEnabled = AdminSetting::isCodEnabled();
+        $isUpiEnabled = AdminSetting::isUpiEnabled();
+        $isCardEnabled = AdminSetting::isCardEnabled();
+        $upiId = AdminSetting::upiId();
+        $upiMerchantName = AdminSetting::upiMerchantName();
+        $upiQrImageUrl = AdminSetting::upiQrImageUrl();
+
         return view('user.pages.checkout', compact(
+            'user',
             'cart',
             'addresses',
             'defaultAddress',
@@ -55,7 +68,13 @@ class CheckoutController extends Controller
             'taxAmount',
             'discountAmount',
             'grandTotal',
-            'freeDeliveryThreshold'
+            'freeDeliveryThreshold',
+            'isCodEnabled',
+            'isUpiEnabled',
+            'isCardEnabled',
+            'upiId',
+            'upiMerchantName',
+            'upiQrImageUrl'
         ));
     }
 
@@ -160,7 +179,8 @@ class CheckoutController extends Controller
             $address,
             $paymentMethod,
             $paymentStatus,
-            $validated
+            $validated,
+            $request
         ) {
             $order = Order::create([
                 'order_number'          => Order::generateOrderNumber(),
@@ -218,6 +238,29 @@ class CheckoutController extends Controller
                 }
             }
 
+            // Record payment transaction ledger entry
+            Payment::create([
+                'order_id'        => $order->id,
+                'user_id'         => $user->id,
+                'payment_method'  => $paymentMethod,
+                'payment_gateway' => match ($paymentMethod) {
+                    Order::PAYMENT_METHOD_COD => Payment::GATEWAY_MANUAL,
+                    Order::PAYMENT_METHOD_MOCK_UPI => Payment::GATEWAY_DIRECT_UPI,
+                    Order::PAYMENT_METHOD_MOCK_CARD => Payment::GATEWAY_SIMULATED_CARD,
+                    default => Payment::GATEWAY_MANUAL,
+                },
+                'transaction_id'  => Payment::generateTransactionId('TXN'),
+                'amount'          => $order->grand_total,
+                'currency'        => 'INR',
+                'status'          => ($paymentStatus === Order::PAYMENT_STATUS_PAID) ? Payment::STATUS_COMPLETED : Payment::STATUS_PENDING,
+                'notes'           => $validated['notes'] ?? null,
+                'payload'         => [
+                    'ip'         => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                    'placed_at'  => now()->toIso8601String(),
+                ],
+            ]);
+
             // Clear the active cart
             $cart->items()->delete();
             $cart->update([
@@ -228,6 +271,19 @@ class CheckoutController extends Controller
 
             return $order;
         });
+
+        // Dispatch Order Confirmation & Live Tracking Email (fail-safe)
+        try {
+            if (!empty($user->email)) {
+                Mail::to($user->email)->send(new OrderConfirmationMail($order));
+            }
+        } catch (\Throwable $e) {
+            Log::error('Order Confirmation Email dispatch error: ' . $e->getMessage(), [
+                'order_id'     => $order->id,
+                'order_number' => $order->order_number,
+                'email'        => $user->email,
+            ]);
+        }
 
         return redirect()->route('orders.success', $order->order_number)
             ->with('success', 'Your order has been placed successfully!');

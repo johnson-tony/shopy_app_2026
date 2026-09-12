@@ -213,6 +213,147 @@
             </div>
         </div>
 
+        <!-- Card 4: Payment Methods & UPI Configuration -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
+            <div class="flex items-center gap-3 pb-4 border-b border-slate-800">
+                <div class="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-indian-rupee-sign text-base"></i>
+                </div>
+                <div>
+                    <h2 class="text-base font-bold text-white">Payment Methods &amp; UPI Configuration</h2>
+                    <p class="text-xs text-slate-400">Configure accepted payment methods, store UPI VPA for PhonePe/GPay, and custom QR codes.</p>
+                </div>
+            </div>
+
+            <!-- Payment Method Toggles -->
+            <div class="space-y-4">
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                    Storefront Payment Toggles
+                </label>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- COD -->
+                    <div class="flex items-center justify-between gap-3 p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                        <div class="flex-1">
+                            <label for="is_cod_enabled" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                                Cash on Delivery
+                            </label>
+                            <p class="text-[11px] text-slate-500">Pay on doorstep.</p>
+                        </div>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="is_cod_enabled" name="is_cod_enabled" value="1" {{ $isCodEnabled ? 'checked' : '' }}
+                                   class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:bg-emerald-600 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5 relative"></div>
+                        </label>
+                    </div>
+
+                    <!-- UPI -->
+                    <div class="flex items-center justify-between gap-3 p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                        <div class="flex-1">
+                            <label for="is_upi_enabled" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                                UPI &amp; QR Pay
+                            </label>
+                            <p class="text-[11px] text-slate-500">PhonePe, GPay, Paytm.</p>
+                        </div>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="is_upi_enabled" name="is_upi_enabled" value="1" {{ $isUpiEnabled ? 'checked' : '' }}
+                                   class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:bg-violet-600 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5 relative"></div>
+                        </label>
+                    </div>
+
+                    <!-- Card -->
+                    <div class="flex items-center justify-between gap-3 p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                        <div class="flex-1">
+                            <label for="is_card_enabled" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+                                Card Payment
+                            </label>
+                            <p class="text-[11px] text-slate-500">Credit / Debit Card.</p>
+                        </div>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="is_card_enabled" name="is_card_enabled" value="1" {{ $isCardEnabled ? 'checked' : '' }}
+                                   class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5 relative"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UPI Details Inputs -->
+            <div class="space-y-4 pt-2 border-t border-slate-800">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Store UPI VPA -->
+                    <div>
+                        <label for="upi_id" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                            Store UPI ID / VPA
+                        </label>
+                        <input type="text"
+                               id="upi_id"
+                               name="upi_id"
+                               value="{{ old('upi_id', $upiId) }}"
+                               placeholder="e.g. yourbusiness@okhdfcbank or 9876543210@paytm"
+                               class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition @error('upi_id') border-rose-500 @enderror">
+                        @error('upi_id')
+                            <p class="text-xs text-rose-400 mt-1.5">{{ $message }}</p>
+                        @enderror
+                        <p class="text-[11px] text-slate-500 mt-1.5">
+                            Customer payments will be addressed to this UPI VPA.
+                        </p>
+                    </div>
+
+                    <!-- Merchant Name -->
+                    <div>
+                        <label for="upi_merchant_name" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                            Payee / Merchant Name
+                        </label>
+                        <input type="text"
+                               id="upi_merchant_name"
+                               name="upi_merchant_name"
+                               value="{{ old('upi_merchant_name', $upiMerchantName) }}"
+                               placeholder="e.g. Shopy Store"
+                               class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition @error('upi_merchant_name') border-rose-500 @enderror">
+                        @error('upi_merchant_name')
+                            <p class="text-xs text-rose-400 mt-1.5">{{ $message }}</p>
+                        @enderror
+                        <p class="text-[11px] text-slate-500 mt-1.5">
+                            Displayed inside Google Pay, PhonePe, and Paytm when customer approves payment.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Custom UPI QR Code Upload (Optional) -->
+                <div class="space-y-3 pt-3">
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                        Custom Standee / Merchant UPI QR Image (Optional)
+                    </label>
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-6 p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                        @if($hasCustomUpiQr)
+                            <div class="flex flex-col items-center gap-2 shrink-0">
+                                <div class="w-24 h-24 rounded-xl bg-white p-2 border border-slate-700 flex items-center justify-center overflow-hidden">
+                                    <img src="{{ $upiQrImageUrl }}" alt="Custom UPI QR" class="max-h-full max-w-full object-contain">
+                                </div>
+                                <label class="inline-flex items-center gap-1.5 text-[11px] text-rose-400 hover:text-rose-300 cursor-pointer">
+                                    <input type="checkbox" name="remove_upi_qr" value="1" class="rounded border-slate-700 bg-slate-900 text-rose-600 focus:ring-rose-500">
+                                    <span>Remove Custom QR</span>
+                                </label>
+                            </div>
+                        @endif
+
+                        <div class="flex-1 space-y-2">
+                            <input type="file"
+                                   id="upi_qr_image"
+                                   name="upi_qr_image"
+                                   accept="image/png,image/jpeg,image/webp"
+                                   class="block w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-violet-600 file:text-white hover:file:bg-violet-500 file:cursor-pointer transition cursor-pointer @error('upi_qr_image') border-rose-500 @enderror">
+                            <p class="text-[11px] text-slate-500 leading-relaxed">
+                                If left blank, the checkout page will automatically generate a dynamic QR code for each order with the exact order amount and order number pre-encoded.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Submit Button -->
         <div class="flex items-center justify-end gap-3 pt-2">
             <button type="submit"

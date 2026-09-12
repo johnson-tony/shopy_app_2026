@@ -140,77 +140,189 @@
                         </div>
                     </div>
 
-                    <!-- Payment Options -->
+                    @php
+                        $upiPayee = $upiId ?: 'shopy@upi';
+                        $upiName = $upiMerchantName ?: 'Shopy Store';
+                        $upiAmount = number_format($grandTotal, 2, '.', '');
+                        $upiUri = "upi://pay?pa={$upiPayee}&pn=" . urlencode($upiName) . "&am={$upiAmount}&cu=INR&tn=" . urlencode("Order_{$cart->id}");
+                        $qrCodeUrl = $upiQrImageUrl ?: "https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=" . urlencode($upiUri);
+                    @endphp
+
+                    <!-- Payment Options List -->
                     <div class="space-y-3">
-                        <!-- COD / Pay on Delivery (Pre-selected) -->
-                        <label class="relative flex items-start gap-4 p-4 rounded-2xl border-2 border-indigo-600 bg-indigo-50/30 dark:bg-indigo-950/30 cursor-pointer transition select-none payment-option-card">
-                            <input type="radio" 
-                                   name="payment_method" 
-                                   value="pay_on_delivery" 
-                                   checked 
-                                   class="mt-1 text-indigo-600 focus:ring-indigo-500" 
-                                   onchange="updatePaymentCardHighlight(this)">
-                            <div class="flex-1">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2">
-                                        <i class="fa-solid fa-hand-holding-dollar text-indigo-600 dark:text-indigo-400 text-lg"></i>
-                                        <span class="font-bold text-sm text-slate-900 dark:text-white">Pay on Delivery (Cash / Doorstep UPI)</span>
+                        @if($isCodEnabled)
+                            <!-- COD / Pay on Delivery -->
+                            <label class="relative flex items-start gap-4 p-4 rounded-2xl border-2 border-indigo-600 bg-indigo-50/30 dark:bg-indigo-950/30 cursor-pointer transition select-none payment-option-card">
+                                <input type="radio" 
+                                       name="payment_method" 
+                                       value="pay_on_delivery" 
+                                       checked 
+                                       class="mt-1 text-indigo-600 focus:ring-indigo-500" 
+                                       onchange="updatePaymentCardHighlight(this)">
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fa-solid fa-hand-holding-dollar text-indigo-600 dark:text-indigo-400 text-lg"></i>
+                                            <span class="font-bold text-sm text-slate-900 dark:text-white">Cash on Delivery (Pay on Doorstep)</span>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
+                                            Recommended
+                                        </span>
                                     </div>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
-                                        Recommended
-                                    </span>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                        Pay at your doorstep via Cash or scan delivery partner's QR code. No advance payment required.
+                                    </p>
                                 </div>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                    Pay securely at your doorstep via Cash or scan delivery partner's QR code. No advance payment required.
-                                </p>
-                            </div>
-                        </label>
+                            </label>
+                        @endif
 
-                        <!-- Mock UPI -->
-                        <label class="relative flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer transition select-none payment-option-card">
-                            <input type="radio" 
-                                   name="payment_method" 
-                                   value="mock_upi" 
-                                   class="mt-1 text-indigo-600 focus:ring-indigo-500" 
-                                   onchange="updatePaymentCardHighlight(this)">
-                            <div class="flex-1">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2">
-                                        <i class="fa-solid fa-qrcode text-indigo-600 dark:text-indigo-400 text-lg"></i>
-                                        <span class="font-bold text-sm text-slate-900 dark:text-white">UPI / Instant QR (Test / Mock Mode)</span>
+                        @if($isUpiEnabled)
+                            <!-- UPI / PhonePe / GPay / Instant QR -->
+                            <label class="relative flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer transition select-none payment-option-card">
+                                <input type="radio" 
+                                       name="payment_method" 
+                                       value="mock_upi" 
+                                       {{ !$isCodEnabled ? 'checked' : '' }}
+                                       class="mt-1 text-indigo-600 focus:ring-indigo-500" 
+                                       onchange="updatePaymentCardHighlight(this)">
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fa-solid fa-qrcode text-violet-600 dark:text-violet-400 text-lg"></i>
+                                            <span class="font-bold text-sm text-slate-900 dark:text-white">UPI &amp; Instant QR (PhonePe / GPay / Paytm)</span>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300">
+                                            Instant Pay
+                                        </span>
                                     </div>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
-                                        Instant Confirm
-                                    </span>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                        One-tap open in PhonePe, Google Pay, Paytm, or scan QR code directly.
+                                    </p>
                                 </div>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                    Google Pay, PhonePe, Paytm, BHIM. (Payment gateway in simulation mode; order confirms immediately without deducting money).
-                                </p>
-                            </div>
-                        </label>
+                            </label>
 
-                        <!-- Mock Credit / Debit Card -->
-                        <label class="relative flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer transition select-none payment-option-card">
-                            <input type="radio" 
-                                   name="payment_method" 
-                                   value="mock_card" 
-                                   class="mt-1 text-indigo-600 focus:ring-indigo-500" 
-                                   onchange="updatePaymentCardHighlight(this)">
-                            <div class="flex-1">
+                            <!-- Collapsible UPI Deep-Link & QR Interface -->
+                            <div id="upiPaymentPanel" class="p-5 rounded-2xl border border-violet-200 dark:border-violet-900/60 bg-violet-50/50 dark:bg-violet-950/20 space-y-4 {{ $isCodEnabled ? 'hidden' : '' }}">
                                 <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2">
-                                        <i class="fa-regular fa-credit-card text-indigo-600 dark:text-indigo-400 text-lg"></i>
-                                        <span class="font-bold text-sm text-slate-900 dark:text-white">Credit / Debit Card (Test Mode)</span>
-                                    </div>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
-                                        Visa / MC / RuPay
+                                    <span class="text-xs font-bold text-violet-900 dark:text-violet-300 uppercase tracking-wider flex items-center gap-1.5">
+                                        <i class="fa-solid fa-mobile-screen-button"></i> Mobile 1-Tap UPI Launch
+                                    </span>
+                                    <span class="text-xs font-black text-violet-600 dark:text-violet-400">
+                                        Amount: ₹{{ number_format($grandTotal, 2) }}
                                     </span>
                                 </div>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                    Simulate card checkout. Instant approval without connecting third-party gateway credentials.
-                                </p>
+
+                                <!-- Mobile Deep-Link Trigger -->
+                                <div class="space-y-2">
+                                    <a href="{{ $upiUri }}" class="w-full py-3 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm shadow-md shadow-violet-500/20 flex items-center justify-center gap-2 text-center transition active:scale-[0.99]">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                        <span>Tap to Pay with Any UPI App</span>
+                                    </a>
+
+                                    <div class="grid grid-cols-3 gap-2 pt-1">
+                                        <a href="{{ $upiUri }}" class="py-2 px-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center hover:border-violet-400 transition text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5">
+                                            <span class="w-2 h-2 rounded-full bg-purple-600"></span> PhonePe
+                                        </a>
+                                        <a href="{{ $upiUri }}" class="py-2 px-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center hover:border-violet-400 transition text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5">
+                                            <span class="w-2 h-2 rounded-full bg-blue-500"></span> GPay
+                                        </a>
+                                        <a href="{{ $upiUri }}" class="py-2 px-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center hover:border-violet-400 transition text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5">
+                                            <span class="w-2 h-2 rounded-full bg-sky-500"></span> Paytm
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Desktop / QR View -->
+                                <div class="pt-3 border-t border-violet-200/60 dark:border-violet-900/40">
+                                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                                        <div class="p-2.5 bg-white rounded-2xl border border-slate-200 shadow-sm shrink-0 flex items-center justify-center">
+                                            <img src="{{ $qrCodeUrl }}" alt="UPI QR Code" class="w-28 h-28 object-contain">
+                                        </div>
+                                        <div class="space-y-1.5 text-center sm:text-left flex-1">
+                                            <span class="text-xs font-bold text-slate-900 dark:text-white block">
+                                                Or Scan from your Phone
+                                            </span>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                                                Scan the QR code above with Google Pay, PhonePe, or Paytm to pay <strong>₹{{ number_format($grandTotal, 2) }}</strong>.
+                                            </p>
+                                            <div class="flex items-center justify-center sm:justify-start gap-2 pt-1">
+                                                <span class="text-[11px] font-mono bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 select-all font-semibold" id="upiVpaText">{{ $upiPayee }}</span>
+                                                <button type="button" onclick="copyUpiVpa()" class="px-2.5 py-1 rounded-lg bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 text-[11px] font-bold hover:bg-violet-200 transition cursor-pointer" id="copyUpiBtn">
+                                                    <i class="fa-regular fa-copy"></i> Copy
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </label>
+                        @endif
+
+                        @if($isCardEnabled)
+                            <!-- Credit / Debit Card -->
+                            <label class="relative flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer transition select-none payment-option-card">
+                                <input type="radio" 
+                                       name="payment_method" 
+                                       value="mock_card" 
+                                       {{ (!$isCodEnabled && !$isUpiEnabled) ? 'checked' : '' }}
+                                       class="mt-1 text-indigo-600 focus:ring-indigo-500" 
+                                       onchange="updatePaymentCardHighlight(this)">
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fa-regular fa-credit-card text-indigo-600 dark:text-indigo-400 text-lg"></i>
+                                            <span class="font-bold text-sm text-slate-900 dark:text-white">Credit / Debit Card (Instant Approval)</span>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400">
+                                            Visa / MC / RuPay
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                        Enter card details for instant authorization. Gateway-ready simulated sandbox.
+                                    </p>
+                                </div>
+                            </label>
+
+                            <!-- Collapsible Card Input Form -->
+                            <div id="cardPaymentPanel" class="p-5 rounded-2xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/40 dark:bg-indigo-950/20 space-y-4 {{ ($isCodEnabled || $isUpiEnabled) ? 'hidden' : '' }}">
+                                <div class="flex items-center justify-between border-b border-indigo-100 dark:border-indigo-900/40 pb-2">
+                                    <span class="text-xs font-bold text-indigo-900 dark:text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                                        <i class="fa-solid fa-credit-card"></i> Card Details
+                                    </span>
+                                    <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                                        <i class="fa-solid fa-shield-halved"></i> 256-Bit Encrypted
+                                    </span>
+                                </div>
+
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Card Number</label>
+                                        <div class="relative">
+                                            <input type="text" id="cardNumberInput" placeholder="4000 1234 5678 9010" maxlength="19" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-mono tracking-wider focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                            <div class="absolute right-3 top-2.5 flex items-center gap-1 text-slate-400 text-sm">
+                                                <i class="fa-brands fa-cc-visa"></i>
+                                                <i class="fa-brands fa-cc-mastercard"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Expires (MM/YY)</label>
+                                            <input type="text" id="cardExpiryInput" placeholder="12/28" maxlength="5" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-mono tracking-wider focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">CVV / CVC</label>
+                                            <input type="password" id="cardCvvInput" placeholder="•••" maxlength="4" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-mono tracking-wider focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Cardholder Name</label>
+                                        <input type="text" id="cardHolderInput" placeholder="e.g. John Doe" value="{{ auth()->user()?->name ?? ($user->name ?? '') }}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Delivery Instructions / Order Notes -->
@@ -407,7 +519,60 @@
             parent.classList.remove('border-slate-200', 'dark:border-slate-700');
             parent.classList.add('border-indigo-600', 'bg-indigo-50/30', 'dark:bg-indigo-950/30');
         }
+
+        const upiPanel = document.getElementById('upiPaymentPanel');
+        const cardPanel = document.getElementById('cardPaymentPanel');
+
+        if (upiPanel) {
+            if (radioEl.value === 'mock_upi') {
+                upiPanel.classList.remove('hidden');
+            } else {
+                upiPanel.classList.add('hidden');
+            }
+        }
+
+        if (cardPanel) {
+            if (radioEl.value === 'mock_card') {
+                cardPanel.classList.remove('hidden');
+            } else {
+                cardPanel.classList.add('hidden');
+            }
+        }
     }
+
+    function copyUpiVpa() {
+        const vpaText = document.getElementById('upiVpaText')?.innerText?.trim();
+        const copyBtn = document.getElementById('copyUpiBtn');
+        if (!vpaText) return;
+
+        navigator.clipboard.writeText(vpaText).then(() => {
+            if (copyBtn) {
+                const originalHtml = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i> Copied!';
+                copyBtn.classList.add('bg-emerald-100', 'text-emerald-700');
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalHtml;
+                    copyBtn.classList.remove('bg-emerald-100', 'text-emerald-700');
+                }, 2000);
+            }
+        });
+    }
+
+    // Interactive card input formatting
+    document.getElementById('cardNumberInput')?.addEventListener('input', function(e) {
+        let val = e.target.value.replace(/\D/g, '').substring(0, 16);
+        let formatted = val.match(/.{1,4}/g)?.join(' ') || val;
+        e.target.value = formatted;
+    });
+
+    document.getElementById('cardExpiryInput')?.addEventListener('input', function(e) {
+        let val = e.target.value.replace(/\D/g, '').substring(0, 4);
+        if (val.length >= 2) {
+            e.target.value = val.substring(0, 2) + '/' + val.substring(2);
+        } else {
+            e.target.value = val;
+        }
+    });
 
     document.getElementById('checkoutForm')?.addEventListener('submit', function(e) {
         const btn = document.getElementById('placeOrderBtn');

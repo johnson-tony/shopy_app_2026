@@ -20,6 +20,12 @@ class AdminSetting extends Model
         'delivery_enabled_shopy',
         'delivery_enabled_minutes',
         'delivery_enabled_food',
+        'upi_id',
+        'upi_merchant_name',
+        'upi_qr_image',
+        'is_cod_enabled',
+        'is_upi_enabled',
+        'is_card_enabled',
     ];
 
     protected function casts(): array
@@ -30,6 +36,9 @@ class AdminSetting extends Model
             'delivery_enabled_shopy' => 'boolean',
             'delivery_enabled_minutes' => 'boolean',
             'delivery_enabled_food' => 'boolean',
+            'is_cod_enabled' => 'boolean',
+            'is_upi_enabled' => 'boolean',
+            'is_card_enabled' => 'boolean',
         ];
     }
 
@@ -216,6 +225,121 @@ class AdminSetting extends Model
         Cache::forget('admin_setting_delivery_enabled_shopy');
         Cache::forget('admin_setting_delivery_enabled_minutes');
         Cache::forget('admin_setting_delivery_enabled_food');
+        Cache::forget('admin_setting_upi_id');
+        Cache::forget('admin_setting_upi_merchant_name');
+        Cache::forget('admin_setting_upi_qr_image');
+        Cache::forget('admin_setting_is_cod_enabled');
+        Cache::forget('admin_setting_is_upi_enabled');
+        Cache::forget('admin_setting_is_card_enabled');
+    }
+
+    /**
+     * Get the active store UPI VPA / ID.
+     */
+    public static function upiId(): string
+    {
+        try {
+            return (string) Cache::remember('admin_setting_upi_id', 3600, function () {
+                $setting = static::first();
+                return ($setting && !empty($setting->upi_id)) ? $setting->upi_id : 'shopy@upi';
+            });
+        } catch (\Throwable $e) {
+            return 'shopy@upi';
+        }
+    }
+
+    /**
+     * Get the active merchant / business name for UPI transactions.
+     */
+    public static function upiMerchantName(): string
+    {
+        try {
+            return (string) Cache::remember('admin_setting_upi_merchant_name', 3600, function () {
+                $setting = static::first();
+                return ($setting && !empty($setting->upi_merchant_name)) ? $setting->upi_merchant_name : static::siteName();
+            });
+        } catch (\Throwable $e) {
+            return 'Shopy Store';
+        }
+    }
+
+    /**
+     * Check if a custom merchant UPI QR code image is uploaded.
+     */
+    public static function hasCustomUpiQr(): bool
+    {
+        try {
+            $setting = static::first();
+            return !empty($setting?->upi_qr_image);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Get the custom merchant UPI QR image URL, if uploaded.
+     */
+    public static function upiQrImageUrl(): ?string
+    {
+        try {
+            return Cache::remember('admin_setting_upi_qr_image', 3600, function () {
+                $setting = static::first();
+                if ($setting && !empty($setting->upi_qr_image)) {
+                    if (str_starts_with($setting->upi_qr_image, 'http://') || str_starts_with($setting->upi_qr_image, 'https://')) {
+                        return $setting->upi_qr_image;
+                    }
+                    return asset('storage/' . $setting->upi_qr_image);
+                }
+                return null;
+            });
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Check if Cash on Delivery is enabled.
+     */
+    public static function isCodEnabled(): bool
+    {
+        try {
+            return (bool) Cache::remember('admin_setting_is_cod_enabled', 3600, function () {
+                $setting = static::first();
+                return $setting ? (bool) $setting->is_cod_enabled : true;
+            });
+        } catch (\Throwable $e) {
+            return true;
+        }
+    }
+
+    /**
+     * Check if UPI payments are enabled.
+     */
+    public static function isUpiEnabled(): bool
+    {
+        try {
+            return (bool) Cache::remember('admin_setting_is_upi_enabled', 3600, function () {
+                $setting = static::first();
+                return $setting ? (bool) $setting->is_upi_enabled : true;
+            });
+        } catch (\Throwable $e) {
+            return true;
+        }
+    }
+
+    /**
+     * Check if Card payments are enabled.
+     */
+    public static function isCardEnabled(): bool
+    {
+        try {
+            return (bool) Cache::remember('admin_setting_is_card_enabled', 3600, function () {
+                $setting = static::first();
+                return $setting ? (bool) $setting->is_card_enabled : true;
+            });
+        } catch (\Throwable $e) {
+            return true;
+        }
     }
 
     /**

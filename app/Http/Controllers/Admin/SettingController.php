@@ -32,6 +32,14 @@ class SettingController extends Controller
         $deliveryEnabledMinutes = AdminSetting::get('delivery_enabled_minutes', true);
         $deliveryEnabledFood = AdminSetting::get('delivery_enabled_food', false);
 
+        $upiId = AdminSetting::upiId();
+        $upiMerchantName = AdminSetting::upiMerchantName();
+        $upiQrImageUrl = AdminSetting::upiQrImageUrl();
+        $hasCustomUpiQr = AdminSetting::hasCustomUpiQr();
+        $isCodEnabled = AdminSetting::isCodEnabled();
+        $isUpiEnabled = AdminSetting::isUpiEnabled();
+        $isCardEnabled = AdminSetting::isCardEnabled();
+
         return view('admin.pages.settings', compact(
             'setting',
             'isDarkMode',
@@ -42,11 +50,18 @@ class SettingController extends Controller
             'deliveryEnabledShopy',
             'deliveryEnabledMinutes',
             'deliveryEnabledFood',
+            'upiId',
+            'upiMerchantName',
+            'upiQrImageUrl',
+            'hasCustomUpiQr',
+            'isCodEnabled',
+            'isUpiEnabled',
+            'isCardEnabled',
         ));
     }
 
     /**
-     * Update admin settings (Site name, Site logo, Dark Theme Permission).
+     * Update admin settings (Site name, Site logo, Dark Theme Permission, Delivery, Payment).
      */
     public function update(Request $request): RedirectResponse
     {
@@ -59,6 +74,13 @@ class SettingController extends Controller
             'delivery_enabled_shopy'   => ['nullable'],
             'delivery_enabled_minutes' => ['nullable'],
             'delivery_enabled_food'    => ['nullable'],
+            'upi_id'                   => ['nullable', 'string', 'max:100'],
+            'upi_merchant_name'        => ['nullable', 'string', 'max:100'],
+            'upi_qr_image'             => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'remove_upi_qr'            => ['nullable'],
+            'is_cod_enabled'           => ['nullable'],
+            'is_upi_enabled'           => ['nullable'],
+            'is_card_enabled'          => ['nullable'],
         ]);
 
         $setting = AdminSetting::instance();
@@ -97,11 +119,40 @@ class SettingController extends Controller
         }
 
         // 5. Delivery settings
-        if ($request->has('is_delivery_enabled')) {
+        if ($request->has('is_delivery_enabled') || $request->has('delivery_enabled_shopy')) {
             $setting->is_delivery_enabled    = $request->boolean('is_delivery_enabled');
             $setting->delivery_enabled_shopy = $request->boolean('delivery_enabled_shopy');
             $setting->delivery_enabled_minutes = $request->boolean('delivery_enabled_minutes');
             $setting->delivery_enabled_food  = $request->boolean('delivery_enabled_food');
+        }
+
+        // 6. Payment & UPI Settings
+        $upiId = trim((string) $request->input('upi_id', ''));
+        $setting->upi_id = $upiId !== '' ? $upiId : 'shopy@upi';
+
+        $upiMerchantName = trim((string) $request->input('upi_merchant_name', ''));
+        $setting->upi_merchant_name = $upiMerchantName !== '' ? $upiMerchantName : $setting->site_name;
+
+        $setting->is_cod_enabled  = $request->boolean('is_cod_enabled');
+        $setting->is_upi_enabled  = $request->boolean('is_upi_enabled');
+        $setting->is_card_enabled = $request->boolean('is_card_enabled');
+
+        // Remove custom UPI QR if requested
+        if ($request->boolean('remove_upi_qr')) {
+            if ($setting->upi_qr_image && !str_starts_with($setting->upi_qr_image, 'http')) {
+                Storage::disk('public')->delete($setting->upi_qr_image);
+            }
+            $setting->upi_qr_image = null;
+        }
+
+        // Handle Custom UPI QR Upload
+        if ($request->hasFile('upi_qr_image')) {
+            try {
+                $path = $request->file('upi_qr_image')->store('payments', 'public');
+                $setting->upi_qr_image = $path;
+            } catch (\Throwable $e) {
+                Log::error('UPI QR Upload Error: ' . $e->getMessage());
+            }
         }
 
         $setting->save();
