@@ -30,6 +30,7 @@
             <li><a href="{{ Route::has('contact') ? route('contact') : url('/contact') }}">Contact</a></li>
             <li><a href="{{ Route::has('coupons.index') ? route('coupons.index') : url('/coupons') }}">Coupons</a></li>
             <li><a href="{{ Route::has('orders.history') ? route('orders.history') : url('/orders') }}">Orders</a></li>
+            <li><a href="{{ route('partner.login') }}">Delivery Partner</a></li>
         </ul>
     </div>
 
