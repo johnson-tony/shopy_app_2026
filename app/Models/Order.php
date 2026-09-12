@@ -23,6 +23,10 @@ class Order extends Model
     public const STATUS_OUT_FOR_DELIVERY = 'out-for-delivery';
     public const STATUS_DELIVERED = 'delivered';
     public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_RETURN_REQUESTED = 'return-requested';
+    public const STATUS_RETURN_APPROVED = 'return-approved';
+    public const STATUS_RETURN_REJECTED = 'return-rejected';
+    public const STATUS_RETURNED = 'returned';
 
     public const PAYMENT_METHOD_COD = 'pay_on_delivery';
     public const PAYMENT_METHOD_MOCK_UPI = 'mock_upi';
@@ -67,6 +71,19 @@ class Order extends Model
         'ready_for_delivery_at',
         'picked_up_at',
         'out_for_delivery_at',
+        'return_status',
+        'return_reason',
+        'return_note',
+        'return_image',
+        'return_requested_at',
+        'return_resolved_at',
+        'return_rejection_reason',
+        'delivery_proof_image',
+        'delivery_notes',
+        'return_partner_id',
+        'return_pickup_image',
+        'return_pickup_notes',
+        'return_picked_up_at',
     ];
 
     protected function casts(): array
@@ -83,6 +100,9 @@ class Order extends Model
             'ready_for_delivery_at' => 'datetime',
             'picked_up_at' => 'datetime',
             'out_for_delivery_at' => 'datetime',
+            'return_requested_at' => 'datetime',
+            'return_resolved_at' => 'datetime',
+            'return_picked_up_at' => 'datetime',
         ];
     }
 
@@ -116,6 +136,14 @@ class Order extends Model
     public function deliveryPartner(): BelongsTo
     {
         return $this->belongsTo(DeliveryPartner::class, 'delivery_partner_id');
+    }
+
+    /**
+     * Delivery partner assigned to pick up return for this order.
+     */
+    public function returnPartner(): BelongsTo
+    {
+        return $this->belongsTo(DeliveryPartner::class, 'return_partner_id');
     }
 
     /**
@@ -238,14 +266,18 @@ class Order extends Model
         }
 
         $map = [
-            self::STATUS_CONFIRMED        => [self::STATUS_PROCESSING, self::STATUS_READY_FOR_DELIVERY, self::STATUS_SHIPPED, self::STATUS_CANCELLED],
-            self::STATUS_PROCESSING       => [self::STATUS_READY_FOR_DELIVERY, self::STATUS_SHIPPED, self::STATUS_CANCELLED],
+            self::STATUS_CONFIRMED        => [self::STATUS_PROCESSING, self::STATUS_READY_FOR_DELIVERY, self::STATUS_DELIVERY_ASSIGNED, self::STATUS_SHIPPED, self::STATUS_CANCELLED],
+            self::STATUS_PROCESSING       => [self::STATUS_READY_FOR_DELIVERY, self::STATUS_DELIVERY_ASSIGNED, self::STATUS_SHIPPED, self::STATUS_CANCELLED],
             self::STATUS_READY_FOR_DELIVERY => [self::STATUS_DELIVERY_ASSIGNED, self::STATUS_SHIPPED, self::STATUS_CANCELLED],
             self::STATUS_DELIVERY_ASSIGNED => [self::STATUS_PICKED_UP, self::STATUS_READY_FOR_DELIVERY, self::STATUS_SHIPPED],
             self::STATUS_PICKED_UP        => [self::STATUS_OUT_FOR_DELIVERY, self::STATUS_DELIVERY_ASSIGNED],
             self::STATUS_OUT_FOR_DELIVERY => [self::STATUS_DELIVERED, self::STATUS_DELIVERY_ASSIGNED],
             self::STATUS_SHIPPED          => [self::STATUS_OUT_FOR_DELIVERY, self::STATUS_DELIVERED, self::STATUS_CANCELLED],
-            self::STATUS_DELIVERED        => [],
+            self::STATUS_DELIVERED        => [self::STATUS_RETURN_REQUESTED],
+            self::STATUS_RETURN_REQUESTED => [self::STATUS_RETURN_APPROVED, self::STATUS_RETURN_REJECTED],
+            self::STATUS_RETURN_APPROVED  => [self::STATUS_RETURNED],
+            self::STATUS_RETURN_REJECTED  => [self::STATUS_DELIVERED],
+            self::STATUS_RETURNED         => [],
             self::STATUS_CANCELLED        => [],
         ];
 
@@ -314,6 +346,30 @@ class Order extends Model
                 'text' => 'text-rose-700 dark:text-rose-400',
                 'icon' => 'fa-solid fa-circle-xmark',
             ],
+            self::STATUS_RETURN_REQUESTED => [
+                'label' => 'Return Requested',
+                'bg' => 'bg-amber-100 dark:bg-amber-950/40',
+                'text' => 'text-amber-800 dark:text-amber-300',
+                'icon' => 'fa-solid fa-rotate-left',
+            ],
+            self::STATUS_RETURN_APPROVED => [
+                'label' => 'Return Approved',
+                'bg' => 'bg-purple-100 dark:bg-purple-950/40',
+                'text' => 'text-purple-700 dark:text-purple-300',
+                'icon' => 'fa-solid fa-clipboard-check',
+            ],
+            self::STATUS_RETURN_REJECTED => [
+                'label' => 'Return Rejected',
+                'bg' => 'bg-rose-100 dark:bg-rose-950/40',
+                'text' => 'text-rose-700 dark:text-rose-400',
+                'icon' => 'fa-solid fa-circle-exclamation',
+            ],
+            self::STATUS_RETURNED => [
+                'label' => 'Returned & Closed',
+                'bg' => 'bg-slate-100 dark:bg-slate-800',
+                'text' => 'text-slate-700 dark:text-slate-300',
+                'icon' => 'fa-solid fa-arrow-rotate-left',
+            ],
             default => [
                 'label' => 'Order Placed',
                 'bg' => 'bg-indigo-100 dark:bg-indigo-950/40',
@@ -321,6 +377,67 @@ class Order extends Model
                 'icon' => 'fa-solid fa-bag-shopping',
             ],
         };
+    }
+
+    /**
+     * Check if the delivered order is currently eligible for return.
+     */
+    public function isReturnEligible(): bool
+    {
+        if ($this->status !== self::STATUS_DELIVERED) {
+            return false;
+        }
+
+        $deliveredAt = $this->delivered_at ?? $this->updated_at;
+        if (!$deliveredAt) {
+            return false;
+        }
+
+        $modeSlug = $this->mode?->slug ?? 'shopy';
+
+        // Shopy: 7 days. Grocery (Minutes): 2 days (48 hrs). Food: 2 hrs.
+        $maxHours = match ($modeSlug) {
+            'shopy'   => 7 * 24,
+            'minutes' => 48,
+            'food'    => 2,
+            default   => 7 * 24,
+        };
+
+        return $deliveredAt->copy()->addHours($maxHours)->isFuture();
+    }
+
+    /**
+     * Return window policy label.
+     */
+    public function getReturnWindowTextAttribute(): string
+    {
+        $modeSlug = $this->mode?->slug ?? 'shopy';
+        return match ($modeSlug) {
+            'shopy'   => '7-Day Easy Return / Exchange Policy',
+            'minutes' => '48-Hour Grocery Quality & Freshness Guarantee',
+            'food'    => '2-Hour Food Quality Issue Support',
+            default   => '7-Day Return Policy',
+        };
+    }
+
+    public function isReturnRequested(): bool
+    {
+        return $this->status === self::STATUS_RETURN_REQUESTED;
+    }
+
+    public function isReturnApproved(): bool
+    {
+        return $this->status === self::STATUS_RETURN_APPROVED;
+    }
+
+    public function isReturnRejected(): bool
+    {
+        return $this->status === self::STATUS_RETURN_REJECTED;
+    }
+
+    public function isReturned(): bool
+    {
+        return $this->status === self::STATUS_RETURNED;
     }
 
     /**

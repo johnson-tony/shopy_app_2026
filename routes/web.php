@@ -101,7 +101,9 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/success/{order_number}', [OrderController::class, 'success'])->name('success');
         Route::get('/{order_number}', [OrderController::class, 'show'])->name('show');
+        Route::get('/{order_number}/live-location', [OrderController::class, 'liveLocation'])->name('live_location');
         Route::post('/{order_number}/cancel', [OrderController::class, 'cancel'])->name('cancel');
+        Route::post('/{order_number}/return', [OrderController::class, 'requestReturn'])->name('return');
     });
 
     // Customer Product Review Submission

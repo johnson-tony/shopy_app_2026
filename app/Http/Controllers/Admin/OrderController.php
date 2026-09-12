@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\OrderStatusRequest;
+use App\Models\DeliveryPartner;
 use App\Models\Mode;
 use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
@@ -70,6 +71,10 @@ class OrderController extends Controller
             Order::STATUS_OUT_FOR_DELIVERY,
             Order::STATUS_DELIVERED,
             Order::STATUS_CANCELLED,
+            Order::STATUS_RETURN_REQUESTED,
+            Order::STATUS_RETURN_APPROVED,
+            Order::STATUS_RETURN_REJECTED,
+            Order::STATUS_RETURNED,
         ], true)) {
             $query->where('status', $statusFilter);
         }
@@ -127,7 +132,7 @@ class OrderController extends Controller
      */
     public function show(Order $order): View
     {
-        $order->load(['user', 'mode', 'userAddress', 'items.product', 'reviews', 'deliveryPartner']);
+        $order->load(['user', 'mode', 'userAddress', 'items.product', 'reviews', 'deliveryPartner', 'returnPartner']);
 
         $totals = $order->items->reduce(function (array $carry, $item) {
             $carry['quantity'] += $item->quantity;
@@ -151,11 +156,22 @@ class OrderController extends Controller
             ->filter(fn ($label, $value) => $order->canTransitionTo($value))
             ->all();
 
+        // Query active delivery partners who can fulfil this order's shopping mode
+        $deliveryPartners = DeliveryPartner::where('status', DeliveryPartner::STATUS_ACTIVE)
+            ->when($order->mode_id, function ($q) use ($order) {
+                $q->whereHas('modes', fn ($mq) => $mq->where('modes.id', $order->mode_id));
+            })->get();
+
+        if ($deliveryPartners->isEmpty()) {
+            $deliveryPartners = DeliveryPartner::where('status', DeliveryPartner::STATUS_ACTIVE)->get();
+        }
+
         return view('admin.orders.show', [
-            'order'     => $order,
-            'quantity'  => $totals['quantity'],
-            'statuses'  => $statuses ?: [$order->status => $allStatuses[$order->status] ?? ucwords(str_replace('-', ' ', $order->status))],
-            'paymentStatuses' => [
+            'order'            => $order,
+            'quantity'         => $totals['quantity'],
+            'statuses'         => $statuses ?: [$order->status => $allStatuses[$order->status] ?? ucwords(str_replace('-', ' ', $order->status))],
+            'deliveryPartners' => $deliveryPartners,
+            'paymentStatuses'  => [
                 Order::PAYMENT_STATUS_PENDING  => 'Pending',
                 Order::PAYMENT_STATUS_PAID     => 'Paid',
                 Order::PAYMENT_STATUS_FAILED   => 'Failed',
@@ -206,5 +222,122 @@ class OrderController extends Controller
         $order->save();
 
         return back()->with('success', "Order {$order->order_number} has been updated successfully.");
+    }
+
+    /**
+     * Approve a customer's return request.
+     */
+    public function approveReturn(Request $request, Order $order): RedirectResponse
+    {
+        if ($order->status !== Order::STATUS_RETURN_REQUESTED) {
+            return back()->with('error', "Order {$order->order_number} does not have an active return request.");
+        }
+
+        $order->update([
+            'status'             => Order::STATUS_RETURN_APPROVED,
+            'return_status'      => 'approved',
+            'return_resolved_at' => now(),
+        ]);
+
+        return back()->with('success', "Return request for Order {$order->order_number} has been approved.");
+    }
+
+    /**
+     * Complete the return process and optionally restock inventory.
+     */
+    public function completeReturn(Request $request, Order $order): RedirectResponse
+    {
+        if (!in_array($order->status, [Order::STATUS_RETURN_APPROVED, Order::STATUS_RETURN_REQUESTED])) {
+            return back()->with('error', "Order {$order->order_number} is not in an approved return state.");
+        }
+
+        // Restock products upon return completion
+        foreach ($order->items as $item) {
+            if ($item->product) {
+                $item->product->increment('stock', $item->quantity);
+            }
+        }
+
+        $order->update([
+            'status'             => Order::STATUS_RETURNED,
+            'return_status'      => 'completed',
+            'return_resolved_at' => now(),
+        ]);
+
+        return back()->with('success', "Order {$order->order_number} return has been marked completed and inventory restocked.");
+    }
+
+    /**
+     * Reject a customer's return request with an explanation.
+     */
+    public function rejectReturn(Request $request, Order $order): RedirectResponse
+    {
+        if ($order->status !== Order::STATUS_RETURN_REQUESTED) {
+            return back()->with('error', "Order {$order->order_number} does not have an active return request.");
+        }
+
+        $request->validate([
+            'rejection_reason' => ['required', 'string', 'max:255'],
+        ]);
+
+        $order->update([
+            'status'                  => Order::STATUS_DELIVERED,
+            'return_status'           => 'rejected',
+            'return_rejection_reason' => $request->input('rejection_reason'),
+            'return_resolved_at'      => now(),
+        ]);
+
+        return back()->with('success', "Return request for Order {$order->order_number} has been rejected.");
+    }
+
+    /**
+     * Assign an active delivery partner to the order.
+     */
+    public function assignPartner(Request $request, Order $order): RedirectResponse
+    {
+        $request->validate([
+            'delivery_partner_id' => ['required', 'exists:delivery_partners,id'],
+        ]);
+
+        $partner = DeliveryPartner::findOrFail($request->input('delivery_partner_id'));
+
+        if ($partner->status !== DeliveryPartner::STATUS_ACTIVE) {
+            return back()->with('error', "Partner {$partner->name} is not active.");
+        }
+
+        $order->delivery_partner_id = $partner->id;
+
+        // Advance to delivery-assigned if currently in a prior fulfilment state
+        if (in_array($order->status, [Order::STATUS_CONFIRMED, Order::STATUS_PROCESSING, Order::STATUS_READY_FOR_DELIVERY], true)) {
+            $order->status = Order::STATUS_DELIVERY_ASSIGNED;
+            if (empty($order->assigned_at)) {
+                $order->assigned_at = now();
+            }
+        }
+
+        $order->save();
+
+        return back()->with('success', "Order {$order->order_number} has been assigned to {$partner->name}.");
+    }
+
+    /**
+     * Assign a delivery partner to pick up an approved customer return.
+     */
+    public function assignReturnPartner(Request $request, Order $order): RedirectResponse
+    {
+        $request->validate([
+            'return_partner_id' => ['required', 'exists:delivery_partners,id'],
+        ]);
+
+        $partner = DeliveryPartner::findOrFail($request->input('return_partner_id'));
+
+        if ($partner->status !== DeliveryPartner::STATUS_ACTIVE) {
+            return back()->with('error', "Partner {$partner->name} is not active.");
+        }
+
+        $order->return_partner_id = $partner->id;
+        $order->save();
+
+        return back()->with('success', "Return pickup for Order {$order->order_number} has been assigned to {$partner->name}.");
     }
 }

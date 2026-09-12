@@ -27,6 +27,7 @@ class UserAddressTest extends TestCase
     public function test_user_can_view_empty_addresses_page(): void
     {
         $user = User::where('email', 'customer@shopy.test')->first();
+        $user->addresses()->delete();
 
         $response = $this->actingAs($user, 'web')->get(route('user.addresses.index'));
 
@@ -50,6 +51,7 @@ class UserAddressTest extends TestCase
     public function test_user_can_store_new_address(): void
     {
         $user = User::where('email', 'customer@shopy.test')->first();
+        $user->addresses()->delete();
 
         $response = $this->actingAs($user, 'web')->post(route('user.addresses.store'), [
             'address_type' => 'home',

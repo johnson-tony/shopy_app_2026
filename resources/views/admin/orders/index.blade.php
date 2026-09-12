@@ -91,6 +91,10 @@
                     <option value="out-for-delivery" {{ $statusFilter === 'out-for-delivery' ? 'selected' : '' }}>Out for Delivery</option>
                     <option value="delivered" {{ $statusFilter === 'delivered' ? 'selected' : '' }}>Delivered</option>
                     <option value="cancelled" {{ $statusFilter === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                    <option value="return-requested" {{ $statusFilter === 'return-requested' ? 'selected' : '' }}>Return Requested</option>
+                    <option value="return-approved" {{ $statusFilter === 'return-approved' ? 'selected' : '' }}>Return Approved</option>
+                    <option value="return-rejected" {{ $statusFilter === 'return-rejected' ? 'selected' : '' }}>Return Rejected</option>
+                    <option value="returned" {{ $statusFilter === 'returned' ? 'selected' : '' }}>Returned & Closed</option>
                 </select>
             </div>
 

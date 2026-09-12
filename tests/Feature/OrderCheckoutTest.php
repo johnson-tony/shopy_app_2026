@@ -236,4 +236,97 @@ class OrderCheckoutTest extends TestCase
         // Stock must be restored
         $this->assertEquals($initialStock, $this->product->fresh()->stock);
     }
+
+    public function test_user_can_filter_orders_by_status_tabs_and_search(): void
+    {
+        // 1. Delivered order
+        $deliveredOrder = Order::create([
+            'order_number'          => Order::generateOrderNumber(),
+            'user_id'               => $this->user->id,
+            'mode_id'               => $this->shopyMode->id,
+            'address_id'            => $this->address->id,
+            'status'                => Order::STATUS_DELIVERED,
+            'payment_method'        => 'pay_on_delivery',
+            'payment_status'        => 'paid',
+            'subtotal'              => 1000.00,
+            'delivery_fee'          => 0.00,
+            'tax_amount'            => 50.00,
+            'grand_total'           => 1050.00,
+            'delivered_at'          => now(),
+        ]);
+        $deliveredOrder->items()->create([
+            'product_id'   => $this->product->id,
+            'product_name' => 'Delivered Smartphone',
+            'product_slug' => 'delivered-smartphone',
+            'quantity'     => 1,
+            'unit_price'   => 1000.00,
+            'subtotal'     => 1000.00,
+        ]);
+
+        // 2. In progress order
+        $activeOrder = Order::create([
+            'order_number'          => Order::generateOrderNumber(),
+            'user_id'               => $this->user->id,
+            'mode_id'               => $this->shopyMode->id,
+            'address_id'            => $this->address->id,
+            'status'                => Order::STATUS_OUT_FOR_DELIVERY,
+            'payment_method'        => 'pay_on_delivery',
+            'payment_status'        => 'pending',
+            'subtotal'              => 500.00,
+            'delivery_fee'          => 0.00,
+            'tax_amount'            => 25.00,
+            'grand_total'           => 525.00,
+        ]);
+        $activeOrder->items()->create([
+            'product_id'   => $this->product->id,
+            'product_name' => 'Active Grocery Basket',
+            'product_slug' => 'active-grocery-basket',
+            'quantity'     => 1,
+            'unit_price'   => 500.00,
+            'subtotal'     => 500.00,
+        ]);
+
+        // 3. Cancelled order
+        $cancelledOrder = Order::create([
+            'order_number'          => Order::generateOrderNumber(),
+            'user_id'               => $this->user->id,
+            'mode_id'               => $this->shopyMode->id,
+            'address_id'            => $this->address->id,
+            'status'                => Order::STATUS_CANCELLED,
+            'payment_method'        => 'pay_on_delivery',
+            'payment_status'        => 'pending',
+            'subtotal'              => 300.00,
+            'delivery_fee'          => 0.00,
+            'tax_amount'            => 15.00,
+            'grand_total'           => 315.00,
+            'cancelled_at'          => now(),
+        ]);
+
+        // Test Filter: Delivered
+        $deliveredRes = $this->actingAs($this->user)->get(route('orders.index', ['status' => 'delivered']));
+        $deliveredRes->assertOk();
+        $deliveredRes->assertSee($deliveredOrder->order_number);
+        $deliveredRes->assertDontSee($activeOrder->order_number);
+        $deliveredRes->assertDontSee($cancelledOrder->order_number);
+
+        // Test Filter: In Progress
+        $progressRes = $this->actingAs($this->user)->get(route('orders.index', ['status' => 'in_progress']));
+        $progressRes->assertOk();
+        $progressRes->assertSee($activeOrder->order_number);
+        $progressRes->assertDontSee($deliveredOrder->order_number);
+        $progressRes->assertDontSee($cancelledOrder->order_number);
+
+        // Test Filter: Cancelled
+        $cancelledRes = $this->actingAs($this->user)->get(route('orders.index', ['status' => 'cancelled']));
+        $cancelledRes->assertOk();
+        $cancelledRes->assertSee($cancelledOrder->order_number);
+        $cancelledRes->assertDontSee($deliveredOrder->order_number);
+        $cancelledRes->assertDontSee($activeOrder->order_number);
+
+        // Test Search: By product keyword
+        $searchRes = $this->actingAs($this->user)->get(route('orders.index', ['search' => 'Smartphone']));
+        $searchRes->assertOk();
+        $searchRes->assertSee($deliveredOrder->order_number);
+        $searchRes->assertDontSee($activeOrder->order_number);
+    }
 }

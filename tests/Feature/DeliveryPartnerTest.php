@@ -8,11 +8,14 @@ use App\Models\DeliveryPartner;
 use App\Models\Mode;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\UserAddress;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class DeliveryPartnerTest extends TestCase
@@ -357,5 +360,491 @@ class DeliveryPartnerTest extends TestCase
         $fresh = $order->fresh();
         $this->assertEquals(Order::STATUS_READY_FOR_DELIVERY, $fresh->status);
         $this->assertNotNull($fresh->ready_for_delivery_at);
+    }
+
+    // ------------------------------------------------------------------
+    // Partner KYC Onboarding, Admin Review & Order Fulfilment
+    // ------------------------------------------------------------------
+
+    public function test_partner_can_register_with_kyc_documents_and_vehicle(): void
+    {
+        Storage::fake('public');
+
+        $modes = Mode::whereIn('slug', ['shopy', 'minutes'])->pluck('id')->toArray();
+
+        $response = $this->post('/partner/register', [
+            'name'                  => 'John Rider',
+            'email'                 => 'john.rider@test.com',
+            'phone'                 => '9876543210',
+            'password'              => 'Password@123',
+            'password_confirmation' => 'Password@123',
+            'vehicle_type'          => 'motorcycle',
+            'vehicle_number'        => 'KA-01-AB-1234',
+            'modes'                 => $modes,
+            'license_number'        => 'DL-KA-2026-999999',
+            'license_image'         => UploadedFile::fake()->image('dl.jpg'),
+            'id_proof_type'         => 'aadhaar',
+            'id_proof_number'       => '1234-5678-9012',
+            'id_proof_image'        => UploadedFile::fake()->image('id.jpg'),
+            'bank_account_number'   => '123456789012',
+            'bank_ifsc'             => 'HDFC0001234',
+            'upi_id'                => 'john@upi',
+        ]);
+
+        $response->assertRedirect('/partner/login');
+        $response->assertSessionHas('success');
+
+        $partner = DeliveryPartner::where('email', 'john.rider@test.com')->first();
+        $this->assertNotNull($partner);
+        $this->assertEquals(DeliveryPartner::STATUS_PENDING_APPROVAL, $partner->status);
+        $this->assertEquals('DL-KA-2026-999999', $partner->license_number);
+        $this->assertNotNull($partner->license_image);
+        $this->assertNotNull($partner->id_proof_image);
+        $this->assertCount(2, $partner->modes);
+    }
+
+    public function test_admin_can_approve_kyc_and_activate_partner(): void
+    {
+        $admin = $this->getSuperAdmin();
+        $partner = DeliveryPartner::create([
+            'name'         => 'Pending Rider',
+            'email'        => 'pending@rider.test',
+            'phone'        => '9888877777',
+            'password'     => bcrypt('Secret123'),
+            'status'       => DeliveryPartner::STATUS_PENDING_APPROVAL,
+            'vehicle_type' => 'scooter',
+        ]);
+
+        $shopyMode = Mode::where('slug', 'shopy')->firstOrFail();
+
+        $response = $this->actingAs($admin, 'admin')->post(route('admin.delivery_partners.approve', $partner), [
+            'modes' => [$shopyMode->id],
+        ]);
+
+        $response->assertSessionHas('success');
+        $fresh = $partner->fresh();
+        $this->assertEquals(DeliveryPartner::STATUS_ACTIVE, $fresh->status);
+        $this->assertNotNull($fresh->approved_at);
+        $this->assertTrue($fresh->modes->contains($shopyMode->id));
+    }
+
+    public function test_admin_can_reject_kyc_with_reason(): void
+    {
+        $admin = $this->getSuperAdmin();
+        $partner = DeliveryPartner::create([
+            'name'         => 'Faulty Rider',
+            'email'        => 'faulty@rider.test',
+            'phone'        => '9777766666',
+            'password'     => bcrypt('Secret123'),
+            'status'       => DeliveryPartner::STATUS_PENDING_APPROVAL,
+            'vehicle_type' => 'bicycle',
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->post(route('admin.delivery_partners.reject', $partner), [
+            'rejection_reason' => 'Driving license document is blurry and unreadable.',
+        ]);
+
+        $response->assertSessionHas('success');
+        $fresh = $partner->fresh();
+        $this->assertEquals(DeliveryPartner::STATUS_REJECTED, $fresh->status);
+        $this->assertEquals('Driving license document is blurry and unreadable.', $fresh->rejection_reason);
+    }
+
+    public function test_admin_can_assign_active_partner_to_order(): void
+    {
+        $admin = $this->getSuperAdmin();
+        $partner = $this->getPartner();
+        $order = $this->makeOrder(Order::STATUS_CONFIRMED);
+
+        $response = $this->actingAs($admin, 'admin')->post(route('admin.orders.assign_partner', $order), [
+            'delivery_partner_id' => $partner->id,
+        ]);
+
+        $response->assertSessionHas('success');
+        $fresh = $order->fresh();
+        $this->assertEquals($partner->id, $fresh->delivery_partner_id);
+        $this->assertEquals(Order::STATUS_DELIVERY_ASSIGNED, $fresh->status);
+        $this->assertNotNull($fresh->assigned_at);
+    }
+
+    public function test_partner_can_fulfill_order_with_proof_of_delivery(): void
+    {
+        Storage::fake('public');
+
+        $partner = $this->getPartner();
+        $order = $this->makeOrder(Order::STATUS_OUT_FOR_DELIVERY);
+        $order->delivery_partner_id = $partner->id;
+        $order->save();
+
+        $response = $this->actingAs($partner, 'partner')->post(route('partner.orders.deliver', $order), [
+            'delivery_proof_image' => UploadedFile::fake()->image('doorstep.jpg'),
+            'delivery_notes'       => 'Left package with customer at doorstep.',
+            'cod_collected'        => 1,
+        ]);
+
+        $response->assertSessionHas('success');
+        $fresh = $order->fresh();
+        $this->assertEquals(Order::STATUS_DELIVERED, $fresh->status);
+        $this->assertEquals(Order::PAYMENT_STATUS_PAID, $fresh->payment_status);
+        $this->assertNotNull($fresh->delivery_proof_image);
+        $this->assertEquals('Left package with customer at doorstep.', $fresh->delivery_notes);
+        $this->assertNotNull($fresh->delivered_at);
+    }
+
+    public function test_partner_can_pickup_return_with_photo_proof_and_automatic_restock(): void
+    {
+        Storage::fake('public');
+
+        $partner = $this->getPartner();
+        $order = $this->makeOrder(Order::STATUS_RETURN_APPROVED);
+        $order->return_partner_id = $partner->id;
+        $order->save();
+
+        $product = Product::firstOrFail();
+        $initialStock = $product->stock;
+
+        $order->items()->create([
+            'product_id'   => $product->id,
+            'product_name' => $product->name,
+            'product_slug' => $product->slug,
+            'unit_price'   => 100.00,
+            'price'        => 100.00,
+            'quantity'     => 2,
+            'subtotal'     => 200.00,
+        ]);
+
+        $response = $this->actingAs($partner, 'partner')->post(route('partner.orders.pickup_return', $order), [
+            'return_pickup_image' => UploadedFile::fake()->image('return_box.jpg'),
+            'return_pickup_notes' => 'Product inspected with all original tags intact.',
+        ]);
+
+        $response->assertSessionHas('success');
+        $fresh = $order->fresh();
+        $this->assertEquals(Order::STATUS_RETURNED, $fresh->status);
+        $this->assertEquals('completed', $fresh->return_status);
+        $this->assertNotNull($fresh->return_pickup_image);
+        $this->assertNotNull($fresh->return_picked_up_at);
+
+        // Product stock automatically restocked
+        $this->assertEquals($initialStock + 2, $product->fresh()->stock);
+    }
+
+    public function test_customer_can_query_live_tracking_location(): void
+    {
+        $partner = $this->getPartner();
+        $partner->update([
+            'latitude'         => 12.935242,
+            'longitude'        => 77.624461,
+            'last_location_at' => now(),
+        ]);
+
+        $order = $this->makeOrder(Order::STATUS_OUT_FOR_DELIVERY);
+        $order->delivery_partner_id = $partner->id;
+        $order->save();
+
+        $customer = $order->user;
+
+        $response = $this->actingAs($customer, 'web')->get(route('orders.live_location', $order->order_number));
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'status'    => Order::STATUS_OUT_FOR_DELIVERY,
+            'is_active' => true,
+            'rider'     => [
+                'name'      => $partner->name,
+                'latitude'  => 12.935242,
+                'longitude' => 77.624461,
+            ],
+        ]);
+    }
+
+    // ------------------------------------------------------------------
+    // Admin Delivery Partner & KYC Management
+    // ------------------------------------------------------------------
+
+    public function test_admin_can_view_delivery_partners_list_and_filter(): void
+    {
+        $admin = $this->getSuperAdmin();
+        $partner = $this->getPartner();
+
+        $response = $this->actingAs($admin, 'admin')->get(route('admin.delivery_partners.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee($partner->name);
+        $response->assertSee('Pending KYC Review');
+        $response->assertSee('Add Delivery Partner');
+
+        // Test filter by status
+        $filterResponse = $this->actingAs($admin, 'admin')->get(route('admin.delivery_partners.index', ['status' => 'active']));
+        $filterResponse->assertStatus(200);
+        $filterResponse->assertSee($partner->name);
+    }
+
+    public function test_admin_can_view_create_delivery_partner_form(): void
+    {
+        $admin = $this->getSuperAdmin();
+
+        $response = $this->actingAs($admin, 'admin')->get(route('admin.delivery_partners.create'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Add Delivery Partner');
+        $response->assertSee('Initial Password');
+        $response->assertSee('Vehicle Type');
+        $response->assertSee('Authorized Shopping Channels');
+    }
+
+    public function test_admin_can_create_delivery_partner_with_documents_and_modes(): void
+    {
+        Storage::fake('public');
+        $admin = $this->getSuperAdmin();
+        $mode = Mode::firstOrFail();
+
+        $response = $this->actingAs($admin, 'admin')->post(route('admin.delivery_partners.store'), [
+            'name'                => 'Vikram Logistics',
+            'email'               => 'vikram@delivery.test',
+            'phone'               => '+91 9988776655',
+            'password'            => 'partnerSecret123',
+            'vehicle_type'        => 'motorcycle',
+            'vehicle_number'      => 'DL-01-AB-9999',
+            'modes'               => [$mode->id],
+            'license_number'      => 'DL-99887766554433',
+            'license_image'       => UploadedFile::fake()->image('license.jpg'),
+            'id_proof_type'       => 'aadhaar',
+            'id_proof_number'     => '9988-7766-5544',
+            'id_proof_image'      => UploadedFile::fake()->image('aadhaar.jpg'),
+            'bank_account_number' => '987654321012',
+            'bank_ifsc'           => 'HDFC0001234',
+            'upi_id'              => 'vikram@upi',
+            'status'              => 'active',
+        ]);
+
+        $response->assertRedirect(route('admin.delivery_partners.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('delivery_partners', [
+            'email'          => 'vikram@delivery.test',
+            'name'           => 'Vikram Logistics',
+            'vehicle_type'   => 'motorcycle',
+            'vehicle_number' => 'DL-01-AB-9999',
+            'status'         => 'active',
+            'upi_id'         => 'vikram@upi',
+        ]);
+
+        $created = DeliveryPartner::where('email', 'vikram@delivery.test')->firstOrFail();
+        $this->assertTrue($created->modes->contains($mode->id));
+        $this->assertNotNull($created->license_image);
+        $this->assertNotNull($created->id_proof_image);
+        Storage::disk('public')->assertExists($created->license_image);
+        Storage::disk('public')->assertExists($created->id_proof_image);
+    }
+
+    public function test_admin_can_view_delivery_partner_profile_and_kyc(): void
+    {
+        $admin = $this->getSuperAdmin();
+        $partner = $this->getPartner();
+        $partner->update([
+            'latitude'  => 12.9716,
+            'longitude' => 77.5946,
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->get(route('admin.delivery_partners.show', $partner));
+
+        $response->assertStatus(200);
+        $response->assertSee($partner->name);
+        $response->assertSee('KYC Onboarding Documents');
+        $response->assertSee('GPS Telemetry');
+        $response->assertSee('partnerMap');
+    }
+
+    public function test_admin_can_view_edit_delivery_partner_form(): void
+    {
+        $admin = $this->getSuperAdmin();
+        $partner = $this->getPartner();
+
+        $response = $this->actingAs($admin, 'admin')->get(route('admin.delivery_partners.edit', $partner));
+
+        $response->assertStatus(200);
+        $response->assertSee('Edit Delivery Partner');
+        $response->assertSee($partner->email);
+        $response->assertSee('Save Partner Changes');
+    }
+
+    public function test_admin_can_update_delivery_partner(): void
+    {
+        $admin = $this->getSuperAdmin();
+        $partner = $this->getPartner();
+        $mode = Mode::firstOrFail();
+
+        $response = $this->actingAs($admin, 'admin')->put(route('admin.delivery_partners.update', $partner), [
+            'name'                => 'Rider Updated Name',
+            'email'               => $partner->email,
+            'phone'               => '+91 9123456780',
+            'vehicle_type'        => 'ev',
+            'vehicle_number'      => 'KA-05-EV-1234',
+            'modes'               => [$mode->id],
+            'license_number'      => 'DL-UPDATED-123',
+            'id_proof_type'       => 'pan',
+            'id_proof_number'     => 'ABCDE1234F',
+            'bank_account_number' => '123456789012',
+            'bank_ifsc'           => 'SBIN0001234',
+            'upi_id'              => 'updated@upi',
+            'status'              => 'active',
+        ]);
+
+        $response->assertRedirect(route('admin.delivery_partners.show', $partner));
+        $response->assertSessionHas('success');
+
+        $fresh = $partner->fresh();
+        $this->assertEquals('Rider Updated Name', $fresh->name);
+        $this->assertEquals('ev', $fresh->vehicle_type);
+        $this->assertEquals('KA-05-EV-1234', $fresh->vehicle_number);
+        $this->assertEquals('updated@upi', $fresh->upi_id);
+    }
+
+    public function test_admin_can_approve_partner_kyc(): void
+    {
+        $admin = $this->getSuperAdmin();
+        $pendingPartner = DeliveryPartner::create([
+            'name'            => 'Applicant Partner',
+            'email'           => 'applicant@test.com',
+            'phone'           => '+91 9888877777',
+            'password'        => bcrypt('applicantSecret'),
+            'vehicle_type'    => 'bike',
+            'vehicle_number'  => 'TN-01-AB-1234',
+            'status'          => DeliveryPartner::STATUS_PENDING_APPROVAL,
+            'is_available'    => false,
+            'location_source' => DeliveryPartner::LOCATION_SOURCE_STATIC,
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->post(route('admin.delivery_partners.approve', $pendingPartner));
+
+        $response->assertSessionHas('success');
+        $fresh = $pendingPartner->fresh();
+        $this->assertEquals(DeliveryPartner::STATUS_ACTIVE, $fresh->status);
+        $this->assertNotNull($fresh->approved_at);
+        $this->assertNull($fresh->rejection_reason);
+    }
+
+    public function test_admin_can_reject_partner_kyc_with_reason(): void
+    {
+        $admin = $this->getSuperAdmin();
+        $pendingPartner = DeliveryPartner::create([
+            'name'            => 'Applicant Partner 2',
+            'email'           => 'applicant2@test.com',
+            'phone'           => '+91 9888877776',
+            'password'        => bcrypt('applicantSecret'),
+            'vehicle_type'    => 'bike',
+            'status'          => DeliveryPartner::STATUS_PENDING_APPROVAL,
+            'is_available'    => false,
+            'location_source' => DeliveryPartner::LOCATION_SOURCE_STATIC,
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->post(route('admin.delivery_partners.reject', $pendingPartner), [
+            'rejection_reason' => 'Driving license expired in 2024. Please re-upload current license.',
+        ]);
+
+        $response->assertSessionHas('success');
+        $fresh = $pendingPartner->fresh();
+        $this->assertEquals(DeliveryPartner::STATUS_REJECTED, $fresh->status);
+        $this->assertEquals('Driving license expired in 2024. Please re-upload current license.', $fresh->rejection_reason);
+        $this->assertFalse($fresh->is_available);
+    }
+
+    public function test_admin_can_toggle_partner_status(): void
+    {
+        $admin = $this->getSuperAdmin();
+        $partner = $this->getPartner();
+        $this->assertEquals(DeliveryPartner::STATUS_ACTIVE, $partner->status);
+
+        // Suspend
+        $response = $this->actingAs($admin, 'admin')->patch(route('admin.delivery_partners.toggle_status', $partner));
+        $response->assertSessionHas('success');
+        $this->assertEquals(DeliveryPartner::STATUS_SUSPENDED, $partner->fresh()->status);
+
+        // Reactivate
+        $response = $this->actingAs($admin, 'admin')->patch(route('admin.delivery_partners.toggle_status', $partner));
+        $response->assertSessionHas('success');
+        $this->assertEquals(DeliveryPartner::STATUS_ACTIVE, $partner->fresh()->status);
+    }
+
+    public function test_admin_can_delete_delivery_partner_without_active_orders(): void
+    {
+        $admin = $this->getSuperAdmin();
+        $partnerToDelete = DeliveryPartner::create([
+            'name'            => 'Disposable Partner',
+            'email'           => 'disposable@test.com',
+            'phone'           => '+91 9888877775',
+            'password'        => bcrypt('secretPass123'),
+            'vehicle_type'    => 'bike',
+            'status'          => DeliveryPartner::STATUS_ACTIVE,
+            'is_available'    => false,
+            'location_source' => DeliveryPartner::LOCATION_SOURCE_STATIC,
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->delete(route('admin.delivery_partners.destroy', $partnerToDelete));
+
+        $response->assertRedirect(route('admin.delivery_partners.index'));
+        $response->assertSessionHas('success');
+        $this->assertDatabaseMissing('delivery_partners', ['id' => $partnerToDelete->id]);
+    }
+
+    public function test_admin_cannot_delete_partner_with_active_deliveries(): void
+    {
+        $admin = $this->getSuperAdmin();
+        $partner = $this->getPartner();
+        $order = $this->makeOrder(Order::STATUS_OUT_FOR_DELIVERY);
+        $order->delivery_partner_id = $partner->id;
+        $order->save();
+
+        $response = $this->actingAs($admin, 'admin')->delete(route('admin.delivery_partners.destroy', $partner));
+
+        $response->assertSessionHas('error');
+        $this->assertDatabaseHas('delivery_partners', ['id' => $partner->id]);
+    }
+
+    public function test_delivery_ops_admin_with_partners_permission_can_manage_fleet(): void
+    {
+        $role = Role::where('slug', 'delivery-ops-manager')->firstOrFail();
+        $deliveryAdmin = Admin::create([
+            'name'     => 'Delivery Ops Staff',
+            'email'    => 'ops@shopy.test',
+            'phone'    => '+1999888777',
+            'password' => bcrypt('password123'),
+            'status'   => Admin::STATUS_ACTIVE,
+        ]);
+        $deliveryAdmin->roles()->attach($role->id);
+
+        $partner = $this->getPartner();
+
+        $response = $this->actingAs($deliveryAdmin, 'admin')->get(route('admin.delivery_partners.index'));
+        $response->assertStatus(200);
+        $response->assertSee('Delivery Partners');
+
+        $showResponse = $this->actingAs($deliveryAdmin, 'admin')->get(route('admin.delivery_partners.show', $partner));
+        $showResponse->assertStatus(200);
+
+        $createResponse = $this->actingAs($deliveryAdmin, 'admin')->get(route('admin.delivery_partners.create'));
+        $createResponse->assertStatus(200);
+    }
+
+    public function test_admin_without_permissions_is_forbidden_from_fleet_routes(): void
+    {
+        $restrictedRole = Role::create([
+            'name'        => 'Restricted Role',
+            'slug'        => 'restricted-role',
+            'description' => 'No delivery or order permissions',
+            'status'      => true,
+        ]);
+        $restrictedAdmin = Admin::create([
+            'name'     => 'Restricted Admin',
+            'email'    => 'restricted@shopy.test',
+            'phone'    => '+1999888776',
+            'password' => bcrypt('password123'),
+            'status'   => Admin::STATUS_ACTIVE,
+        ]);
+        $restrictedAdmin->roles()->attach($restrictedRole->id);
+
+        $response = $this->actingAs($restrictedAdmin, 'admin')->get(route('admin.delivery_partners.index'));
+        $response->assertStatus(403);
     }
 }

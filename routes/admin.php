@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DeliveryPartnerController;
 use App\Http\Controllers\Admin\InvitationController;
 use App\Http\Controllers\Admin\ModeController;
 use App\Http\Controllers\Admin\OrderController;
@@ -249,6 +250,55 @@ Route::middleware(['auth:admin', 'active:admin'])->group(function () {
         Route::put('/{order}', [OrderController::class, 'update'])
             ->middleware('permission:orders.edit,manage-orders')
             ->name('update');
+        Route::post('/{order}/assign-partner', [OrderController::class, 'assignPartner'])
+            ->middleware('permission:orders.edit,manage-orders')
+            ->name('assign_partner');
+        Route::post('/{order}/assign-return-partner', [OrderController::class, 'assignReturnPartner'])
+            ->middleware('permission:orders.edit,manage-orders')
+            ->name('assign_return_partner');
+        Route::post('/{order}/approve-return', [OrderController::class, 'approveReturn'])
+            ->middleware('permission:orders.edit,manage-orders')
+            ->name('approve_return');
+        Route::post('/{order}/complete-return', [OrderController::class, 'completeReturn'])
+            ->middleware('permission:orders.edit,manage-orders')
+            ->name('complete_return');
+        Route::post('/{order}/reject-return', [OrderController::class, 'rejectReturn'])
+            ->middleware('permission:orders.edit,manage-orders')
+            ->name('reject_return');
+    });
+
+    // Delivery Fleet & Delivery Partner Management
+    Route::prefix('delivery-partners')->name('delivery_partners.')->group(function () {
+        Route::get('/', [DeliveryPartnerController::class, 'index'])
+            ->middleware('permission:partners.view,orders.view,manage-orders')
+            ->name('index');
+        Route::get('/create', [DeliveryPartnerController::class, 'create'])
+            ->middleware('permission:partners.create,partners.edit,orders.edit,manage-orders')
+            ->name('create');
+        Route::post('/', [DeliveryPartnerController::class, 'store'])
+            ->middleware('permission:partners.create,partners.edit,orders.edit,manage-orders')
+            ->name('store');
+        Route::get('/{partner}', [DeliveryPartnerController::class, 'show'])
+            ->middleware('permission:partners.view,orders.view,manage-orders')
+            ->name('show');
+        Route::get('/{partner}/edit', [DeliveryPartnerController::class, 'edit'])
+            ->middleware('permission:partners.edit,orders.edit,manage-orders')
+            ->name('edit');
+        Route::put('/{partner}', [DeliveryPartnerController::class, 'update'])
+            ->middleware('permission:partners.edit,orders.edit,manage-orders')
+            ->name('update');
+        Route::delete('/{partner}', [DeliveryPartnerController::class, 'destroy'])
+            ->middleware('permission:partners.delete,partners.edit,manage-orders')
+            ->name('destroy');
+        Route::post('/{partner}/approve', [DeliveryPartnerController::class, 'approve'])
+            ->middleware('permission:partners.edit,orders.edit,manage-orders')
+            ->name('approve');
+        Route::post('/{partner}/reject', [DeliveryPartnerController::class, 'reject'])
+            ->middleware('permission:partners.edit,orders.edit,manage-orders')
+            ->name('reject');
+        Route::patch('/{partner}/toggle-status', [DeliveryPartnerController::class, 'toggleStatus'])
+            ->middleware('permission:partners.edit,orders.edit,manage-orders')
+            ->name('toggle_status');
     });
 
     // Customer Reviews & Ratings Management

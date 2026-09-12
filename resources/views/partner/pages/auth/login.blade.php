@@ -106,11 +106,19 @@
                 </button>
             </form>
 
-            <div class="pt-4 border-t border-slate-800 text-center text-xs text-slate-500 flex items-center justify-between">
-                <span>Operational staff?</span>
-                <a href="{{ route('admin.login') }}" class="text-emerald-400 hover:text-emerald-300 font-semibold transition">
-                    Admin Portal &rarr;
-                </a>
+            <div class="pt-4 border-t border-slate-800 text-center text-xs text-slate-400 space-y-3">
+                <p>
+                    Want to deliver with us?
+                    <a href="{{ route('partner.register') }}" class="text-emerald-400 hover:text-emerald-300 font-bold transition ml-1">
+                        Apply &amp; Register Now &rarr;
+                    </a>
+                </p>
+                <div class="flex items-center justify-between text-slate-500 pt-2 border-t border-slate-800/60">
+                    <span>Operational staff?</span>
+                    <a href="{{ route('admin.login') }}" class="text-slate-400 hover:text-white font-semibold transition">
+                        Admin Portal &rarr;
+                    </a>
+                </div>
             </div>
         </div>
     </div>
