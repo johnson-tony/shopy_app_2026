@@ -3,18 +3,16 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
     /**
-     * Display the customer dashboard.
+     * Redirect to the customer profile (customers use profile/orders instead of a dashboard).
      */
-    public function index(Request $request): View
+    public function index(Request $request): RedirectResponse
     {
-        $user = $request->user();
-
-        return view('user.pages.dashboard', compact('user'));
+        return redirect()->route('profile');
     }
 }

@@ -11,7 +11,7 @@
             <nav class="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
                 <a href="{{ route('home') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition">Home</a>
                 <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
-                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition">Account</a>
+                <a href="{{ route('profile') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition">Account</a>
                 <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
                 <span class="text-slate-900 dark:text-white font-semibold">My Orders</span>
             </nav>

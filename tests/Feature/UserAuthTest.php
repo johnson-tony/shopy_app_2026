@@ -348,16 +348,14 @@ class UserAuthTest extends TestCase
         $response->assertRedirect('/login');
     }
 
-    public function test_authenticated_user_can_access_dashboard(): void
+    public function test_authenticated_user_accessing_dashboard_redirects_to_profile(): void
     {
         $user = User::where('email', 'customer@shopy.test')->first();
         $this->assertNotNull($user);
 
         $response = $this->actingAs($user, 'web')->get('/dashboard');
 
-        $response->assertStatus(200);
-        $response->assertSee('Customer Dashboard');
-        $response->assertSee($user->name);
+        $response->assertRedirect(route('profile'));
     }
 
     public function test_user_can_update_profile(): void

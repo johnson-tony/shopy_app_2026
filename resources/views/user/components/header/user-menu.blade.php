@@ -37,14 +37,11 @@
                 </a>
             @endif
         @else
-            <!-- Authenticated: Shows Profile, Orders, Wishlist, Addresses, Dashboard, Logout -->
+            <!-- Authenticated: Shows Profile, Orders, Wishlist, Addresses, Logout -->
             <div style="padding: 0.65rem 1rem; border-bottom: 1px solid #f0f0f0;">
                 <div style="font-weight:600; font-size: 0.88rem; color: var(--text-default);">{{ Auth::user()->name }}</div>
                 <div style="font-size: 0.78rem; color: var(--text-muted); text-overflow: ellipsis; overflow: hidden;">{{ Auth::user()->email }}</div>
             </div>
-            <a href="{{ Route::has('dashboard') ? route('dashboard') : url('/dashboard') }}">
-                <i class="fas fa-gauge-high mr-2 text-slate-400"></i> Dashboard
-            </a>
             <a href="{{ Route::has('profile') ? route('profile') : url('/profile') }}">
                 <i class="fas fa-circle-user mr-2 text-slate-400"></i> My Profile
             </a>

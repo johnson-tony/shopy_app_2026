@@ -4,9 +4,6 @@
             <p class="text-sm font-semibold text-slate-800">{{ auth()->user()->name }}</p>
             <p class="text-xs text-slate-500">{{ auth()->user()->email }}</p>
         </div>
-        <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition">
-            <i class="fas fa-gauge-high w-5 text-slate-400"></i> Dashboard
-        </a>
         <a href="{{ route('orders.index') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition">
             <i class="fas fa-box w-5 text-slate-400"></i> My Orders
         </a>

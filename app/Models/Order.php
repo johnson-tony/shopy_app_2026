@@ -40,6 +40,16 @@ class Order extends Model
         'mode_id',
         'address_id',
         'delivery_partner_id',
+        'shipping_name',
+        'shipping_phone',
+        'shipping_address_line1',
+        'shipping_address_line2',
+        'shipping_landmark',
+        'shipping_city',
+        'shipping_state',
+        'shipping_postal_code',
+        'shipping_country',
+        'shipping_address_type',
         'status',
         'payment_method',
         'payment_status',
@@ -113,7 +123,21 @@ class Order extends Model
      */
     public function getFormattedShippingAddressAttribute(): ?string
     {
-        return $this->userAddress?->formatted_address;
+        if ($this->userAddress?->formatted_address) {
+            return $this->userAddress->formatted_address;
+        }
+
+        if ($this->shipping_address_line1) {
+            return collect([
+                $this->shipping_address_line1,
+                $this->shipping_address_line2,
+                $this->shipping_city,
+                $this->shipping_state,
+                $this->shipping_postal_code,
+            ])->filter()->join(', ');
+        }
+
+        return null;
     }
 
     /**

@@ -103,11 +103,6 @@
             @endif
         @else
             <li style="border-top: 1px solid var(--hover-bg); margin-top: 0.5rem; padding-top: 0.5rem;">
-                <a href="{{ Route::has('dashboard') ? route('dashboard') : url('/dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                    <span><i class="fas fa-gauge-high mr-2 text-slate-400"></i> Dashboard</span>
-                </a>
-            </li>
-            <li>
                 <a href="{{ Route::has('profile') ? route('profile') : url('/profile') }}" class="{{ request()->routeIs('profile') ? 'active' : '' }}">
                     <span><i class="fas fa-user mr-2 text-slate-400"></i> Profile</span>
                 </a>

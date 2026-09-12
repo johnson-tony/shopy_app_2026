@@ -28,7 +28,7 @@
 
         <!-- 5. Profile / Account -->
         @auth
-            <a href="{{ Route::has('profile') ? route('profile') : url('/profile') }}" class="mobile-nav-item {{ request()->routeIs('profile') || request()->routeIs('dashboard') ? 'active' : '' }}">
+            <a href="{{ Route::has('profile') ? route('profile') : url('/profile') }}" class="mobile-nav-item {{ request()->routeIs('profile') ? 'active' : '' }}">
                 <i class="fas fa-circle-user"></i>
                 <span>Account</span>
             </a>

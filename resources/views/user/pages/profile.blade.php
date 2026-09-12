@@ -9,8 +9,8 @@
             <h1 class="text-2xl font-bold text-slate-900">Profile Settings</h1>
             <p class="text-sm text-slate-500">Manage your basic customer account information</p>
         </div>
-        <a href="{{ route('dashboard') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-            &larr; Back to Dashboard
+        <a href="{{ route('home') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
+            &larr; Back to Store
         </a>
     </div>
 
@@ -98,7 +98,7 @@
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-4">
-                <a href="{{ route('dashboard') }}" class="px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+                <a href="{{ route('home') }}" class="px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
                     Cancel
                 </a>
                 <button type="submit" class="px-6 py-2.5 rounded-xl text-white font-semibold bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-200 transition shadow-sm text-sm cursor-pointer">

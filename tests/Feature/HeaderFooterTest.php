@@ -112,7 +112,7 @@ class HeaderFooterTest extends TestCase
             'status' => 'active',
         ]);
 
-        $response = $this->actingAs($user)->get(route('dashboard'));
+        $response = $this->actingAs($user)->get(route('profile'));
 
         $response->assertStatus(200);
         $response->assertSee('John');

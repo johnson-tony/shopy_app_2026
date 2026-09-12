@@ -8,8 +8,8 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <div class="flex items-center gap-2">
-                <a href="{{ route('dashboard') }}" class="text-xs font-semibold text-slate-500 hover:text-indigo-600 transition flex items-center gap-1">
-                    &larr; Back to Dashboard
+                <a href="{{ route('profile') }}" class="text-xs font-semibold text-slate-500 hover:text-indigo-600 transition flex items-center gap-1">
+                    &larr; Back to Profile
                 </a>
             </div>
             <div class="flex items-center gap-3 mt-1">
