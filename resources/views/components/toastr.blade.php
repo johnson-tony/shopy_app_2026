@@ -5,14 +5,14 @@
                 "closeButton": true,
                 "debug": false,
                 "newestOnTop": true,
-                "progressBar": true,
-                "positionClass": "toast-top-right",
-                "preventDuplicates": false,
+                "progressBar": false,
+                "positionClass": "toast-bottom-center",
+                "preventDuplicates": true,
                 "onclick": null,
-                "showDuration": "300",
-                "hideDuration": "1000",
-                "timeOut": "5000",
-                "extendedTimeOut": "1500",
+                "showDuration": "200",
+                "hideDuration": "200",
+                "timeOut": "3000",
+                "extendedTimeOut": "1000",
                 "showEasing": "swing",
                 "hideEasing": "linear",
                 "showMethod": "fadeIn",
@@ -40,11 +40,45 @@
 <style>
     #toast-container {
         z-index: 999999 !important;
+        width: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 24px !important;
+        padding: 0 16px !important;
+        box-sizing: border-box !important;
+        pointer-events: none;
     }
+
     #toast-container > div {
-        opacity: 0.97 !important;
-        border-radius: 0.75rem !important;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.15) !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: min(420px, calc(100vw - 32px)) !important;
+        margin: 8px auto !important;
+        padding: 10px 34px 10px 14px !important;
+        opacity: 0.98 !important;
+        border-radius: 10px !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16) !important;
         font-family: inherit !important;
+        font-size: 13px !important;
+        line-height: 1.35 !important;
+        pointer-events: auto;
+    }
+
+    #toast-container .toast-title {
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        margin-bottom: 2px !important;
+    }
+
+    #toast-container .toast-message {
+        font-size: 13px !important;
+        font-weight: 400 !important;
+    }
+
+    #toast-container .toast-close-button {
+        font-size: 18px !important;
+        line-height: 18px !important;
+        right: 9px !important;
+        top: 8px !important;
     }
 </style>
