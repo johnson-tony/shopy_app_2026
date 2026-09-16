@@ -44,6 +44,10 @@
                     <span>Request Return / Exchange</span>
                 </button>
             @endif
+            <a href="{{ route('support.create', ['order_number' => $order->order_number]) }}" class="px-4 py-2 rounded-xl text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800/60 transition flex items-center gap-1.5 shadow-xs">
+                <i class="fa-solid fa-headset text-[11px]"></i>
+                <span>Need Help?</span>
+            </a>
             <a href="{{ route('orders.index') }}" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition flex items-center gap-1.5">
                 <i class="fa-solid fa-arrow-left text-[11px]"></i>
                 <span>Back to Orders</span>
@@ -516,6 +520,34 @@
                             {{ $order->payment_status }}
                         </span>
                     </div>
+                </div>
+            </div>
+
+            <!-- Order Support & Assistance Card -->
+            <div class="bg-indigo-50/70 dark:bg-indigo-950/30 rounded-3xl p-6 border border-indigo-200 dark:border-indigo-800/50 shadow-xs space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-sm shadow-indigo-600/30 shrink-0">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Need Help With This Order?</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Delivery issues, food quality, or refunds</p>
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Have a question or problem with your delivery or items? Connect with customer care instantly via dedicated chat or helpline.
+                </p>
+
+                <div class="space-y-2 pt-1">
+                    <a href="{{ route('support.create', ['order_number' => $order->order_number]) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-sm shadow-indigo-600/25 transition cursor-pointer">
+                        <i class="fa-solid fa-comments"></i>
+                        <span>Open Order Support Chat</span>
+                    </a>
+                    <a href="tel:+916379644145" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-bold text-xs transition">
+                        <i class="fa-solid fa-phone text-emerald-600 dark:text-emerald-400"></i>
+                        <span>Call Helpline (+91 63796 44145)</span>
+                    </a>
                 </div>
             </div>
         </div>

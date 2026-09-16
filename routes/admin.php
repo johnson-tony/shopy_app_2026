@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\RestaurantController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -312,6 +313,31 @@ Route::middleware(['auth:admin', 'active:admin'])->group(function () {
         Route::delete('/{review}', [ReviewController::class, 'destroy'])
             ->middleware('permission:reviews.delete')
             ->name('destroy');
+    });
+
+    // Customer Support & Helpdesk Management
+    Route::prefix('support-tickets')->name('support.')->group(function () {
+        Route::get('/', [SupportTicketController::class, 'index'])
+            ->middleware('permission:support.view,orders.view,manage-orders')
+            ->name('index');
+        Route::get('/{ticket}', [SupportTicketController::class, 'show'])
+            ->middleware('permission:support.view,orders.view,manage-orders')
+            ->name('show');
+        Route::post('/{ticket}/reply', [SupportTicketController::class, 'reply'])
+            ->middleware('permission:support.reply,support.manage,orders.edit,manage-orders')
+            ->name('reply');
+        Route::post('/{ticket}/call-partner', [SupportTicketController::class, 'logPartnerCall'])
+            ->middleware('permission:support.manage,partners.edit,orders.edit,manage-orders')
+            ->name('call-partner');
+        Route::post('/{ticket}/call_partner', [SupportTicketController::class, 'logPartnerCall'])
+            ->middleware('permission:support.manage,partners.edit,orders.edit,manage-orders')
+            ->name('call_partner');
+        Route::match(['post', 'patch'], '/{ticket}/status', [SupportTicketController::class, 'updateStatus'])
+            ->middleware('permission:support.manage,orders.edit,manage-orders')
+            ->name('status');
+        Route::match(['post', 'patch'], '/{ticket}/update-status', [SupportTicketController::class, 'updateStatus'])
+            ->middleware('permission:support.manage,orders.edit,manage-orders')
+            ->name('update_status');
     });
 
     // System Settings & Theme Management

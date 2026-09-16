@@ -88,6 +88,11 @@ class PermissionSeeder extends Seeder
             ['name' => 'View Reviews', 'slug' => 'reviews.view', 'module' => 'reviews', 'description' => 'Browse and inspect customer product reviews.'],
             ['name' => 'Edit Reviews', 'slug' => 'reviews.edit', 'module' => 'reviews', 'description' => 'Approve or hide customer product reviews.'],
             ['name' => 'Delete Reviews', 'slug' => 'reviews.delete', 'module' => 'reviews', 'description' => 'Remove fraudulent or abusive product reviews.'],
+
+            // Customer Support & Helpdesk
+            ['name' => 'View Support Tickets', 'slug' => 'support.view', 'module' => 'support', 'description' => 'Browse and view customer support tickets and chat inquiries.'],
+            ['name' => 'Reply to Support Tickets', 'slug' => 'support.reply', 'module' => 'support', 'description' => 'Participate in customer support chat and send replies.'],
+            ['name' => 'Manage Support Tickets', 'slug' => 'support.manage', 'module' => 'support', 'description' => 'Resolve, assign, and escalate support issues to delivery partners.'],
         ];
 
         foreach ($permissions as $permData) {

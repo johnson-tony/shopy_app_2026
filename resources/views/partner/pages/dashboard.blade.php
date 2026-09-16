@@ -38,6 +38,57 @@
         </div>
     </div>
 
+    <!-- Earnings & Payouts Card -->
+    <div class="bg-gradient-to-r from-emerald-950/40 via-slate-900 to-indigo-950/40 border border-emerald-500/30 rounded-3xl p-6 shadow-xl">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-5 border-b border-slate-800">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-bold text-emerald-400 mb-2">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span>Rider Earnings &amp; Payouts</span>
+                </div>
+                <div class="flex items-baseline gap-3">
+                    <span class="text-3xl sm:text-4xl font-black text-white tracking-tight">₹{{ number_format($earnings['today'], 2) }}</span>
+                    <span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                        Earned Today ({{ $earnings['tasksDoneToday'] }} tasks)
+                    </span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">
+                    Pay rate: ₹{{ number_format($earnings['ratePerDelivery'], 0) }} per delivery &bull; ₹{{ number_format($earnings['ratePerReturn'], 0) }} per return pickup
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs shrink-0">
+                <div class="p-3 rounded-2xl bg-slate-950/80 border border-slate-800">
+                    <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">This Week</span>
+                    <span class="text-lg font-black text-white mt-0.5 block">₹{{ number_format($earnings['week'], 2) }}</span>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-950/80 border border-slate-800">
+                    <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">All Time</span>
+                    <span class="text-lg font-black text-emerald-400 mt-0.5 block">₹{{ number_format($earnings['total'], 2) }}</span>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 col-span-2 sm:col-span-1">
+                    <span class="text-[10px] text-amber-400 uppercase tracking-wider block font-semibold">COD In-Hand</span>
+                    <span class="text-lg font-black text-amber-300 mt-0.5 block">₹{{ number_format($earnings['codCollectedToday'], 2) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-building-columns text-indigo-400"></i>
+                <span>Payout Destination:</span>
+                @if($partner->upi_id)
+                    <span class="font-mono font-bold text-white bg-slate-800 px-2 py-0.5 rounded">{{ $partner->upi_id }} (UPI)</span>
+                @elseif($partner->bank_account_number)
+                    <span class="font-mono font-bold text-white bg-slate-800 px-2 py-0.5 rounded">•••• {{ substr($partner->bank_account_number, -4) }} ({{ $partner->bank_ifsc ?? 'Bank' }})</span>
+                @else
+                    <span class="text-amber-400 italic">No payout method linked</span>
+                @endif
+            </div>
+            <span class="text-[11px] text-slate-500">Disbursed directly to linked account</span>
+        </div>
+    </div>
+
     <!-- Metrics Strip -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="partner-card border p-5 flex items-center gap-4">

@@ -34,6 +34,47 @@ class DashboardController extends Controller
             ->orderByDesc('return_requested_at')
             ->get();
 
+        $deliveredTodayCount = Order::where('delivery_partner_id', $partner->id)
+            ->where('status', Order::STATUS_DELIVERED)
+            ->whereDate('delivered_at', today())
+            ->count();
+
+        $returnsDoneTodayCount = Order::where('return_partner_id', $partner->id)
+            ->where('status', Order::STATUS_RETURNED)
+            ->whereDate('return_picked_up_at', today())
+            ->count();
+
+        $deliveredWeekCount = Order::where('delivery_partner_id', $partner->id)
+            ->where('status', Order::STATUS_DELIVERED)
+            ->where('delivered_at', '>=', now()->startOfWeek())
+            ->count();
+
+        $returnsDoneWeekCount = Order::where('return_partner_id', $partner->id)
+            ->where('status', Order::STATUS_RETURNED)
+            ->where('return_picked_up_at', '>=', now()->startOfWeek())
+            ->count();
+
+        $totalDeliveredCount = Order::where('delivery_partner_id', $partner->id)
+            ->where('status', Order::STATUS_DELIVERED)
+            ->count();
+
+        $totalReturnsDoneCount = Order::where('return_partner_id', $partner->id)
+            ->where('status', Order::STATUS_RETURNED)
+            ->count();
+
+        $ratePerDelivery = 50.0;
+        $ratePerReturn = 35.0;
+
+        $earningsToday = ($deliveredTodayCount * $ratePerDelivery) + ($returnsDoneTodayCount * $ratePerReturn);
+        $earningsWeek = ($deliveredWeekCount * $ratePerDelivery) + ($returnsDoneWeekCount * $ratePerReturn);
+        $earningsTotal = ($totalDeliveredCount * $ratePerDelivery) + ($totalReturnsDoneCount * $ratePerReturn);
+
+        $codCollectedToday = (float) Order::where('delivery_partner_id', $partner->id)
+            ->where('status', Order::STATUS_DELIVERED)
+            ->whereDate('delivered_at', today())
+            ->where('payment_method', 'cod')
+            ->sum('grand_total');
+
         $stats = [
             'activeDeliveries' => Order::where('delivery_partner_id', $partner->id)
                 ->whereIn('status', [
@@ -42,16 +83,21 @@ class DashboardController extends Controller
                     Order::STATUS_OUT_FOR_DELIVERY,
                 ])->count(),
             'pendingReturns' => $returnPickups->count(),
-            'deliveredToday' => Order::where('delivery_partner_id', $partner->id)
-                ->where('status', Order::STATUS_DELIVERED)
-                ->whereDate('delivered_at', today())
-                ->count(),
-            'totalDelivered' => Order::where('delivery_partner_id', $partner->id)
-                ->where('status', Order::STATUS_DELIVERED)
-                ->count(),
+            'deliveredToday' => $deliveredTodayCount,
+            'totalDelivered' => $totalDeliveredCount,
         ];
 
-        return view('partner.pages.dashboard', compact('partner', 'assignedOrders', 'returnPickups', 'stats', 'modeFilter'));
+        $earnings = [
+            'ratePerDelivery'   => $ratePerDelivery,
+            'ratePerReturn'     => $ratePerReturn,
+            'today'             => $earningsToday,
+            'week'              => $earningsWeek,
+            'total'             => $earningsTotal,
+            'codCollectedToday' => $codCollectedToday,
+            'tasksDoneToday'    => $deliveredTodayCount + $returnsDoneTodayCount,
+        ];
+
+        return view('partner.pages.dashboard', compact('partner', 'assignedOrders', 'returnPickups', 'stats', 'earnings', 'modeFilter'));
     }
 
     /**

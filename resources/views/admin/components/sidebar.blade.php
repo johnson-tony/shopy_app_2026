@@ -82,7 +82,7 @@
             @endif
         @endif
 
-        @if($adminUser?->hasPermission('orders.view') || $adminUser?->hasPermission('partners.view') || $adminUser?->hasPermission('reviews.view'))
+        @if($adminUser?->hasPermission('orders.view') || $adminUser?->hasPermission('partners.view') || $adminUser?->hasPermission('reviews.view') || $adminUser?->hasPermission('support.view') || $adminUser?->isSuperAdmin())
             <div class="pt-6 px-3 pb-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                 Orders &amp; Fulfillment
             </div>
@@ -100,6 +100,23 @@
                 <a href="{{ route('admin.delivery_partners.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition {{ request()->routeIs('admin.delivery_partners.*') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
                     <i class="fa-solid fa-person-biking w-5 text-center text-sm {{ request()->routeIs('admin.delivery_partners.*') ? 'text-indigo-400' : 'text-slate-500' }}"></i>
                     <span>Delivery Partners</span>
+                </a>
+            @endif
+
+            @if($adminUser?->hasPermission('support.view') || $adminUser?->isSuperAdmin())
+                @php
+                    $pendingSupportCount = \App\Models\SupportTicket::whereIn('status', [\App\Models\SupportTicket::STATUS_OPEN, \App\Models\SupportTicket::STATUS_IN_PROGRESS])->count();
+                @endphp
+                <a href="{{ route('admin.support.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition {{ request()->routeIs('admin.support.*') ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-headset w-5 text-center text-sm {{ request()->routeIs('admin.support.*') ? 'text-indigo-400' : 'text-slate-500' }}"></i>
+                        <span>Support Helpdesk</span>
+                    </div>
+                    @if($pendingSupportCount > 0)
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                            {{ $pendingSupportCount }}
+                        </span>
+                    @endif
                 </a>
             @endif
 

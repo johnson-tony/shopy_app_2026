@@ -13,6 +13,7 @@ use App\Http\Controllers\User\OrderController;
 use App\Http\Controllers\User\ProductDetailController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\ReviewController;
+use App\Http\Controllers\User\SupportController;
 use App\Http\Controllers\User\WishlistController;
 use App\Models\Cart;
 
@@ -162,3 +163,13 @@ Route::post('/newsletter/subscribe', function (\Illuminate\Http\Request $request
         'message' => 'Thank you for subscribing to our newsletter!',
     ]);
 })->name('newsletter.subscribe');
+
+// Customer Support & Helpdesk Routes (Order-Linked & General Inquiries)
+Route::prefix('support')->name('support.')->group(function () {
+    Route::get('/', [SupportController::class, 'index'])->name('index');
+    Route::get('/create', [SupportController::class, 'create'])->name('create');
+    Route::post('/', [SupportController::class, 'store'])->name('store');
+    Route::get('/{ticket}', [SupportController::class, 'show'])->name('show');
+    Route::post('/{ticket}/reply', [SupportController::class, 'reply'])->name('reply');
+});
+
