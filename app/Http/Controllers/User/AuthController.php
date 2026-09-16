@@ -14,7 +14,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -28,6 +30,82 @@ class AuthController extends Controller
         }
 
         return view('user.pages.auth.login');
+    }
+
+    /**
+     * Redirect the user to Google's OAuth consent screen.
+     */
+    public function redirectToGoogle(): RedirectResponse
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    /**
+     * Handle Google's OAuth callback and sign the user into the existing web guard.
+     */
+    public function handleGoogleCallback(Request $request): RedirectResponse
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+        } catch (\Throwable $e) {
+            Log::warning('Google OAuth callback failed.', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return redirect()->route('login')->with('error', 'Unable to sign in with Google. Please try again.');
+        }
+
+        $email = $googleUser->getEmail();
+
+        if (!$email) {
+            return redirect()->route('login')->with('error', 'Google did not provide an email address for this account.');
+        }
+
+        $user = User::where('google_id', $googleUser->getId())->first();
+
+        if (!$user) {
+            $user = User::where('email', $email)->first();
+        }
+
+        if (!$user) {
+            $user = User::create([
+                'name' => $googleUser->getName() ?: Str::before($email, '@'),
+                'email' => $email,
+                'phone' => null,
+                'password' => Str::random(64),
+                'status' => User::STATUS_ACTIVE,
+                'email_verified_at' => now(),
+                'google_id' => $googleUser->getId(),
+                'google_avatar' => $googleUser->getAvatar(),
+            ]);
+        } else {
+            if ($user->status === User::STATUS_BLOCKED || $user->status === User::STATUS_INACTIVE) {
+                return redirect()->route('login')->with('error', "Your account is {$user->status}. Please contact support.");
+            }
+
+            $user->forceFill([
+                'google_id' => $googleUser->getId(),
+                'google_avatar' => $googleUser->getAvatar(),
+            ]);
+
+            if (!$user->email_verified_at) {
+                $user->email_verified_at = now();
+            }
+
+            if ($user->status === User::STATUS_PENDING) {
+                $user->status = User::STATUS_ACTIVE;
+            }
+
+            $user->save();
+        }
+
+        $guestSessionId = $request->session()->getId();
+        $request->session()->regenerate();
+        Cart::mergeGuestCart($guestSessionId, $user->id);
+        Auth::guard('web')->login($user, true);
+
+        return redirect()->intended(route('dashboard'))
+            ->with('success', "Welcome back, {$user->name}!");
     }
 
     /**
