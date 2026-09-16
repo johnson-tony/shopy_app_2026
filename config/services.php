@@ -34,6 +34,9 @@ return [
     ],
 
     'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI', env('APP_URL') . '/auth/google/callback'),
         'places_key' => env('PLACES_API_KEY'),
         'geocoding_key' => env('GEOCODING_API_KEY'),
         'maps_js_key' => env('MAPS_JAVASCRIPT_API_KEY'),
