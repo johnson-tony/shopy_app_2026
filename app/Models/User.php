@@ -27,11 +27,6 @@ class User extends Authenticatable
         self::STATUS_PENDING,
     ];
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -39,23 +34,15 @@ class User extends Authenticatable
         'password',
         'status',
         'email_verified_at',
+        'google_id',
+        'google_avatar',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -64,97 +51,61 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Check if user status is active.
-     */
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;
     }
 
-    /**
-     * Check if user status is pending.
-     */
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;
     }
 
-    /**
-     * Check if user has verified their email address.
-     */
     public function hasVerifiedEmail(): bool
     {
         return !is_null($this->email_verified_at);
     }
 
-    /**
-     * Get all addresses for the user.
-     */
     public function addresses(): HasMany
     {
         return $this->hasMany(UserAddress::class);
     }
 
-    /**
-     * Get the default address for the user.
-     */
     public function defaultAddress(): HasOne
     {
         return $this->hasOne(UserAddress::class)->where('is_default', true);
     }
 
-    /**
-     * Get all email verification records for the user.
-     */
     public function emailVerifications(): HasMany
     {
         return $this->hasMany(UserEmailVerification::class);
     }
 
-    /**
-     * Get the latest email verification record for the user.
-     */
     public function latestEmailVerification(): HasOne
     {
         return $this->hasOne(UserEmailVerification::class)->latestOfMany();
     }
 
-    /**
-     * Get all password reset OTP records for the user.
-     */
     public function passwordResetOtps(): HasMany
     {
         return $this->hasMany(UserPasswordResetOtp::class);
     }
 
-    /**
-     * Get the latest password reset OTP record for the user.
-     */
     public function latestPasswordResetOtp(): HasOne
     {
         return $this->hasOne(UserPasswordResetOtp::class)->latestOfMany();
     }
 
-    /**
-     * Get all wishlist records for the user.
-     */
     public function wishlists(): HasMany
     {
         return $this->hasMany(Wishlist::class);
     }
 
-    /**
-     * Get all wishlisted products for the user.
-     */
     public function wishlistProducts(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'wishlists')->withTimestamps();
     }
 
-    /**
-     * Get the number of items in the user's wishlist, optionally filtered by shopping mode.
-     */
     public function wishlistCount(?string $modeSlug = null): int
     {
         if ($modeSlug !== null && $modeSlug !== '' && $modeSlug !== 'all') {
@@ -166,17 +117,11 @@ class User extends Authenticatable
         return $this->wishlists()->count();
     }
 
-    /**
-     * Get all cart records for the user.
-     */
     public function carts(): HasMany
     {
         return $this->hasMany(Cart::class);
     }
 
-    /**
-     * Get the total item count in user's carts, optionally scoped by shopping mode.
-     */
     public function cartCount(?string $modeSlug = null): int
     {
         $query = CartItem::whereHas('cart', function ($q) use ($modeSlug) {
@@ -189,25 +134,16 @@ class User extends Authenticatable
         return (int) $query->sum('quantity');
     }
 
-    /**
-     * Customer orders.
-     */
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class)->latest();
     }
 
-    /**
-     * Customer product reviews.
-     */
     public function reviews(): HasMany
     {
         return $this->hasMany(ProductReview::class);
     }
 
-    /**
-     * Check whether user has purchased a given product in any confirmed/delivered order.
-     */
     public function hasPurchasedProduct(Product|int $product): bool
     {
         $productId = $product instanceof Product ? $product->id : $product;
@@ -220,9 +156,6 @@ class User extends Authenticatable
             ->exists();
     }
 
-    /**
-     * Find user's order ID for a given product (if any).
-     */
     public function getOrderIdForProduct(Product|int $product): ?int
     {
         $productId = $product instanceof Product ? $product->id : $product;
@@ -235,9 +168,6 @@ class User extends Authenticatable
             ->value('order_id');
     }
 
-    /**
-     * Check whether user has received this product in a delivered order.
-     */
     public function hasDeliveredProduct(Product|int $product): bool
     {
         $productId = $product instanceof Product ? $product->id : $product;
@@ -250,9 +180,6 @@ class User extends Authenticatable
             ->exists();
     }
 
-    /**
-     * Find user's delivered order ID for a given product (if any).
-     */
     public function getDeliveredOrderIdForProduct(Product|int $product): ?int
     {
         $productId = $product instanceof Product ? $product->id : $product;
@@ -266,4 +193,3 @@ class User extends Authenticatable
             ->value('order_id');
     }
 }
-
